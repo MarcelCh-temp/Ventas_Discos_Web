@@ -1,0 +1,41 @@
+# Swagger de MS-PostSale
+
+## POST — Crear solicitudes y registrar recepciones
+
+### POST /post-sale/cancellations
+Body JSON: SÍ
+
+### POST /post-sale/returns
+Body JSON: SÍ
+
+### POST /post-sale/refunds
+Body JSON: SÍ
+
+### POST /admin/post-sale/returns/{id}/reception
+Body JSON: SÍ
+
+## POST — Actualizar estados mediante resoluciones
+
+### POST /admin/post-sale/cancellations/{id}/resolve
+Body JSON: SÍ
+
+### POST /admin/post-sale/returns/{id}/resolve
+Body JSON: SÍ
+
+## GET — Consultar información
+
+### GET /post-sale/requests/me
+Body JSON: NO
+
+### GET /post-sale/requests/{id}
+Body JSON: NO
+
+### GET /admin/post-sale/requests
+Body JSON: NO
+
+## PUT, PATCH y DELETE
+
+Actualmente MS-PostSale no define estas operaciones.
+
+No se agregan endpoints adicionales porque deben
+respetarse los requerimientos del proyecto.

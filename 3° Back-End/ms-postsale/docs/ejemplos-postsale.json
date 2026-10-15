@@ -1,0 +1,137 @@
+
+{
+  "microservicio": "MS-PostSale",
+  "baseUrl": "http://localhost:8085",
+  "swagger": "http://localhost:8085/swagger-ui.html",
+  "descripcion": "Ejemplos HTTP de MS-PostSale",
+  "nota": "Los identificadores son ilustrativos. Utilizar IDs reales para pruebas funcionales.",
+  "POST_CREATE": [
+    {
+      "nombre": "Solicitar cancelacion",
+      "method": "POST",
+      "endpoint": "/post-sale/cancellations",
+      "requiereBody": true,
+      "body": {
+        "pedidoId": 1,
+        "usuarioId": 1,
+        "motivoSolicitud": "Quiero cancelar el pedido"
+      }
+    },
+    {
+      "nombre": "Solicitar devolucion",
+      "method": "POST",
+      "endpoint": "/post-sale/returns",
+      "requiereBody": true,
+      "body": {
+        "pedidoId": 1,
+        "usuarioId": 1,
+        "motivoSolicitud": "Producto no deseado",
+        "items": [
+          {
+            "productoId": 1,
+            "cantidadSolicitada": 1
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "Registrar reembolso",
+      "method": "POST",
+      "endpoint": "/post-sale/refunds",
+      "requiereBody": true,
+      "body": {
+        "usuarioId": 1,
+        "tipoOrigen": "DEVOLUCION",
+        "solicitudOrigenId": 1
+      }
+    },
+    {
+      "nombre": "Registrar recepcion de devolucion",
+      "method": "POST",
+      "endpoint": "/admin/post-sale/returns/1/reception",
+      "requiereBody": true,
+      "body": {
+        "observaciones": "Recepcion parcial",
+        "items": [
+          {
+            "itemDevolucionId": 1,
+            "cantidadRecibida": 1,
+            "condicion": "BUENA"
+          }
+        ]
+      }
+    }
+  ],
+  "POST_UPDATE": [
+    {
+      "nombre": "Aprobar cancelacion",
+      "method": "POST",
+      "endpoint": "/admin/post-sale/cancellations/1/resolve",
+      "requiereBody": true,
+      "body": {
+        "aprobar": true,
+        "motivo": "Solicitud aprobada"
+      }
+    },
+    {
+      "nombre": "Rechazar cancelacion",
+      "method": "POST",
+      "endpoint": "/admin/post-sale/cancellations/1/resolve",
+      "requiereBody": true,
+      "body": {
+        "aprobar": false,
+        "motivo": "El pedido ya fue despachado"
+      }
+    },
+    {
+      "nombre": "Aprobar devolucion",
+      "method": "POST",
+      "endpoint": "/admin/post-sale/returns/1/resolve",
+      "requiereBody": true,
+      "body": {
+        "aprobar": true,
+        "motivo": "Solicitud aprobada"
+      }
+    },
+    {
+      "nombre": "Rechazar devolucion",
+      "method": "POST",
+      "endpoint": "/admin/post-sale/returns/1/resolve",
+      "requiereBody": true,
+      "body": {
+        "aprobar": false,
+        "motivo": "Solicitud rechazada"
+      }
+    }
+  ],
+  "GET_READ": [
+    {
+      "nombre": "Consultar mis solicitudes",
+      "method": "GET",
+      "endpoint": "/post-sale/requests/me?usuarioId=1",
+      "requiereBody": false
+    },
+    {
+      "nombre": "Consultar detalle de cancelacion",
+      "method": "GET",
+      "endpoint": "/post-sale/requests/1?usuarioId=1&tipo=CANCELACION",
+      "requiereBody": false
+    },
+    {
+      "nombre": "Consultar detalle de devolucion",
+      "method": "GET",
+      "endpoint": "/post-sale/requests/1?usuarioId=1&tipo=DEVOLUCION",
+      "requiereBody": false
+    },
+    {
+      "nombre": "Consultar solicitudes administrativas",
+      "method": "GET",
+      "endpoint": "/admin/post-sale/requests",
+      "requiereBody": false
+    }
+  ],
+  "PUT_UPDATE": [],
+  "PATCH_UPDATE": [],
+  "DELETE": [],
+  "observacion": "La API actual no define endpoints PUT, PATCH ni DELETE."
+}
