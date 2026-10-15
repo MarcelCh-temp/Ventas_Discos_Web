@@ -5,31 +5,33 @@ import com.ventasdiscos.msnotifications.model.Notificacion;
 import com.ventasdiscos.msnotifications.model.TipoNotificacion;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NotificacionRepository
-        extends JpaRepository<Notificacion, Long> {
+        extends JpaRepository<Notificacion, Long>,
+                JpaSpecificationExecutor<Notificacion> {
 
-    // Buscar notificaciones de un usuario
-    // Ordenadas desde la mas reciente
+    // HU-54: Notificaciones de un usuario,
+    // desde la mas reciente
     List<Notificacion> findByUsuarioIdOrderByFechaCreacionDesc(
             Long usuarioId
     );
 
-    // Contar las notificaciones no leidas de un usuario
+    // HU-54: Cantidad de notificaciones no leidas
     long countByUsuarioIdAndLeidaFalse(
             Long usuarioId
     );
 
-    // Buscar notificaciones de un usuario por tipo
+    // HU-55: Filtrar por tipo
     List<Notificacion> findByUsuarioIdAndTipoOrderByFechaCreacionDesc(
             Long usuarioId,
             TipoNotificacion tipo
     );
 
-    // Buscar notificaciones de un usuario por periodo
+    // HU-55: Filtrar por periodo
     List<Notificacion> findByUsuarioIdAndFechaCreacionBetweenOrderByFechaCreacionDesc(
             Long usuarioId,
             LocalDateTime desde,
