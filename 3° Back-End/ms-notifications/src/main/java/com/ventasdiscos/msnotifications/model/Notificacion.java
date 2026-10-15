@@ -45,7 +45,7 @@ public class Notificacion {
     private TipoNotificacion tipo;
 
     @NotNull(message = "La fecha de creacion es obligatoria")
-    @Column(name = "fecha_creacion", nullable = false)
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
     @NotNull(message = "El estado de lectura es obligatorio")
@@ -61,7 +61,6 @@ public class Notificacion {
 
     @PrePersist
     protected void antesDeGuardar() {
-
         if (fechaCreacion == null) {
             fechaCreacion = LocalDateTime.now();
         }

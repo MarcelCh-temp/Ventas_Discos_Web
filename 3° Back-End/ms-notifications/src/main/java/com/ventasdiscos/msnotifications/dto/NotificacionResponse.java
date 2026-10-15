@@ -27,7 +27,6 @@ public class NotificacionResponse {
     public static NotificacionResponse desdeEntidad(
             Notificacion notificacion
     ) {
-
         return new NotificacionResponse(
                 notificacion.getId(),
                 notificacion.getUsuarioId(),
