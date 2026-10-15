@@ -1,0 +1,242 @@
+
+{
+  "microservicio": "MS-Notifications",
+  "baseUrl": "http://localhost:8086",
+
+  "01_POST_CREATE": {
+    "descripcion": "REGISTRO DE NOTIFICACIONES",
+    "pruebas": [
+      {
+        "numero": 1,
+        "nombre": "REGISTRAR NOTIFICACION",
+        "metodo": "POST",
+        "operacion": "CREATE",
+        "endpoint": "/api/v1/internal/notifications/events",
+        "urlCompleta": "http://localhost:8086/api/v1/internal/notifications/events",
+        "requestBody": {
+          "eventoId": "pedido-001-creado",
+          "origen": "ORDERS",
+          "usuarioId": 1,
+          "titulo": "Pedido creado",
+          "mensaje": "Tu pedido fue registrado correctamente",
+          "tipo": "PEDIDO_CREADO",
+          "referenciaId": 10
+        },
+        "respuestaEsperada": {
+          "statusHTTP": 201,
+          "body": {
+            "processed": true,
+            "message": "Notificacion registrada"
+          }
+        },
+        "verificacion": "Se registra una notificacion y el evento procesado."
+      },
+
+      {
+        "numero": 2,
+        "nombre": "COMPROBAR EVENTO DUPLICADO",
+        "metodo": "POST",
+        "operacion": "CREATE",
+        "endpoint": "/api/v1/internal/notifications/events",
+        "urlCompleta": "http://localhost:8086/api/v1/internal/notifications/events",
+        "requestBody": {
+          "eventoId": "pedido-001-creado",
+          "origen": "ORDERS",
+          "usuarioId": 1,
+          "titulo": "Pedido creado",
+          "mensaje": "Tu pedido fue registrado correctamente",
+          "tipo": "PEDIDO_CREADO",
+          "referenciaId": 10
+        },
+        "respuestaEsperada": {
+          "statusHTTP": 200,
+          "body": {
+            "processed": false,
+            "message": "Evento procesado anteriormente"
+          }
+        },
+        "verificacion": "Al repetir el evento anterior, no se registra una segunda notificacion."
+      },
+
+      {
+        "numero": 3,
+        "nombre": "VALIDAR DATOS INCORRECTOS",
+        "metodo": "POST",
+        "operacion": "CREATE",
+        "endpoint": "/api/v1/internal/notifications/events",
+        "urlCompleta": "http://localhost:8086/api/v1/internal/notifications/events",
+        "requestBody": {
+          "eventoId": "",
+          "origen": "ORDERS",
+          "usuarioId": -1,
+          "titulo": "",
+          "mensaje": "Prueba de validacion",
+          "tipo": "PEDIDO_CREADO",
+          "referenciaId": 10
+        },
+        "respuestaEsperada": {
+          "statusHTTP": 400
+        },
+        "verificacion": "La solicitud se rechaza y no se registra el evento."
+      }
+    ]
+  },
+
+  "02_GET_READ": {
+    "descripcion": "CONSULTA DE NOTIFICACIONES",
+    "pruebas": [
+      {
+        "numero": 4,
+        "nombre": "LISTAR NOTIFICACIONES DE UN USUARIO",
+        "metodo": "GET",
+        "operacion": "READ",
+        "endpoint": "/api/v1/notifications/me",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/me?usuarioId=1",
+        "parametros": {
+          "usuarioId": 1
+        },
+        "requestBody": null,
+        "respuestaEjemplo": {
+          "statusHTTP": 200,
+          "body": [
+            {
+              "id": 1,
+              "usuarioId": 1,
+              "titulo": "Pedido creado",
+              "mensaje": "Tu pedido fue registrado correctamente",
+              "tipo": "PEDIDO_CREADO",
+              "fechaCreacion": "2026-10-15T08:30:00",
+              "leida": false,
+              "referenciaId": 10
+            }
+          ]
+        },
+        "verificacion": "Se muestran las notificaciones del usuario indicado."
+      },
+
+      {
+        "numero": 5,
+        "nombre": "FILTRAR POR TIPO",
+        "metodo": "GET",
+        "operacion": "READ",
+        "endpoint": "/api/v1/notifications/me",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/me?usuarioId=1&type=PEDIDO_CREADO",
+        "parametros": {
+          "usuarioId": 1,
+          "type": "PEDIDO_CREADO"
+        },
+        "requestBody": null,
+        "respuestaEsperada": {
+          "statusHTTP": 200,
+          "formato": "Lista JSON"
+        },
+        "verificacion": "Solo se muestran notificaciones del tipo indicado."
+      },
+
+      {
+        "numero": 6,
+        "nombre": "FILTRAR POR FECHA",
+        "metodo": "GET",
+        "operacion": "READ",
+        "endpoint": "/api/v1/notifications/me",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/me?usuarioId=1&from=2026-10-01T00:00:00&to=2026-10-31T23:59:59",
+        "parametros": {
+          "usuarioId": 1,
+          "from": "2026-10-01T00:00:00",
+          "to": "2026-10-31T23:59:59"
+        },
+        "requestBody": null,
+        "respuestaEsperada": {
+          "statusHTTP": 200,
+          "formato": "Lista JSON"
+        },
+        "verificacion": "Las notificaciones pertenecen al periodo solicitado."
+      },
+
+      {
+        "numero": 7,
+        "nombre": "FILTRAR POR TIPO Y FECHA",
+        "metodo": "GET",
+        "operacion": "READ",
+        "endpoint": "/api/v1/notifications/me",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/me?usuarioId=1&type=PEDIDO_CREADO&from=2026-10-01T00:00:00&to=2026-10-31T23:59:59",
+        "parametros": {
+          "usuarioId": 1,
+          "type": "PEDIDO_CREADO",
+          "from": "2026-10-01T00:00:00",
+          "to": "2026-10-31T23:59:59"
+        },
+        "requestBody": null,
+        "respuestaEsperada": {
+          "statusHTTP": 200,
+          "formato": "Lista JSON"
+        },
+        "verificacion": "Se aplican los filtros de tipo y fecha."
+      },
+
+      {
+        "numero": 8,
+        "nombre": "CONTAR NOTIFICACIONES NO LEIDAS",
+        "metodo": "GET",
+        "operacion": "READ",
+        "endpoint": "/api/v1/notifications/me/unread-count",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/me/unread-count?usuarioId=1",
+        "parametros": {
+          "usuarioId": 1
+        },
+        "requestBody": null,
+        "respuestaEjemplo": {
+          "statusHTTP": 200,
+          "body": {
+            "unreadCount": 1
+          }
+        },
+        "verificacion": "Devuelve la cantidad de notificaciones no leidas."
+      }
+    ]
+  },
+
+  "03_PATCH_UPDATE": {
+    "descripcion": "ACTUALIZACION DE NOTIFICACIONES",
+    "pruebas": [
+      {
+        "numero": 9,
+        "nombre": "MARCAR UNA NOTIFICACION COMO LEIDA",
+        "metodo": "PATCH",
+        "operacion": "UPDATE",
+        "endpoint": "/api/v1/notifications/{id}/read",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/1/read?usuarioId=1",
+        "parametros": {
+          "id": 1,
+          "usuarioId": 1
+        },
+        "requestBody": null,
+        "respuestaEsperada": {
+          "statusHTTP": 204,
+          "body": null
+        },
+        "verificacion": "El campo leida cambia a true."
+      },
+
+      {
+        "numero": 10,
+        "nombre": "MARCAR TODAS COMO LEIDAS",
+        "metodo": "PATCH",
+        "operacion": "UPDATE",
+        "endpoint": "/api/v1/notifications/read-all",
+        "urlCompleta": "http://localhost:8086/api/v1/notifications/read-all?usuarioId=1",
+        "parametros": {
+          "usuarioId": 1
+        },
+        "requestBody": null,
+        "respuestaEjemplo": {
+          "statusHTTP": 200,
+          "body": {
+            "updatedCount": 1
+          }
+        },
+        "verificacion": "Las notificaciones pendientes quedan marcadas como leidas."
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+
+package com.ventasdiscos.msnotifications.model;
+
+public enum TipoNotificacion {
+
+    PEDIDO_CREADO,
+    PEDIDO_ACTUALIZADO,
+
+    SOPORTE_CREADO,
+    SOPORTE_RESPONDIDO,
+    SOPORTE_CERRADO,
+
+    CANCELACION_CREADA,
+    CANCELACION_RESUELTA,
+
+    DEVOLUCION_CREADA,
+    DEVOLUCION_RESUELTA,
+
+    REEMBOLSO_REGISTRADO
+}
