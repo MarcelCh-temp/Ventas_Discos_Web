@@ -11,6 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -22,25 +26,33 @@ public class Notificacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "El usuario destinatario es obligatorio")
+    @Positive(message = "El identificador del usuario debe ser positivo")
     @Column(name = "usuario_id", nullable = false)
     private Long usuarioId;
 
+    @NotBlank(message = "El titulo es obligatorio")
     @Column(nullable = false)
     private String titulo;
 
+    @NotBlank(message = "El mensaje es obligatorio")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String mensaje;
 
+    @NotNull(message = "El tipo de notificacion es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoNotificacion tipo;
 
+    @NotNull(message = "La fecha de creacion es obligatoria")
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
 
+    @NotNull(message = "El estado de lectura es obligatorio")
     @Column(nullable = false)
     private Boolean leida = false;
 
+    @Positive(message = "El identificador de referencia debe ser positivo")
     @Column(name = "referencia_id")
     private Long referenciaId;
 
@@ -49,6 +61,7 @@ public class Notificacion {
 
     @PrePersist
     protected void antesDeGuardar() {
+
         if (fechaCreacion == null) {
             fechaCreacion = LocalDateTime.now();
         }
@@ -67,8 +80,8 @@ public class Notificacion {
     }
 
     public boolean perteneceA(Long usuarioId) {
-        return Objects.equals(this.usuarioId, usuarioId)
-                && usuarioId != null;
+        return usuarioId != null
+                && Objects.equals(this.usuarioId, usuarioId);
     }
 
     public Long getId() {
