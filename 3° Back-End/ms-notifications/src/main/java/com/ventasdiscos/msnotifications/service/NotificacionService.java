@@ -1,3 +1,4 @@
+
 package com.ventasdiscos.msnotifications.service;
 
 import com.ventasdiscos.msnotifications.exception.NotificacionNoEncontradaException;
@@ -16,99 +17,77 @@ import java.util.List;
 @Service
 public class NotificacionService {
 
-    private final NotificacionRepository notificacionRepository;
+    private final NotificacionRepository repository;
 
-    public NotificacionService(
-            NotificacionRepository notificacionRepository
-    ) {
-        this.notificacionRepository = notificacionRepository;
+    public NotificacionService(NotificacionRepository repository) {
+        this.repository = repository;
     }
 
-    // HU-54: Listar notificaciones del usuario
+    // Consultar notificaciones de un usuario.
     @Transactional(readOnly = true)
     public List<Notificacion> listarPorUsuario(Long usuarioId) {
-
-        validarIdentificador(usuarioId, "usuario");
-
-        return notificacionRepository
-                .findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
+        return buscarNotificaciones(usuarioId, null, null, null);
     }
 
-    // HU-54: Contar no leidas
+    // Contar notificaciones no leidas.
     @Transactional(readOnly = true)
     public long contarNoLeidas(Long usuarioId) {
-
-        validarIdentificador(usuarioId, "usuario");
-
-        return notificacionRepository
-                .countByUsuarioIdAndLeidaFalse(usuarioId);
+        validarIdentificador(usuarioId);
+        return repository.countByUsuarioIdAndLeidaFalse(usuarioId);
     }
 
-    // HU-54: Marcar una notificacion como leida
+    // Marcar una notificacion como leida.
     @Transactional
-    public void marcarComoLeida(
-            Long notificacionId,
-            Long usuarioId
-    ) {
+    public void marcarComoLeida(Long notificacionId, Long usuarioId) {
 
-        validarIdentificador(notificacionId, "notificacion");
-        validarIdentificador(usuarioId, "usuario");
+        validarIdentificador(notificacionId);
+        validarIdentificador(usuarioId);
 
-        Notificacion notificacion = notificacionRepository
-                .findByIdAndUsuarioId(notificacionId, usuarioId)
-                .orElseThrow(() ->
-                        new NotificacionNoEncontradaException(
-                                "No se encontro la notificacion solicitada"
-                        )
-                );
+        Notificacion notificacion =
+                repository.findByIdAndUsuarioId(
+                        notificacionId, usuarioId
+                ).orElseThrow(NotificacionNoEncontradaException::new);
 
         if (!notificacion.estaLeida()) {
             notificacion.marcarComoLeida();
         }
     }
 
-    // HU-54: Marcar todas como leidas
+    // Marcar todas las notificaciones no leidas.
     @Transactional
     public int marcarTodasComoLeidas(Long usuarioId) {
-
-        validarIdentificador(usuarioId, "usuario");
-
-        return notificacionRepository
-                .marcarTodasComoLeidas(usuarioId);
+        validarIdentificador(usuarioId);
+        return repository.marcarTodasComoLeidas(usuarioId);
     }
 
-    // HU-55: Filtros combinados
+    // Buscar por usuario, tipo y periodo.
     @Transactional(readOnly = true)
     public List<Notificacion> buscarNotificaciones(
             Long usuarioId,
             TipoNotificacion tipo,
             LocalDateTime desde,
-            LocalDateTime hasta
-    ) {
+            LocalDateTime hasta) {
 
-        validarIdentificador(usuarioId, "usuario");
-        validarPeriodo(desde, hasta);
+        validarIdentificador(usuarioId);
+
+        if (desde != null && hasta != null && desde.isAfter(hasta)) {
+            throw new IllegalArgumentException(
+                    "La fecha inicial no puede superar la fecha final"
+            );
+        }
 
         Specification<Notificacion> filtros =
                 (root, query, cb) ->
-                        cb.equal(
-                                root.get("usuarioId"),
-                                usuarioId
-                        );
+                        cb.equal(root.get("usuarioId"), usuarioId);
 
         if (tipo != null) {
-
             filtros = filtros.and(
                     (root, query, cb) ->
-                            cb.equal(
-                                    root.get("tipo"),
-                                    tipo
-                            )
+                            cb.equal(root.get("tipo"), tipo)
             );
         }
 
         if (desde != null) {
-
             filtros = filtros.and(
                     (root, query, cb) ->
                             cb.greaterThanOrEqualTo(
@@ -119,7 +98,6 @@ public class NotificacionService {
         }
 
         if (hasta != null) {
-
             filtros = filtros.and(
                     (root, query, cb) ->
                             cb.lessThanOrEqualTo(
@@ -129,41 +107,33 @@ public class NotificacionService {
             );
         }
 
-        return notificacionRepository.findAll(
+        return repository.findAll(
                 filtros,
-                Sort.by(
-                        Sort.Direction.DESC,
-                        "fechaCreacion"
-                )
+                Sort.by(Sort.Direction.DESC, "fechaCreacion")
         );
     }
 
+    // Filtrar solo por tipo.
     @Transactional(readOnly = true)
     public List<Notificacion> filtrarPorTipo(
             Long usuarioId,
-            TipoNotificacion tipo
-    ) {
+            TipoNotificacion tipo) {
 
         if (tipo == null) {
             throw new IllegalArgumentException(
-                    "El tipo de notificacion es obligatorio"
+                    "El tipo es obligatorio"
             );
         }
 
-        return buscarNotificaciones(
-                usuarioId,
-                tipo,
-                null,
-                null
-        );
+        return buscarNotificaciones(usuarioId, tipo, null, null);
     }
 
+    // Filtrar solo por periodo.
     @Transactional(readOnly = true)
     public List<Notificacion> filtrarPorPeriodo(
             Long usuarioId,
             LocalDateTime desde,
-            LocalDateTime hasta
-    ) {
+            LocalDateTime hasta) {
 
         if (desde == null || hasta == null) {
             throw new IllegalArgumentException(
@@ -171,38 +141,13 @@ public class NotificacionService {
             );
         }
 
-        return buscarNotificaciones(
-                usuarioId,
-                null,
-                desde,
-                hasta
-        );
+        return buscarNotificaciones(usuarioId, null, desde, hasta);
     }
 
-    private void validarIdentificador(
-            Long identificador,
-            String nombre
-    ) {
-
-        if (identificador == null || identificador <= 0) {
+    private void validarIdentificador(Long id) {
+        if (id == null || id <= 0) {
             throw new IllegalArgumentException(
-                    "El identificador de " + nombre
-                            + " debe ser positivo"
-            );
-        }
-    }
-
-    private void validarPeriodo(
-            LocalDateTime desde,
-            LocalDateTime hasta
-    ) {
-
-        if (desde != null
-                && hasta != null
-                && desde.isAfter(hasta)) {
-
-            throw new IllegalArgumentException(
-                    "La fecha inicial no puede ser posterior a la fecha final"
+                    "El identificador debe ser positivo"
             );
         }
     }

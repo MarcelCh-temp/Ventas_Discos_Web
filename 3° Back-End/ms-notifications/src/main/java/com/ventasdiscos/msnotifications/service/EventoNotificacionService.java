@@ -13,41 +13,43 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EventoNotificacionService {
 
-    private final NotificacionRepository notificacionRepository;
     private final EventoProcesadoRepository eventoProcesadoRepository;
+    private final NotificacionRepository notificacionRepository;
 
     public EventoNotificacionService(
-            NotificacionRepository notificacionRepository,
-            EventoProcesadoRepository eventoProcesadoRepository
-    ) {
-        this.notificacionRepository = notificacionRepository;
+            EventoProcesadoRepository eventoProcesadoRepository,
+            NotificacionRepository notificacionRepository) {
+
         this.eventoProcesadoRepository = eventoProcesadoRepository;
+        this.notificacionRepository = notificacionRepository;
     }
 
+    // Registra una notificacion cuando el evento no existe previamente.
     @Transactional
-    public boolean procesarEvento(EventoNotificacionRequest request) {
+    public boolean procesarEvento(EventoNotificacionRequest evento) {
 
-        if (eventoProcesadoRepository.existsByOrigenAndEventoId(
-                request.getOrigen(),
-                request.getEventoId()
-        )) {
+        boolean yaProcesado =
+                eventoProcesadoRepository.existsByOrigenAndEventoId(
+                        evento.getOrigen(),
+                        evento.getEventoId()
+                );
+
+        if (yaProcesado) {
             return false;
         }
 
-        EventoProcesado evento = new EventoProcesado(
-                request.getEventoId(),
-                request.getOrigen()
-        );
+        EventoProcesado registro = new EventoProcesado();
+        registro.setEventoId(evento.getEventoId());
+        registro.setOrigen(evento.getOrigen());
 
-        eventoProcesadoRepository.saveAndFlush(evento);
+        eventoProcesadoRepository.saveAndFlush(registro);
 
         Notificacion notificacion = new Notificacion();
-
-        notificacion.setUsuarioId(request.getUsuarioId());
-        notificacion.setTitulo(request.getTitulo());
-        notificacion.setMensaje(request.getMensaje());
-        notificacion.setTipo(request.getTipo());
-        notificacion.setReferenciaId(request.getReferenciaId());
+        notificacion.setUsuarioId(evento.getUsuarioId());
+        notificacion.setTitulo(evento.getTitulo());
+        notificacion.setMensaje(evento.getMensaje());
+        notificacion.setTipo(evento.getTipo());
+        notificacion.setReferenciaId(evento.getReferenciaId());
 
         notificacionRepository.save(notificacion);
 
