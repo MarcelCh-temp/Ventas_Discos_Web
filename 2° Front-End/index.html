@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ñackson Store - Tienda de Entretenimiento Físico y Merchandising</title>
+    
+    <!-- Google Fonts: Changa y Dela Gothic One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@700;800&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+
+    <!-- CSS local de Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+
+        /* EFECTO HEADER INTELIGENTE (ESTILO SPOTIFY) */
+.navbar-futurista {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    transition: transform 0.35s ease-in-out, background-color 0.35s ease;
+}
+
+/* Esta clase moverá la barra fuera de la pantalla hacia arriba */
+.navbar-oculta {
+    transform: translateY(-100%);
+}
+
+        /* REGISTRO DE VARIABLE PARA ANIMAR EL ÁNGULO DEL ARCOÍRIS */
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @keyframes girarArcoiris {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        /* ESTILOS DE LA TARJETA CON BORDE ARCOÍRIS FLUIDO */
+        .categoria-card {
+            position: relative;
+            background-color: #111827;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            z-index: 1;
+            border: none !important; /* Quita el borde por defecto */
+        }
+
+        /* CAPA INTERNA PARA LA IMAGEN Y CAPAS DE TEXTO */
+        .categoria-card img {
+            transition: transform 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
+            filter: brightness(0.85);
+        }
+
+        /* MARCO GIRATORIO ARCOÍRIS CON CONIC-GRADIENT (PSEUDOELEMENTO ::before) */
+        .categoria-card::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: conic-gradient(
+                from var(--angle), 
+                #ff0055, 
+                #7a00ff, 
+                #00e5ff, 
+                #00ff66, 
+                #ffea00, 
+                #ff0055
+            );
+            border-radius: 12px; /* Ajuste para bordes redondeados */
+            z-index: -1;
+            opacity: 0; /* Oculto por defecto */
+            transition: opacity 0.35s ease;
+            animation: girarArcoiris 2.5s linear infinite;
+        }
+
+        /* RESPLANDOR/GLOW EXTERNO CON LOS MISMOS COLORES (PSEUDOELEMENTO ::after) */
+        .categoria-card::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: conic-gradient(
+                from var(--angle), 
+                #ff0055, 
+                #7a00ff, 
+                #00e5ff, 
+                #00ff66, 
+                #ffea00, 
+                #ff0055
+            );
+            border-radius: 14px;
+            z-index: -2;
+            opacity: 0;
+            filter: blur(12px); /* Crea la luz de neón proyectada */
+            transition: opacity 0.35s ease;
+            animation: girarArcoiris 2.5s linear infinite;
+        }
+
+        /* --- EFECTOS EN HOVER --- */
+        .categoria-card:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        /* Muestra el arcoíris y su resplandor al pasar el cursor */
+        .categoria-card:hover::before,
+        .categoria-card:hover::after {
+            opacity: 1;
+        }
+
+        .categoria-card:hover img {
+            transform: scale(1.08);
+            opacity: 0.95 !important;
+            filter: brightness(1.1);
+        }
+
+        .categoria-card h3 {
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .categoria-card:hover h3 {
+            color: #ffffff !important;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(0, 229, 255, 0.8);
+            letter-spacing: 1.5px;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+        
+        /* Changa para títulos */
+        h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* CINTILLO SUPERIOR ANIMADO EN BUCLE */
+        .cintillo-animado-container {
+            background: linear-gradient(90deg, #d63384, #0d6efd);
+            color: #ffffff;
+            font-family: 'Changa', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            height: 38px;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1020;
+        }
+
+        .cintillo-track {
+            display: inline-flex;
+            animation: deslizarCintillo 25s linear infinite;
+        }
+
+        .cintillo-track:hover {
+            animation-play-state: paused;
+        }
+
+        .cintillo-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 40px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        @keyframes deslizarCintillo {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* TÍTULO INTERACTIVO CON EVITACIÓN DE SELECCIÓN DE TEXTO */
+        .hero-titulo-especial {
+            font-family: 'Dela Gothic One', sans-serif !important;
+            letter-spacing: 2px;
+            font-size: 2.8rem;
+            cursor: pointer;
+            transition: text-shadow 0.3s ease, transform 0.1s ease;
+            display: inline-block;
+            
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .hero-titulo-especial:hover {
+            text-shadow: 0 0 20px rgba(13, 110, 253, 0.9), 0 0 40px rgba(13, 110, 253, 0.5);
+        }
+
+        /* ANIMACIÓN DE TEMBLOR AL HACER CLIC */
+        @keyframes temblor-anim {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 3px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-3px, -2px) rotate(0deg); }
+            80% { transform: translate(2px, 2px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .temblando {
+            animation: temblor-anim 0.2s ease infinite;
+        }
+
+        h2:hover, h3:hover, .navbar-brand:hover {
+            text-shadow: 0 0 15px rgba(13, 110, 253, 0.8), 0 0 30px rgba(13, 110, 253, 0.4);
+            transition: text-shadow 0.3s ease;
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* NAVBAR 100% TRANSLÚCIDA Y MODERNA FORZADA */
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.3) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* CÁPSULA DE ADMINISTRADOR ESTILO DISCORD ULTRATRANSPARENTE */
+        .admin-discord-profile {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(111, 66, 193, 0.25)) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 2px solid rgba(255, 193, 7, 0.85) !important;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.35), inset 0 0 10px rgba(220, 53, 69, 0.2);
+            padding: 5px 16px 5px 6px !important;
+            border-radius: 50rem !important;
+            animation: adminGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.3), inset 0 0 5px rgba(220, 53, 69, 0.2); }
+            100% { box-shadow: 0 0 22px rgba(255, 193, 7, 0.75), inset 0 0 12px rgba(255, 193, 7, 0.4); }
+        }
+
+        .admin-badge-text {
+            color: #ffc107 !important;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
+        }
+
+        /* HERO SECTION DEL INICIO CON VIDEO */
+        .hero-futurista {
+            position: relative;
+            background-color: #0b0f19;
+            overflow: hidden;
+            min-height: 55vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, rgba(13, 110, 253, 0.25) 0%, rgba(11, 15, 25, 0.95) 80%);
+            z-index: 1;
+        }
+
+        .hero-subtítulo {
+            color: #ffffff !important;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Tarjetas de productos y categorías */
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 25px rgba(13, 110, 253, 0.4);
+        }
+
+        /* ESTILOS PARA LAS TARJETAS DE CATEGORÍAS */
+        .categoria-card {
+            transition: all 0.3s ease;
+            background-color: #111827;
+        }
+
+        .categoria-card:hover {
+            transform: translateY(-4px);
+            border-color: #0d6efd !important;
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+        }
+
+        .categoria-card img {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+
+        .categoria-card:hover img {
+            transform: scale(1.08);
+            opacity: 0.9 !important;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* BOTÓN FLOTANTE DE REGALO (RULETA) */
+        #ruletaWidget {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 9999;
+        }
+
+        /* WIDGET DE RADIO FLOTANTE */
+        #radioWidget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+        }
+        .radio-panel {
+            display: none;
+            width: 320px;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(13, 110, 253, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .radio-panel.active {
+            display: block;
+        }
+        .equalizer-icon {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 22px;
+            width: 24px;
+        }
+        .eq-bar {
+            width: 4px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            height: 6px;
+        }
+        .equalizer-icon.playing .eq-bar:nth-child(1) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.1s; }
+        .equalizer-icon.playing .eq-bar:nth-child(2) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.4s; }
+        .equalizer-icon.playing .eq-bar:nth-child(3) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.2s; }
+        .equalizer-icon.playing .eq-bar:nth-child(4) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.5s; }
+        @keyframes eqAnim {
+            0% { transform: scaleY(0.4); }
+            100% { transform: scaleY(1.3); }
+        }
+
+        /* MODAL DE LA RULETA */
+        .ruleta-overlay-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 15, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 1050;
+            justify-content: center;
+            align-items: center;
+        }
+        .ruleta-overlay-modal.active {
+            display: flex;
+        }
+
+        .ruleta-modal-content {
+            background: #111827;
+            border: 2px solid rgba(220, 53, 69, 0.6);
+            border-radius: 22px;
+            width: 92%;
+            max-width: 600px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+            position: relative;
+            animation: aparecerModal 0.3s ease;
+        }
+
+        @keyframes aparecerModal {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .ruleta-canvas-container {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            margin: 20px auto;
+        }
+        #ruletaCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
+        }
+        .ruleta-puntero {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 30px solid #ff4757;
+            z-index: 20;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- CINTILLO SUPERIOR ANIMADO EN BUCLE -->
+    <div class="cintillo-animado-container">
+        <div class="cintillo-track">
+            <div class="cintillo-item"><i class="bi bi-controller me-2"></i> ¡TODO EN FORMATO FÍSICO Y COLECCIONABLES!</div>
+            <div class="cintillo-item"><i class="bi bi-truck me-2"></i> DESPACHOS A TODO CHILE</div>
+            <div class="cintillo-item"><i class="bi bi-credit-card-2-front-fill me-2"></i> PAGA HASTA 6 CUOTAS SIN INTERÉS CON WEBPAY</div>
+            <div class="cintillo-item"><i class="bi bi-gift-fill me-2"></i> 5% DCTO EXTRA EN TU PRIMERA COMPRA</div>
+            <div class="cintillo-item"><i class="bi bi-broadcast me-2"></i> ESCUCHA ÑACKSON RADIO LIVE EN VIVO</div>
+            
+            <div class="cintillo-item"><i class="bi bi-controller me-2"></i> ¡TODO EN FORMATO FÍSICO Y COLECCIONABLES!</div>
+            <div class="cintillo-item"><i class="bi bi-truck me-2"></i> DESPACHOS A TODO CHILE</div>
+            <div class="cintillo-item"><i class="bi bi-credit-card-2-front-fill me-2"></i> PAGA HASTA 6 CUOTAS SIN INTERÉS CON WEBPAY</div>
+            <div class="cintillo-item"><i class="bi bi-gift-fill me-2"></i> 5% DCTO EXTRA EN TU PRIMERA COMPRA</div>
+            <div class="cintillo-item"><i class="bi bi-broadcast me-2"></i> ESCUCHA ÑACKSON RADIO LIVE EN VIVO</div>
+        </div>
+    </div>
+
+    <!-- 1. BARRA DE NAVEGACIÓN MODERNA Y TRANSLÚCIDA -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand text-danger d-flex align-items-center gap-2" href="index.html">
+                <img src="img/logo.gif" alt="Logo Ñackson Store" width="40" height="40" class="rounded-circle border border-danger object-fit-cover">
+                <span class="text-light">Ñackson <span class="text-primary">Store</span></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link active text-primary fw-bold" href="index.html">INICIO</a></li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            CATEGORÍAS
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary">
+                            <li><a class="dropdown-item" href="musica.html">Música (CD / Vinilo)</a></li>
+                            <li><a class="dropdown-item" href="series.html">Series</a></li>
+                            <li><a class="dropdown-item" href="peliculas.html">Películas</a></li>
+                            <li><a class="dropdown-item" href="anime.html">Anime</a></li>
+                            <li><a class="dropdown-item" href="bluray.html">Blu-ray / DVD (General)</a></li>
+                            <li><a class="dropdown-item" href="videojuegos.html">Videojuegos</a></li>
+                            <li><a class="dropdown-item" href="accesorios.html">Accesorios</a></li>
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                            <li><a class="dropdown-item text-danger fw-bold" href="merchandising.html">Merchandising</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Botón Carrito -->
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link text-light position-relative" href="carrito.html">
+                            <i class="bi bi-cart-fill me-1"></i> Carrito
+                        </a>
+                    </li>
+
+                    <!-- Botón Panel Admin -->
+                    <div id="enlaceAdminContainer" class="d-inline-block ms-lg-2"></div>
+                </ul>
+
+                <form class="d-flex me-3" action="resultados.html" method="GET" role="search">
+                    <input class="form-control form-control-sm me-2 bg-dark text-light border-secondary" type="search" name="q" placeholder="Buscar producto..." aria-label="Search" required>
+                    <button class="btn btn-outline-light btn-sm rounded-pill px-3" type="submit">Buscar</button>
+                </form>
+
+                <div class="d-flex align-items-center gap-2" id="menuUsuario">
+                    <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                        <i class="bi bi-person-fill me-1"></i> INGRESAR
+                    </a>
+                    <a href="registro.html" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-person-plus-fill me-1"></i> REGISTRO
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. HERO SECTION DEL INICIO CON VIDEO -->
+    <header class="hero-futurista text-white text-center py-4 border-bottom border-secondary">
+        <video autoplay muted loop playsinline class="hero-video-bg">
+            <source src="video/fondo.mp4" type="video/mp4">
+            Tu navegador no soporta videos HTML5.
+        </video>
+        <div class="hero-overlay"></div>
+
+        <div class="container position-relative z-2">
+            <h1 id="tituloAkiba" class="hero-titulo-especial text-white mb-2">ÑACKSON STORE</h1>
+            <p class="small mb-3 font-monospace hero-subtítulo" style="max-width: 550px; margin: 0 auto;">Revive la nostalgia. Siente el poder de lo físico. Colecciona discos, películas, series, anime, videojuegos y artículos exclusivos con la mejor calidad.</p>
+        </div>
+    </header>
+
+    <!-- 3. SECCIÓN DE NUEVOS PRODUCTOS -->
+    <main class="container my-5 flex-grow-1" id="catalogo">
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-5">
+                <h2 class="mb-0 text-light fs-3">NUEVOS PRODUCTOS</h2>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <!-- Producto 1: Evangelion -->
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary bg-opacity-10 border border-secondary text-light shadow-sm overflow-hidden">
+                    <img src="img/evangelion.jpg" alt="Neon Genesis Evangelion" class="card-img-top object-fit-cover" style="height: 220px;">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">Neon Genesis Evangelion - Box Set</h3>
+                        <p class="card-text text-muted small">Edición coleccionista en formato Blu-ray.</p>
+                        <div class="mt-auto">
+                            <span class="fw-bold text-success fs-5">$29.990</span>
+                            <a href="anime.html" class="btn btn-outline-primary w-100 mt-2">Ver en Anime</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Producto 2: Vinilo Rock -->
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary bg-opacity-10 border border-secondary text-light shadow-sm overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=600&auto=format&fit=crop" alt="Álbum Rock Clásico" class="card-img-top object-fit-cover" style="height: 220px;">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">Álbum Rock Clásico (Vinilo)</h3>
+                        <p class="card-text text-muted small">Edición remasterizada de alta fidelidad.</p>
+                        <div class="mt-auto">
+                            <span class="fw-bold text-success fs-5">$24.990</span>
+                            <a href="musica.html" class="btn btn-outline-primary w-100 mt-2">Ver en Música</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Producto 3: Cyberpunk -->
+            <div class="col-md-4">
+                <div class="card h-100 bg-secondary bg-opacity-10 border border-secondary text-light shadow-sm overflow-hidden">
+                    <img src="img/cyberpunk.jpg" alt="Cyberpunk Edgerunners" class="card-img-top object-fit-cover" style="height: 220px;">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title h5">Cyberpunk Edgerunners - Blu-ray</h3>
+                        <p class="card-text text-muted small">Serie completa con extras exclusivos.</p>
+                        <div class="mt-auto">
+                            <span class="fw-bold text-success fs-5">$21.990</span>
+                            <a href="series.html" class="btn btn-outline-primary w-100 mt-2">Ver en Series</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SECCIÓN DE CUADROS DE CATEGORÍAS CON IMÁGENES -->
+        <div class="row mb-4 align-items-center pt-3 border-top border-secondary">
+            <div class="col-md-6">
+                <h2 class="mb-0 text-light fs-3">EXPLORA POR CATEGORÍA</h2>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <a href="musica.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_musica.jpg" alt="Música" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">MÚSICA</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="anime.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_anime.jpg" alt="Anime" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">ANIME</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="videojuegos.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_videojuegos.jpg" alt="Videojuegos" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">VIDEOJUEGOS</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="peliculas.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_peliculas.jpg" alt="Películas" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">PELÍCULAS</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="series.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_series.jpg" alt="Series" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">SERIES</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="bluray.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_bluray.jpg" alt="Blu-ray / DVD" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">BLU-RAY / DVD</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="accesorios.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_accesorios.jpg" alt="Accesorios" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">ACCESORIOS</h3>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="merchandising.html" class="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">
+                    <img src="img/cat_merch.jpg" alt="Merchandising" class="w-100 object-fit-cover" style="height: 110px; opacity: 0.75;">
+                    <div class="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">
+                        <h3 class="h6 mb-0 text-white fw-bold text-shadow">MERCHANDISING</h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTÓN FLOTANTE DE REGALO (RULETA) -->
+    <div id="ruletaWidget">
+        <button class="btn btn-danger rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" onclick="toggleRuletaModal()" title="Ruleta de Premios Ñackson">
+            <i class="bi bi-gift-fill fs-3 text-white"></i>
+        </button>
+    </div>
+
+    <!-- WIDGET DE RADIO FLOTANTE -->
+    <div id="radioWidget">
+        <div id="radioPanel" class="radio-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-2">
+                <span class="fw-bold text-primary small"><i class="bi bi-broadcast me-1"></i> ÑACKSON RADIO LIVE</span>
+                <button type="button" class="btn-close btn-close-white btn-sm" onclick="toggleRadioPanel()"></button>
+            </div>
+            <div class="text-center mb-3">
+                <span id="radioStatus" class="badge bg-secondary mb-1">Radio en pausa</span>
+                <p id="radioStationName" class="text-light small mb-0 fw-bold">Selecciona una emisora</p>
+            </div>
+            <div class="mb-3">
+                <select id="selectEstacion" class="form-select form-select-sm bg-dark text-light border-secondary" onchange="cambiarEstacion()">
+                    <option value="https://stream.zeno.fm/f3wvbbqmdg8uv">Lo-Fi & Chill Beats (Stream HD)</option>
+                    <option value="https://icecast.omroep.nl/radio2-bb-mp3">Rock Clásico Internacional</option>
+                    <option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CONCIERTO.mp3">Radio Concierto Chile (En Vivo)</option>
+                </select>
+            </div>
+            <audio id="audioPlayer" preload="none"></audio>
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                <button id="btnPlayPause" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="controlarReproduccion()">
+                    <i class="bi bi-play-fill fs-5"></i> Reproducir
+                </button>
+            </div>
+        </div>
+        <button id="btnRadioToggle" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" onclick="toggleRadioPanel()" title="Abrir Radio Ñackson">
+            <i id="iconoNota" class="bi bi-music-note-beamed fs-3 text-white"></i>
+            <div id="iconoEq" class="equalizer-icon" style="display: none;">
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+            </div>
+        </button>
+    </div>
+
+    <!-- MODAL DE LA RULETA -->
+    <div id="ruletaModal" class="ruleta-overlay-modal">
+        <div class="ruleta-modal-content text-center">
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-4" onclick="toggleRuletaModal()"></button>
+            
+            <h3 class="text-danger fw-bold mb-2" style="font-family: 'Changa', sans-serif;"><i class="bi bi-gift-fill me-1"></i> ¡JUEGA Y GANA!</h3>
+            <p id="subtituloRuleta" class="text-light mb-3" style="font-size: 0.95rem;">Ingresa tu correo y gira la ruleta para ganar premios exclusivos sobre $20.000</p>
+            
+            <div class="ruleta-canvas-container">
+                <div class="ruleta-puntero"></div>
+                <canvas id="ruletaCanvas" width="500" height="500"></canvas>
+            </div>
+
+            <div id="resultadoPremio" class="fw-bold text-warning mb-3" style="min-height: 25px;"></div>
+
+            <div id="contenedorFormRuleta" class="mb-2 px-md-4">
+                <input type="email" id="correoRuleta" class="form-control bg-dark text-light border-secondary mb-3 text-center py-2" placeholder="email@example.com">
+                <button type="button" id="btnGirar" class="btn btn-danger w-100 fw-bold shadow-sm py-2 fs-6" onclick="girarRuleta()">
+                    GIRAR RULETA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. FOOTER PROFESIONAL -->
+    <footer class="bg-black text-light pt-5 pb-3 border-top border-secondary mt-auto">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h5 class="text-uppercase text-primary fw-bold mb-3">Ñackson Store</h5>
+                    <p class="text-white-50 small mb-3">Revive la nostalgia. Siente el poder de lo físico. Tu tienda especializada en entretenimiento físico y artículos de colección.</p>
+                    <div class="d-flex gap-3 fs-5 text-light">
+                        <a href="#" class="text-light hover-light"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-light hover-light"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-light hover-light"><i class="bi bi-tiktok"></i></a>
+                        <a href="#" class="text-light hover-light"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <h5 class="text-uppercase text-light fw-bold fs-6 mb-3">Información & Ayuda</h5>
+                    <ul class="list-unstyled small text-white-50">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50 hover-light">Quienes somos</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50 hover-light">Encuéntranos aquí</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50 hover-light">Despachos y Envíos</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50 hover-light">Términos y condiciones</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-white-50 hover-light">Políticas de cambios y devoluciones</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4">
+                    <h5 class="text-uppercase text-light fw-bold fs-6 mb-3">Contacto Ñackson</h5>
+                    <p class="mb-2 text-white-50 small"><i class="bi bi-envelope-fill me-2 text-primary"></i> contacto@nacksonstore.cl</p>
+                    <p class="mb-2 text-white-50 small"><i class="bi bi-geo-alt-fill me-2 text-primary"></i> Santiago, Chile</p>
+                    
+                    <div class="mt-4 p-3 bg-dark rounded border border-secondary">
+                        <p class="small text-white-50 mb-2 fw-bold">Paga seguro con tu banco:</p>
+                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <span class="badge bg-danger text-white">Redcompra</span>
+                            <span class="badge bg-primary text-white">Visa</span>
+                            <span class="badge bg-warning text-dark">Mastercard</span>
+                            <span class="badge bg-secondary text-white">Banco Estado</span>
+                            <span class="small text-white-50">+ y más</span>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <span class="text-info fw-bold small" style="font-family: monospace;">webpay<span class="text-light">.PLUS</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-secondary">
+
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-white-50 small">&copy; 2026 Ñackson Store. Creado por Seba. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                    <span class="text-white-50 small">Desarrollado con Bootstrap 5 y tecnologías web modernas</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS DE SESIÓN, RULETA Y RADIO -->
+    <script>
+
+        let ultimoScroll = 0;
+const navbar = document.querySelector('.navbar-futurista');
+const limiteScroll = 80; // Umbral en píxeles antes de empezar a ocultar
+
+window.addEventListener('scroll', () => {
+    const scrollActual = window.pageYOffset || document.documentElement.scrollTop;
+
+    // Si scrolleas hacia abajo y pasaste el límite, oculta la barra
+    if (scrollActual > ultimoScroll && scrollActual > limiteScroll) {
+        navbar.classList.add('navbar-oculta');
+    } 
+    // Si scrolleas hacia arriba, vuelve a mostrarla
+    else if (scrollActual < ultimoScroll) {
+        navbar.classList.remove('navbar-oculta');
+    }
+
+    // Actualiza la posición anterior
+    ultimoScroll = scrollActual <= 0 ? 0 : scrollActual;
+});
+        const premios = [
+            { texto: "35% DCTO", mensaje: "¡Ganaste 35% DCTO!", color: "#dc3545" },
+            { texto: "40% DCTO", mensaje: "¡Ganaste 40% DCTO!", color: "#0d6efd" },
+            { texto: "DESPACHO", mensaje: "¡Ganaste Despacho Gratis!", color: "#ffc107", textColor: "#000" },
+            { texto: "50% DCTO", mensaje: "¡Ganaste 50% DCTO!", color: "#198754" },
+            { texto: "45% DCTO", mensaje: "¡Ganaste 45% DCTO!", color: "#6f42c1" },
+            { texto: "DESPACHO", mensaje: "¡Ganaste Despacho Gratis!", color: "#fd7e14" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const sesionIniciada = localStorage.getItem("akiba_sesion");
+            const contenedorUsuario = document.getElementById("menuUsuario");
+            const enlaceAdminContainer = document.getElementById("enlaceAdminContainer");
+
+            if (sesionIniciada === "true") {
+                const nombreActual = localStorage.getItem("akiba_nombre") || "Usuario Ñackson";
+                const avatarActual = localStorage.getItem("akiba_avatar") || "img/logo.gif";
+                const correoActual = localStorage.getItem("akiba_correo") || "";
+                
+                const esAdmin = (localStorage.getItem("akiba_es_admin") === "true" || correoActual.toLowerCase() === "admin@akibastore.cl" || correoActual.toLowerCase() === "admin@nacksonstore.cl");
+
+                if (esAdmin) {
+                    if (enlaceAdminContainer) {
+                        enlaceAdminContainer.innerHTML = `
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold border border-warning border-opacity-50 rounded-pill px-3 py-1 shadow-sm d-flex align-items-center gap-1 bg-warning bg-opacity-10" href="admin.html">
+                                    <i class="bi bi-speedometer2"></i> Panel Admin
+                                </a>
+                            </li>
+                        `;
+                    }
+
+                    contenedorUsuario.innerHTML = `
+                        <a href="perfil.html" class="d-flex align-items-center text-decoration-none text-light gap-3 admin-discord-profile" title="Administrador Principal - Rango SSS">
+                            <div class="position-relative d-flex align-items-center">
+                                <img src="${avatarActual}" alt="Avatar Admin" width="38" height="38" class="rounded-circle border border-warning object-fit-cover shadow-sm">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-warning text-dark p-1 d-flex align-items-center justify-content-center shadow" style="width: 18px; height: 18px; font-size: 10px;" title="👑 Owner / Admin">👑</span>
+                            </div>
+                            <div class="d-flex flex-column pe-1">
+                                <span class="admin-badge-text">${nombreActual}</span>
+                                <span class="text-warning font-monospace" style="font-size: 10px; letter-spacing: 1px;">[ADMINISTRADOR]</span>
+                            </div>
+                        </a>
+                        <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3">Salir</button>
+                    `;
+                } else {
+                    if (enlaceAdminContainer) enlaceAdminContainer.innerHTML = "";
+                    contenedorUsuario.innerHTML = `
+                        <a href="perfil.html" class="d-flex align-items-center text-decoration-none text-light gap-2 rounded-pill py-1 px-3" style="background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.12);" title="Editar Perfil">
+                            <img src="${avatarActual}" alt="Avatar" width="32" height="32" class="rounded-circle border border-primary object-fit-cover">
+                            <span class="fw-bold small">${nombreActual}</span>
+                        </a>
+                        <button onclick="cerrarSesion()" class="btn btn-outline-light btn-sm rounded-pill">Cerrar Sesión</button>
+                    `;
+                }
+            } else {
+                if (enlaceAdminContainer) enlaceAdminContainer.innerHTML = "";
+            }
+
+            dibujarRuletaCanvas();
+            verificarBloqueoDiario();
+        });
+
+        function cerrarSesion() {
+            localStorage.removeItem("akiba_sesion");
+            localStorage.removeItem("akiba_es_admin");
+            localStorage.removeItem("akiba_nombre");
+            localStorage.removeItem("akiba_correo");
+            localStorage.removeItem("akiba_avatar");
+            window.location.reload();
+        }
+
+        function dibujarRuletaCanvas() {
+            const canvas = document.getElementById("ruletaCanvas");
+            if (!canvas.getContext) return;
+            const ctx = canvas.getContext("2d");
+            const width = canvas.width;
+            const height = canvas.height;
+            const centro = width / 2;
+            const radio = centro - 10;
+
+            const arcos = (2 * Math.PI) / premios.length;
+
+            ctx.clearRect(0, 0, width, height);
+
+            premios.forEach((premio, i) => {
+                const anguloInicio = i * arcos;
+                const anguloFin = (i + 1) * arcos;
+
+                ctx.beginPath();
+                ctx.moveTo(centro, centro);
+                ctx.arc(centro, centro, radio, anguloInicio, anguloFin);
+                ctx.closePath();
+                ctx.fillStyle = premio.color;
+                ctx.fill();
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centro, centro);
+                ctx.rotate(anguloInicio + arcos / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = premio.textColor || "#ffffff";
+                ctx.font = "bold 20px 'Changa', sans-serif";
+                ctx.fillText(premio.texto, radio - 30, 7);
+                ctx.restore();
+            });
+
+            ctx.beginPath();
+            ctx.arc(centro, centro, 35, 0, 2 * Math.PI);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = "#0b0f19";
+            ctx.stroke();
+        }
+
+        const tituloAkiba = document.getElementById("tituloAkiba");
+        let tiempoTemblor = null;
+
+        tituloAkiba.addEventListener("click", function(e) {
+            e.preventDefault();
+            tituloAkiba.classList.add("temblando");
+            clearTimeout(tiempoTemblor);
+            tiempoTemblor = setTimeout(() => {
+                tituloAkiba.classList.remove("temblando");
+            }, 600);
+        });
+
+        function toggleRuletaModal() {
+            document.getElementById("ruletaModal").classList.toggle("active");
+        }
+
+        function verificarBloqueoDiario() {
+            const ultimoTiro = localStorage.getItem("akiba_ultimo_tiro");
+            const premioGanado = localStorage.getItem("akiba_premio_ganado");
+            
+            if (ultimoTiro) {
+                const ahora = new Date().getTime();
+                const unDiaEnMs = 24 * 60 * 60 * 1000;
+                const tiempoTranscurrido = ahora - parseInt(ultimoTiro);
+
+                if (tiempoTranscurrido < unDiaEnMs) {
+                    const contenedorForm = document.getElementById("contenedorFormRuleta");
+                    const resultado = document.getElementById("resultadoPremio");
+                    const subtitulo = document.getElementById("subtituloRuleta");
+
+                    subtitulo.textContent = "Ya has participado hoy. ¡Vuelve mañana para tu siguiente intento!";
+                    resultado.textContent = premioGanado ? `Tu premio anterior: ${premioGanado}` : "¡Ya reclamaste tu premio diario!";
+                    resultado.className = "fw-bold text-info mb-3 fs-6";
+                    contenedorForm.style.display = "none";
+                } else {
+                    localStorage.removeItem("akiba_ultimo_tiro");
+                    localStorage.removeItem("akiba_premio_ganado");
+                }
+            }
+        }
+
+        let gradosTotales = 0;
+        function girarRuleta() {
+            const correo = document.getElementById("correoRuleta").value.trim();
+            const resultado = document.getElementById("resultadoPremio");
+            const rueda = document.getElementById("ruletaCanvas");
+            const btnGirar = document.getElementById("btnGirar");
+
+            if (!correo || !correo.includes("@")) {
+                resultado.textContent = "¡Por favor ingresa un correo válido!";
+                resultado.className = "fw-bold text-danger mb-3";
+                return;
+            }
+
+            btnGirar.disabled = true;
+            resultado.textContent = "¡Girando ruleta...";
+            resultado.className = "fw-bold text-warning mb-3";
+
+            const indiceGanador = Math.floor(Math.random() * premios.length);
+            const gradosPorGajo = 360 / premios.length;
+            
+            const anguloCentroGajo = indiceGanador * gradosPorGajo + (gradosPorGajo / 2);
+            const gradosObjetivo = 270 - anguloCentroGajo;
+
+            const girosCompletos = 360 * 6;
+            gradosTotales = girosCompletos + (gradosObjetivo % 360);
+            if (gradosTotales < girosCompletos) gradosTotales += 360;
+
+            rueda.style.transform = `rotate(${gradosTotales}deg)`;
+
+            setTimeout(() => {
+                const textoPremio = premios[indiceGanador].mensaje;
+                resultado.textContent = textoPremio;
+                resultado.className = "fw-bold text-success mb-3 fs-5";
+
+                localStorage.setItem("akiba_ultimo_tiro", new Date().getTime().toString());
+                localStorage.setItem("akiba_premio_ganado", textoPremio);
+
+                setTimeout(() => {
+                    document.getElementById("contenedorFormRuleta").style.display = "none";
+                    document.getElementById("subtituloRuleta").textContent = "¡Felicidades! Ya reclamaste tu premio de hoy.";
+                }, 2000);
+
+            }, 4000);
+        }
+
+        // Script de la Radio Flotante
+        const audioPlayer = document.getElementById("audioPlayer");
+        const btnPlayPause = document.getElementById("btnPlayPause");
+        const radioStatus = document.getElementById("radioStatus");
+        const radioStationName = document.getElementById("radioStationName");
+        const selectEstacion = document.getElementById("selectEstacion");
+        const iconoNota = document.getElementById("iconoNota");
+        const iconoEq = document.getElementById("iconoEq");
+
+        let reproduciendo = false;
+
+        function toggleRadioPanel() {
+            document.getElementById("radioPanel").classList.toggle("active");
+        }
+
+        function controlarReproduccion() {
+            if (!reproduciendo) {
+                let estacionActual = selectEstacion.value;
+                audioPlayer.src = estacionActual;
+                audioPlayer.play().then(() => {
+                    reproduciendo = true;
+                    actualizarUIActivo();
+                }).catch(err => {
+                    alert("No se pudo conectar a la emisora en este momento.");
+                });
+            } else {
+                audioPlayer.pause();
+                audioPlayer.src = "";
+                reproduciendo = false;
+                actualizarUIPausa();
+            }
+        }
+
+        function cambiarEstacion() {
+            if (reproduciendo) {
+                let estacionActual = selectEstacion.value;
+                audioPlayer.src = estacionActual;
+                audioPlayer.play().then(() => {
+                    actualizarUIActivo();
+                }).catch(err => {
+                    alert("No se pudo conectar a esta emisora.");
+                });
+            }
+        }
+
+        function actualizarUIActivo() {
+            btnPlayPause.innerHTML = `<i class="bi bi-pause-fill fs-5"></i> Pausar`;
+            radioStatus.className = "badge bg-success mb-1";
+            radioStatus.textContent = "EN VIVO";
+            radioStationName.textContent = selectEstacion.options[selectEstacion.selectedIndex].text;
+
+            iconoNota.style.display = "none";
+            iconoEq.style.display = "flex";
+            iconoEq.classList.add("playing");
+        }
+
+        function actualizarUIPausa() {
+            btnPlayPause.innerHTML = `<i class="bi bi-pause-fill fs-5"></i> Reproducir`;
+            radioStatus.className = "badge bg-secondary mb-1";
+            radioStatus.textContent = "Radio en pausa";
+            radioStationName.textContent = "Selecciona una emisora";
+
+            iconoEq.classList.remove("playing");
+            iconoEq.style.display = "none";
+            iconoNota.style.display = "block";
+        }
+    </script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="ts/main.js"></script>
+</body>
+</html>

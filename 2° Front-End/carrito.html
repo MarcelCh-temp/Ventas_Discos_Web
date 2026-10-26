@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras - Akiba Store</title>
+    
+    <!-- Google Fonts: Changa -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS local de Bootstrap y Bootstrap Icons -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #0b0f19; color: #f8f9fa; }
+        h2, h3, h5, .navbar-brand { font-family: 'Changa', sans-serif !important; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.3) !important;
+            backdrop-filter: blur(18px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .card-carrito {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 16px;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Menú de Navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top border-bottom border-secondary">
+    <div class="container">
+        <a class="navbar-brand text-danger d-flex align-items-center gap-2" href="index.html">
+            <img src="img/logo.gif" alt="Logo Akiba Store" width="40" height="40" class="rounded-circle border border-danger object-fit-cover">
+            <span class="text-light">Akiba <span class="text-primary">Store</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link text-light" href="index.html">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link text-light active fw-bold text-primary" href="carrito.html"><i class="bi bi-cart-fill me-1"></i> Carrito</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenido del Carrito -->
+<div class="container mt-5 mb-5 flex-grow-1">
+    <h2 class="mb-4 text-light"><i class="bi bi-cart3 me-2 text-primary"></i> Tu Carrito de Compras</h2>
+    <div class="row">
+        <!-- Tabla de Productos -->
+        <div class="col-md-8 mb-4">
+            <div class="card card-carrito p-3 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0 border-secondary bg-transparent">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-carrito">
+                            <!-- Los productos se inyectarán dinámicamente aquí con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Mensaje si el carrito está vacío -->
+            <div id="mensaje-vacio" class="alert alert-dark border border-secondary text-center py-4 d-none mt-3" role="alert">
+                <i class="bi bi-cart-x fs-1 text-muted d-block mb-2"></i>
+                <h5 class="text-light">Tu carrito está vacío</h5>
+                <p class="text-muted small mb-3">Explora nuestras categorías y añade tus productos físicos favoritos.</p>
+                <a href="index.html" class="btn btn-primary rounded-pill px-4 fw-bold">Volver al Inicio</a>
+            </div>
+        </div>
+
+        <!-- Resumen de Compra -->
+        <div class="col-md-4">
+            <div class="card card-carrito shadow-sm p-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-3 text-light border-bottom border-secondary pb-2">Resumen de Compra</h5>
+                    <p class="d-flex justify-content-between text-muted mb-2">
+                        <span>Subtotal:</span>
+                        <span id="resumen-subtotal" class="text-light fw-bold">$0</span>
+                    </p>
+                    <p class="d-flex justify-content-between text-muted mb-3">
+                        <span>Costo de Envío:</span>
+                        <span id="resumen-envio" class="text-light fw-bold">$5.000</span>
+                    </p>
+                    <hr class="border-secondary">
+                    <h4 class="d-flex justify-content-between text-success mb-4">
+                        <span>Total:</span>
+                        <span id="resumen-total">$0</span>
+                    </h4>
+                    <a href="checkout.html" id="btn-pagar" class="btn btn-success w-100 py-2 fw-bold rounded-pill shadow-sm">Proceder al Pago</a>
+                    <a href="index.html" class="btn btn-outline-light w-100 mt-2 py-2 rounded-pill">Seguir Comprando</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-black text-light text-center py-3 mt-auto border-top border-secondary">
+    <div class="container">
+        <p class="mb-0 text-white-50 small">&copy; 2026 Akiba Store. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+<script src="js/bootstrap.bundle.min.js"></script>
+
+<!-- Lógica del Carrito con LocalStorage -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const costoEnvioFijo = 5000;
+
+        function cargarCarrito() {
+            let carrito = JSON.parse(localStorage.getItem('akiba_carrito')) || [];
+            const tabla = document.getElementById('tabla-carrito');
+            const mensajeVacio = document.getElementById('mensaje-vacio');
+            const btnPagar = document.getElementById('btn-pagar');
+            
+            tabla.innerHTML = '';
+
+            if (carrito.length === 0) {
+                mensajeVacio.classList.remove('d-none');
+                btnPagar.classList.add('disabled');
+                actualizarTotales(0);
+                return;
+            }
+
+            mensajeVacio.classList.add('d-none');
+            btnPagar.classList.remove('disabled');
+
+            let subtotalGeneral = 0;
+
+            carrito.forEach((producto, index) => {
+                const subtotalFila = producto.precio * producto.cantidad;
+                subtotalGeneral += subtotalFila;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-bold text-light">${producto.nombre}</td>
+                    <td class="text-muted">$${producto.precio.toLocaleString('es-CL')}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary cantidad-input" value="${producto.cantidad}" min="1" data-index="${index}" style="width: 70px;">
+                    </td>
+                    <td class="text-primary fw-bold">$${subtotalFila.toLocaleString('es-CL')}</td>
+                    <td class="text-end">
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-2 py-1 btn-eliminar" data-index="${index}" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+
+            actualizarTotales(subtotalGeneral);
+        }
+
+        function actualizarTotales(subtotal) {
+            const envio = subtotal > 0 ? costoEnvioFijo : 0;
+            const total = subtotal + envio;
+
+            document.getElementById('resumen-subtotal').textContent = '$' + subtotal.toLocaleString('es-CL');
+            document.getElementById('resumen-envio').textContent = '$' + envio.toLocaleString('es-CL');
+            document.getElementById('resumen-total').textContent = '$' + total.toLocaleString('es-CL');
+            
+            // Guardar total final para el checkout
+            localStorage.setItem('akiba_total_pagar', total);
+        }
+
+        // Modificar cantidad o eliminar
+        document.getElementById('tabla-carrito').addEventListener('input', (e) => {
+            if (e.target.classList.contains('cantidad-input')) {
+                let carrito = JSON.parse(localStorage.getItem('akiba_carrito')) || [];
+                const index = e.target.dataset.index;
+                let nuevaCantidad = parseInt(e.target.value);
+
+                if (nuevaCantidad < 1 || isNaN(nuevaCantidad)) nuevaCantidad = 1;
+
+                carrito[index].cantidad = nuevaCantidad;
+                localStorage.setItem('akiba_carrito', JSON.stringify(carrito));
+                cargarCarrito();
+            }
+        });
+
+        document.getElementById('tabla-carrito').addEventListener('click', (e) => {
+            const btnEliminar = e.target.closest('.btn-eliminar');
+            if (btnEliminar) {
+                let carrito = JSON.parse(localStorage.getItem('akiba_carrito')) || [];
+                const index = btnEliminar.dataset.index;
+                
+                carrito.splice(index, 1);
+                localStorage.setItem('akiba_carrito', JSON.stringify(carrito));
+                cargarCarrito();
+            }
+        });
+
+        cargarCarrito();
+    });
+</script>
+</body>
+</html>

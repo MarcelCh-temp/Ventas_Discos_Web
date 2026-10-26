@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akiba Store - Checkout & Soporte</title>
+
+    <!-- Google Fonts: Changa y Dela Gothic One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@700;800&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+
+    <!-- CSS local de Bootstrap y Bi-Icons -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.85) !important;
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-custom {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top">
+        <div class="container">
+            <a class="navbar-brand text-danger d-flex align-items-center gap-2" href="index.html">
+                <img src="img/logo.gif" alt="Logo Akiba Store" width="40" height="40" class="rounded-circle border border-danger object-fit-cover">
+                <span class="text-light">Akiba <span class="text-primary">Store</span></span>
+            </a>
+            <div class="ms-auto d-flex gap-2">
+                <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container my-5 flex-grow-1">
+        <div class="text-center mb-5">
+            <h1 class="text-light display-5">FINALIZAR COMPRA & SOPORTE</h1>
+            <p class="text-muted">Prueba de integración en vivo con Microservicios Spring Boot y TypeScript</p>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- SECCIÓN 1: MS-ORDENES (PUERTO 8084) -->
+            <div class="col-lg-6">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 border-bottom border-secondary pb-3">
+                        <i class="bi bi-bag-check-fill text-success fs-3"></i>
+                        <div>
+                            <h3 class="h4 mb-0 text-success">1. Módulo de Pedidos</h3>
+                            <span class="badge bg-secondary">ms-ordenes | Puerto 8084</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="text-light">Resumen del Carrito</h5>
+                        <div class="d-flex justify-content-between align-items-center p-3 bg-dark rounded border border-secondary mt-2">
+                            <div>
+                                <strong>Neon Genesis Evangelion - Box Set</strong>
+                                <div class="text-muted small">Edición Blu-ray Coleccionista</div>
+                            </div>
+                            <span class="fw-bold text-success fs-5">$29.990</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto">
+                        <button type="button" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3" onclick="confirmarCompra()">
+                            <i class="bi bi-credit-card-fill me-2"></i> pagar con webpay ($29.990)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: MS-SOPORTE (PUERTO 8087) -->
+            <div class="col-lg-6">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3 border-bottom border-secondary pb-3">
+                        <i class="bi bi-headset text-primary fs-3"></i>
+                        <div>
+                            <h3 class="h4 mb-0 text-primary">2. Mesa de Ayuda</h3>
+                            <span class="badge bg-secondary">ms-soporte | Puerto 8087</span>
+                        </div>
+                    </div>
+
+                    <form onsubmit="procesarFormularioSoporte(event)">
+                        <div class="mb-3">
+                            <label class="form-label text-light small fw-bold">Asunto de la consulta</label>
+                            <input type="text" id="asuntoTicket" class="form-control bg-dark text-light border-secondary" placeholder="Ej: Consulta de envío o stock" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-light small fw-bold">Descripción del problema</label>
+                            <textarea id="descTicket" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Escribe aquí los detalles de tu requerimiento..." required></textarea>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm py-3">
+                                <i class="bi bi-send-fill me-2"></i> ENVIAR TICKET DE SOPORTE
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER SIMPLE -->
+    <footer class="bg-black text-center py-3 border-top border-secondary mt-auto text-white-50 small">
+        &copy; 2026 Akiba Store - Integración TypeScript & Spring Boot
+    </footer>
+
+    <!-- SCRIPTS LOCALES Y DE INTEGRACIÓN -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="ts/main.js"></script>
+
+    <script>
+        // Función para el botón de compra
+        function confirmarCompra() {
+            // Llama a la función compilada desde TypeScript
+            enviarOrden(1, 29990);
+        }
+
+        // Función para el formulario de soporte
+        function procesarFormularioSoporte(event) {
+            event.preventDefault();
+            const asunto = document.getElementById("asuntoTicket").value;
+            const descripcion = document.getElementById("descTicket").value;
+
+            // Llama a la función compilada desde TypeScript
+            enviarTicket(1, asunto, descripcion);
+
+            // Limpia los campos
+            document.getElementById("asuntoTicket").value = "";
+            document.getElementById("descTicket").value = "";
+        }
+    </script>
+</body>
+</html>

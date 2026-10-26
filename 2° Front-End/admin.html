@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Akiba Store</title>
+    
+    <!-- Google Fonts: Changa y Dela Gothic One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@700;800&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+
+    <!-- CSS local de Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+        
+        h1, h2, h3, h4, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* CINTILLO SUPERIOR ANIMADO EN BUCLE */
+        .cintillo-animado-container {
+            background: linear-gradient(90deg, #d63384, #0d6efd);
+            color: #ffffff;
+            font-family: 'Changa', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            height: 38px;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1020;
+        }
+
+        .cintillo-track {
+            display: inline-flex;
+            animation: deslizarCintillo 25s linear infinite;
+        }
+
+        .cintillo-track:hover {
+            animation-play-state: paused;
+        }
+
+        .cintillo-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 40px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        @keyframes deslizarCintillo {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* NAVBAR 100% TRANSLÚCIDA Y MODERNA */
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.3) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* TARJETAS DE ESTADÍSTICAS */
+        .card-stats {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 110, 253, 0.35);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+        .card-stats:hover {
+            transform: translateY(-4px);
+            border-color: #0d6efd;
+            box-shadow: 0 0 25px rgba(13, 110, 253, 0.4);
+        }
+
+        /* TABLAS Y PANELES */
+        .admin-panel-box {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* EFECTO RANGO DISCORD PARA ADMIN */
+        .admin-discord-profile {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(111, 66, 193, 0.25)) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 2px solid rgba(255, 193, 7, 0.85) !important;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.35), inset 0 0 10px rgba(220, 53, 69, 0.2);
+            padding: 5px 16px 5px 6px !important;
+            border-radius: 50rem !important;
+        }
+        .admin-badge-text {
+            color: #ffc107 !important;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
+        }
+
+        /* RADIO FLOTANTE */
+        #radioWidget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+        }
+        .radio-panel {
+            display: none;
+            width: 320px;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(13, 110, 253, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .radio-panel.active {
+            display: block;
+        }
+        .equalizer-icon {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 22px;
+            width: 24px;
+        }
+        .eq-bar {
+            width: 4px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            height: 6px;
+        }
+        .equalizer-icon.playing .eq-bar:nth-child(1) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.1s; }
+        .equalizer-icon.playing .eq-bar:nth-child(2) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.4s; }
+        .equalizer-icon.playing .eq-bar:nth-child(3) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.2s; }
+        .equalizer-icon.playing .eq-bar:nth-child(4) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.5s; }
+        @keyframes eqAnim {
+            0% { transform: scaleY(0.4); }
+            100% { transform: scaleY(1.3); }
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- CINTILLO SUPERIOR ANIMADO EN BUCLE -->
+    <div class="cintillo-animado-container">
+        <div class="cintillo-track">
+            <div class="cintillo-item"><i class="bi bi-controller me-2"></i> ¡TODO EN FORMATO FÍSICO Y COLECCIONABLES!</div>
+            <div class="cintillo-item"><i class="bi bi-truck me-2"></i> DESPACHOS A TODO CHILE</div>
+            <div class="cintillo-item"><i class="bi bi-credit-card-2-front-fill me-2"></i> PAGA HASTA 6 CUOTAS SIN INTERÉS CON WEBPAY</div>
+            <div class="cintillo-item"><i class="bi bi-broadcast me-2"></i> ESCUCHA AKIBA RADIO LIVE EN VIVO</div>
+            <div class="cintillo-item"><i class="bi bi-gift-fill me-2"></i> 5% DCTO EXTRA EN TU PRIMERA COMPRA</div>
+        </div>
+    </div>
+
+    <!-- 1. BARRA DE NAVEGACIÓN -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand text-danger d-flex align-items-center gap-2" href="index.html">
+                <img src="img/logo.gif" alt="Logo Akiba Store" width="40" height="40" class="rounded-circle border border-danger object-fit-cover">
+                <span class="text-light">Akiba <span class="text-primary">Store</span></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link text-light hover-light" href="index.html">Inicio</a></li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                            Categorías
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary">
+                            <li><a class="dropdown-item" href="musica.html">Música (CD / Vinilo)</a></li>
+                            <li><a class="dropdown-item" href="series.html">Series</a></li>
+                            <li><a class="dropdown-item" href="peliculas.html">Películas</a></li>
+                            <li><a class="dropdown-item" href="anime.html">Anime</a></li>
+                            <li><a class="dropdown-item" href="bluray.html">Blu-ray / DVD (General)</a></li>
+                            <li><a class="dropdown-item" href="videojuegos.html">Videojuegos</a></li>
+                            <li><a class="dropdown-item" href="accesorios.html">Accesorios</a></li>
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                            <li><a class="dropdown-item text-danger fw-bold" href="merchandising.html">Merchandising</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link text-warning fw-bold border border-warning border-opacity-50 rounded-pill px-3 py-1 shadow-sm d-flex align-items-center gap-1 active bg-warning bg-opacity-10" href="admin.html">
+                            <i class="bi bi-speedometer2"></i> Panel Admin
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2" id="menuUsuario"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. CONTENIDO DEL PANEL DE ADMINISTRACIÓN -->
+    <main class="container my-5 flex-grow-1">
+        
+        <!-- Alerta de seguridad si no es admin -->
+        <div id="alertaAccesoDenegado" class="alert alert-danger text-center py-5 d-none admin-panel-box" role="alert">
+            <h3 class="fw-bold mb-3"><i class="bi bi-shield-lock-fill display-4 d-block mb-2"></i> ACCESO DENEGADO</h3>
+            <p class="mb-3">Esta sección es exclusiva para el Administrador Principal de Akiba Store.</p>
+            <a href="index.html" class="btn btn-outline-light rounded-pill px-4">Volver al Inicio</a>
+        </div>
+
+        <!-- Contenedor Principal del Panel -->
+        <div id="panelAdminContenido">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+                <div>
+                    <h1 class="text-light fw-bold mb-1"><i class="bi bi-cpu-fill text-primary me-2"></i> Panel de Control SSS</h1>
+                    <p class="text-light small mb-0">Bienvenido al núcleo de gestión de Akiba Store, Seba.</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary fw-bold btn-sm rounded-pill px-3 shadow-sm" onclick="abrirModalCrear()">
+                        <i class="bi bi-plus-lg me-1"></i> Agregar Producto
+                    </button>
+                </div>
+            </div>
+
+            <!-- TARJETAS DE ESTADÍSTICAS -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card card-stats p-4 text-light shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-light small text-uppercase fw-bold opacity-75">Ventas Totales</span>
+                                <h3 class="text-white fw-bold mt-1 mb-0 fs-3">$1.458.930</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-25 p-3 rounded-circle text-info fs-4 border border-primary border-opacity-50">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                        </div>
+                        <span class="text-success small mt-3 fw-bold"><i class="bi bi-arrow-up-short"></i> +18% este mes</span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-stats p-4 text-light shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-light small text-uppercase fw-bold opacity-75">Órdenes Activas</span>
+                                <h3 class="text-white fw-bold mt-1 mb-0 fs-3">24</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-25 p-3 rounded-circle text-info fs-4 border border-primary border-opacity-50">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        </div>
+                        <span class="text-info small mt-3 fw-bold">4 pendientes de despacho</span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-stats p-4 text-light shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-light small text-uppercase fw-bold opacity-75">Catálogo Físico</span>
+                                <h3 id="contadorCatalogo" class="text-white fw-bold mt-1 mb-0 fs-3">0</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-25 p-3 rounded-circle text-info fs-4 border border-primary border-opacity-50">
+                                <i class="bi bi-disc"></i>
+                            </div>
+                        </div>
+                        <span class="text-light small mt-3 opacity-75">En 7 categorías activas</span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card card-stats p-4 text-light shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-light small text-uppercase fw-bold opacity-75">Usuarios Registrados</span>
+                                <h3 class="text-white fw-bold mt-1 mb-0 fs-3">318</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-25 p-3 rounded-circle text-info fs-4 border border-primary border-opacity-50">
+                                <i class="bi bi-people"></i>
+                            </div>
+                        </div>
+                        <span class="text-success small mt-3 fw-bold"><i class="bi bi-arrow-up-short"></i> +12 nuevos hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE GESTIÓN DE PRODUCTOS DINÁMICA -->
+            <div class="admin-panel-box p-4 mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="text-light fs-5 mb-0"><i class="bi bi-list-check me-2 text-primary"></i> Gestión de Productos Activos</h3>
+                    <span class="badge bg-dark border border-primary text-primary font-monospace">Base de Datos SSS</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0 border-secondary bg-transparent">
+                        <thead>
+                            <tr class="text-light small text-uppercase opacity-75">
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProductosBody">
+                            <!-- Se llena dinámicamente con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL PARA CREAR / EDITAR PRODUCTO -->
+    <div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border border-secondary shadow-lg">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-danger fw-bold" id="modalTitulo">Agregar Nuevo Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formProducto">
+                        <input type="hidden" id="indiceProducto">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre del Producto</label>
+                            <input type="text" id="nombreProd" class="form-control bg-dark text-light border-secondary" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Categoría</label>
+                            <select id="categoriaProd" class="form-select bg-dark text-light border-secondary">
+                                <option value="Anime">Anime</option>
+                                <option value="Música">Música</option>
+                                <option value="Series">Series</option>
+                                <option value="Películas">Películas</option>
+                                <option value="Blu-ray">Blu-ray / DVD</option>
+                                <option value="Videojuegos">Videojuegos</option>
+                                <option value="Accesorios">Accesorios</option>
+                                <option value="Merchandising">Merchandising</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Precio ($ CLP)</label>
+                            <input type="number" id="precioProd" class="form-control bg-dark text-light border-secondary" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Stock (Unidades)</label>
+                            <input type="number" id="stockProd" class="form-control bg-dark text-light border-secondary" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill">Guardar Producto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIDGET DE RADIO FLOTANTE -->
+    <div id="radioWidget">
+        <div id="radioPanel" class="radio-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-2">
+                <span class="fw-bold text-primary small"><i class="bi bi-broadcast me-1"></i> AKIBA RADIO LIVE</span>
+                <button type="button" class="btn-close btn-close-white btn-sm" onclick="toggleRadioPanel()"></button>
+            </div>
+            <div class="text-center mb-3">
+                <span id="radioStatus" class="badge bg-secondary mb-1">Radio en pausa</span>
+                <p id="radioStationName" class="text-light small mb-0 fw-bold">Selecciona una emisora</p>
+            </div>
+            <div class="mb-3">
+                <select id="selectEstacion" class="form-select form-select-sm bg-dark text-light border-secondary" onchange="cambiarEstacion()">
+                    <option value="https://stream.zeno.fm/f3wvbbqmdg8uv">Lo-Fi & Chill Beats (Stream HD)</option>
+                    <option value="https://icecast.omroep.nl/radio2-bb-mp3">Rock Clásico Internacional</option>
+                    <option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CONCIERTO.mp3">Radio Concierto Chile (En Vivo)</option>
+                </select>
+            </div>
+            <audio id="audioPlayer" preload="none"></audio>
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                <button id="btnPlayPause" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" onclick="controlarReproduccion()">
+                    <i class="bi bi-play-fill fs-5"></i> Reproducir
+                </button>
+            </div>
+        </div>
+        <button id="btnRadioToggle" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" onclick="toggleRadioPanel()" title="Abrir Radio Akiba">
+            <i id="iconoNota" class="bi bi-music-note-beamed fs-3 text-white"></i>
+            <div id="iconoEq" class="equalizer-icon" style="display: none;">
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+            </div>
+        </button>
+    </div>
+
+    <!-- 4. FOOTER -->
+    <footer class="bg-black text-light pt-5 pb-3 border-top border-secondary mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 text-white-50 small">&copy; 2026 Akiba Store. Creado por Seba. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPT DE GESTIÓN CRUD Y SESIÓN -->
+    <script>
+        let modalProdInstance = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            modalProdInstance = new bootstrap.Modal(document.getElementById('modalProducto'));
+
+            const sesionIniciada = localStorage.getItem("akiba_sesion");
+            const contenedorUsuario = document.getElementById("menuUsuario");
+            const panelAdminContenido = document.getElementById("panelAdminContenido");
+            const alertaAccesoDenegado = document.getElementById("alertaAccesoDenegado");
+
+            if (sesionIniciada === "true") {
+                const nombreActual = localStorage.getItem("akiba_nombre") || "Usuario Akiba";
+                const avatarActual = localStorage.getItem("akiba_avatar") || "img/logo.gif";
+                const correoActual = localStorage.getItem("akiba_correo") || "";
+                
+                const esAdmin = (localStorage.getItem("akiba_es_admin") === "true" || correoActual.toLowerCase() === "admin@akibastore.cl");
+
+                if (esAdmin) {
+                    panelAdminContenido.classList.remove("d-none");
+                    alertaAccesoDenegado.classList.add("d-none");
+
+                    contenedorUsuario.innerHTML = `
+                        <a href="perfil.html" class="d-flex align-items-center text-decoration-none text-light gap-3 admin-discord-profile" title="Administrador Principal">
+                            <div class="position-relative d-flex align-items-center">
+                                <img src="${avatarActual}" alt="Avatar Admin" width="38" height="38" class="rounded-circle border border-warning object-fit-cover shadow-sm">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-warning text-dark p-1 d-flex align-items-center justify-content-center shadow" style="width: 18px; height: 18px; font-size: 10px;" title="👑 Owner">👑</span>
+                            </div>
+                            <div class="d-flex flex-column pe-1">
+                                <span class="admin-badge-text">${nombreActual}</span>
+                                <span class="text-warning font-monospace" style="font-size: 10px; letter-spacing: 1px;">[ADMINISTRADOR]</span>
+                            </div>
+                        </a>
+                        <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3">Salir</button>
+                    `;
+
+                    inicializarProductosAdmin();
+                } else {
+                    panelAdminContenido.classList.add("d-none");
+                    alertaAccesoDenegado.classList.remove("d-none");
+                    contenedorUsuario.innerHTML = `<button onclick="cerrarSesion()" class="btn btn-outline-light btn-sm rounded-pill">Cerrar Sesión</button>`;
+                }
+            } else {
+                panelAdminContenido.classList.add("d-none");
+                alertaAccesoDenegado.classList.remove("d-none");
+                contenedorUsuario.innerHTML = `<a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-person-fill me-1"></i> INGRESAR</a>`;
+            }
+        });
+
+        // INICIALIZAR Y CARGAR PRODUCTOS EN LOCALSTORAGE
+        function obtenerProductosAdmin() {
+            let prods = JSON.parse(localStorage.getItem("akiba_productos_admin"));
+            if (!prods) {
+                prods = [
+                    { id: "01", nombre: "Neon Genesis Evangelion - Box Set", categoria: "Anime", precio: 29990, stock: 15 },
+                    { id: "02", nombre: "Álbum Rock Clásico (Vinilo)", categoria: "Música", precio: 24990, stock: 8 },
+                    { id: "03", nombre: "Figura Nendoroid - Anime Edición", categoria: "Merchandising", precio: 39990, stock: 5 }
+                ];
+                localStorage.setItem("akiba_productos_admin", JSON.stringify(prods));
+            }
+            return prods;
+        }
+
+        function inicializarProductosAdmin() {
+            const productos = obtenerProductosAdmin();
+            const tbody = document.getElementById("tablaProductosBody");
+            const contador = document.getElementById("contadorCatalogo");
+            contador.textContent = productos.length;
+
+            tbody.innerHTML = "";
+            productos.forEach((p, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-monospace text-light opacity-75">#${p.id}</td>
+                        <td class="fw-bold text-white">${p.nombre}</td>
+                        <td><span class="badge bg-dark border border-secondary text-light">${p.categoria}</span></td>
+                        <td class="text-success fw-bold">$${p.precio.toLocaleString('es-CL')}</td>
+                        <td class="text-light">${p.stock} unidades</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1 me-1" title="Editar" onclick="abrirModalEditar(${index})"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill px-2 py-1" title="Eliminar" onclick="eliminarProducto(${index})"><i class="bi bi-trash-fill"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abrirModalCrear() {
+            document.getElementById("modalTitulo").textContent = "Agregar Nuevo Producto";
+            document.getElementById("indiceProducto").value = "";
+            document.getElementById("nombreProd").value = "";
+            document.getElementById("categoriaProd").value = "Anime";
+            document.getElementById("precioProd").value = "";
+            document.getElementById("stockProd").value = "";
+            modalProdInstance.show();
+        }
+
+        function abrirModalEditar(index) {
+            const productos = obtenerProductosAdmin();
+            const p = productos[index];
+            document.getElementById("modalTitulo").textContent = "Editar Producto";
+            document.getElementById("indiceProducto").value = index;
+            document.getElementById("nombreProd").value = p.nombre;
+            document.getElementById("categoriaProd").value = p.categoria;
+            document.getElementById("precioProd").value = p.precio;
+            document.getElementById("stockProd").value = p.stock;
+            modalProdInstance.show();
+        }
+
+        document.getElementById("formProducto").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const index = document.getElementById("indiceProducto").value;
+            const nombre = document.getElementById("nombreProd").value;
+            const categoria = document.getElementById("categoriaProd").value;
+            const precio = parseInt(document.getElementById("precioProd").value);
+            const stock = parseInt(document.getElementById("stockProd").value);
+
+            let productos = obtenerProductosAdmin();
+
+            if (index === "") {
+                const nuevoId = (productos.length + 1).toString().padStart(2, '0');
+                productos.push({ id: nuevoId, nombre, categoria, precio, stock });
+            } else {
+                productos[index].nombre = nombre;
+                productos[index].categoria = categoria;
+                productos[index].precio = precio;
+                productos[index].stock = stock;
+            }
+
+            localStorage.setItem("akiba_productos_admin", JSON.stringify(productos));
+            modalProdInstance.hide();
+            inicializarProductosAdmin();
+        });
+
+        function eliminarProducto(index) {
+            if (confirm("¿Estás seguro de eliminar este producto del inventario?")) {
+                let productos = obtenerProductosAdmin();
+                productos.splice(index, 1);
+                localStorage.setItem("akiba_productos_admin", JSON.stringify(productos));
+                inicializarProductosAdmin();
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem("akiba_sesion");
+            localStorage.removeItem("akiba_es_admin");
+            localStorage.removeItem("akiba_nombre");
+            localStorage.removeItem("akiba_correo");
+            localStorage.removeItem("akiba_avatar");
+            window.location.href = "index.html";
+        }
+
+        // Script de la Radio Flotante
+        const audioPlayer = document.getElementById("audioPlayer");
+        const btnPlayPause = document.getElementById("btnPlayPause");
+        const radioStatus = document.getElementById("radioStatus");
+        const radioStationName = document.getElementById("radioStationName");
+        const selectEstacion = document.getElementById("selectEstacion");
+        const iconoNota = document.getElementById("iconoNota");
+        const iconoEq = document.getElementById("iconoEq");
+
+        let reproduciendo = false;
+
+        function toggleRadioPanel() {
+            document.getElementById("radioPanel").classList.toggle("active");
+        }
+
+        function controlarReproduccion() {
+            if (!reproduciendo) {
+                let estacionActual = selectEstacion.value;
+                audioPlayer.src = estacionActual;
+                audioPlayer.play().then(() => {
+                    reproduciendo = true;
+                    actualizarUIActivo();
+                }).catch(err => {
+                    alert("No se pudo conectar a la emisora en este momento.");
+                });
+            } else {
+                audioPlayer.pause();
+                audioPlayer.src = "";
+                reproduciendo = false;
+                actualizarUIPausa();
+            }
+        }
+
+        function cambiarEstacion() {
+            if (reproduciendo) {
+                let estacionActual = selectEstacion.value;
+                audioPlayer.src = estacionActual;
+                audioPlayer.play().then(() => {
+                    actualizarUIActivo();
+                }).catch(err => {
+                    alert("No se pudo conectar a esta emisora.");
+                });
+            }
+        }
+
+        function actualizarUIActivo() {
+            btnPlayPause.innerHTML = `<i class="bi bi-pause-fill fs-5"></i> Pausar`;
+            radioStatus.className = "badge bg-success mb-1";
+            radioStatus.textContent = "EN VIVO";
+            radioStationName.textContent = selectEstacion.options[selectEstacion.selectedIndex].text;
+
+            iconoNota.style.display = "none";
+            iconoEq.style.display = "flex";
+            iconoEq.classList.add("playing");
+        }
+
+        function actualizarUIPausa() {
+            btnPlayPause.innerHTML = `<i class="bi bi-pause-fill fs-5"></i> Reproducir`;
+            radioStatus.className = "badge bg-secondary mb-1";
+            radioStatus.textContent = "Radio en pausa";
+            radioStationName.textContent = "Selecciona una emisora";
+
+            iconoEq.classList.remove("playing");
+            iconoEq.style.display = "none";
+            iconoNota.style.display = "block";
+        }
+    </script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

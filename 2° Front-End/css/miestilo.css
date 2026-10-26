@@ -1,0 +1,16 @@
+/* Definimos nuestros colores personalizados de Adobe Color */
+:root {
+    --color-principal: #D2A1FC;
+    --color-secundario: #AC97FC;
+    --color-fondo: #212529;
+}
+
+/* Ejemplo: cambiar el color de fondo de la barra de navegación o algún elemento */
+.navbar {
+    background-color: var(--color-fondo) !important;
+}
+
+/* Ejemplo: hacer que los títulos destacados usen tu color principal */
+h1, h2 {
+    color: var(--color-principal);
+}
