@@ -22,6 +22,11 @@ public class MensajeSoporte {
     @Column(nullable = false)
     private RolAutor autor;
 
+    // Lote 1 (UML: autorId): quién escribió el mensaje (id del cliente o del administrador, desde el token).
+    // Columna nueva y nullable: los mensajes antiguos no la tienen.
+    @Column(name = "autor_id")
+    private Long autorId;
+
     @Column(name = "fecha_envio", nullable = false)
     private LocalDateTime fechaEnvio;
 
@@ -39,6 +44,14 @@ public class MensajeSoporte {
 
     public MensajeSoporte() {}
 
+    /** Lote 1: mensaje con autor identificado (cliente o administrador). */
+    public MensajeSoporte(String contenido, RolAutor autor, Long autorId) {
+        this.contenido = contenido;
+        this.autor = autor;
+        this.autorId = autorId;
+        this.fechaEnvio = LocalDateTime.now();
+    }
+
     public MensajeSoporte(String contenido, RolAutor autor, Ticket ticket) {
         this.contenido = contenido;
         this.autor = autor;
@@ -55,6 +68,9 @@ public class MensajeSoporte {
 
     public RolAutor getAutor() { return autor; }
     public void setAutor(RolAutor autor) { this.autor = autor; }
+
+    public Long getAutorId() { return autorId; }
+    public void setAutorId(Long autorId) { this.autorId = autorId; }
 
     public LocalDateTime getFechaEnvio() { return fechaEnvio; }
     public void setFechaEnvio(LocalDateTime fechaEnvio) { this.fechaEnvio = fechaEnvio; }

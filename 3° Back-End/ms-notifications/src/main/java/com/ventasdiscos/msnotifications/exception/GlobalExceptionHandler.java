@@ -1,161 +1,146 @@
-
 package com.ventasdiscos.msnotifications.exception;
 
-import com.ventasdiscos.msnotifications.dto.ErrorResponse;
-
+import com.ventasdiscos.msnotifications.trazabilidad.CorrelationId;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-
+import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+/**
+ * Traduce las excepciones a un JSON coherente (ApiError), con el mismo criterio de ms-catalog y ms-accounts.
+ * Solo convierte excepciones en respuestas HTTP; las reglas siguen en Service/Model (CSR).
+ * Lote 1.1: antes usaba ErrorResponse {codigo, mensaje, campo, timestamp}. Se conservan los mismos
+ * casos y códigos HTTP que ya manejaba el equipo; solo cambia el formato.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /** Notificación inexistente o de otro usuario (HU-54: no se revela que existe). */
     @ExceptionHandler(NotificacionNoEncontradaException.class)
-    public ResponseEntity<ErrorResponse> manejarNoEncontrada(
-            NotificacionNoEncontradaException ex
-    ) {
-        return respuesta(
-                HttpStatus.NOT_FOUND,
-                "NOTIFICACION_NO_ENCONTRADA",
-                ex.getMessage(),
-                null
-        );
+    public ResponseEntity<ApiError> handleNoEncontrada(NotificacionNoEncontradaException ex, HttpServletRequest req) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
     }
 
+    /** @Valid falló en el DTO (evento interno): campo -> mensaje (RNF-04). */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> manejarValidacionDTO(
-            MethodArgumentNotValidException ex
-    ) {
-        var error = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .findFirst();
-
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "VALIDACION_FALLIDA",
-                error.map(e -> e.getDefaultMessage())
-                        .orElse("Los datos ingresados no son validos"),
-                error.map(e -> e.getField())
-                        .orElse(null)
-        );
+    public ResponseEntity<ApiError> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
+            errores.putIfAbsent(fe.getField(), fe.getDefaultMessage());
+        }
+        return build(HttpStatus.BAD_REQUEST, "Hay datos inválidos en la solicitud", req, errores);
     }
 
+    /** Restricciones en parámetros del Controller (ej. @Positive en el id de la ruta). */
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ErrorResponse> manejarValidacionParametros(
-            HandlerMethodValidationException ex
-    ) {
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "VALIDACION_FALLIDA",
-                "Uno o mas parametros no cumplen las restricciones",
-                null
-        );
+    public ResponseEntity<ApiError> handleValidacionParametros(HandlerMethodValidationException ex,
+                                                              HttpServletRequest req) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        ex.getParameterValidationResults().forEach(r -> r.getResolvableErrors().forEach(e ->
+                errores.putIfAbsent(r.getMethodParameter().getParameterName(), e.getDefaultMessage())));
+        return build(HttpStatus.BAD_REQUEST, "Uno o más parámetros no cumplen las restricciones", req,
+                errores.isEmpty() ? null : errores);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> manejarRestrcciones(
-            ConstraintViolationException ex
-    ) {
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "VALIDACION_FALLIDA",
-                "Uno o mas valores no cumplen las restricciones",
-                null
-        );
+    public ResponseEntity<ApiError> handleRestricciones(ConstraintViolationException ex, HttpServletRequest req) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        for (ConstraintViolation<?> v : ex.getConstraintViolations()) {
+            errores.putIfAbsent(v.getPropertyPath().toString(), v.getMessage());
+        }
+        return build(HttpStatus.BAD_REQUEST, "Uno o más valores no cumplen las restricciones", req,
+                errores.isEmpty() ? null : errores);
     }
 
+    /** Parámetro con tipo o valor incorrecto (ej. ?type=INVENTADO o una fecha mal escrita). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> manejarTipoInvalido(
-            MethodArgumentTypeMismatchException ex
-    ) {
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "PARAMETRO_INVALIDO",
-                "El parametro tiene un tipo o valor incorrecto",
-                ex.getName()
-        );
+    public ResponseEntity<ApiError> handleTipo(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST,
+                "El parámetro '" + ex.getName() + "' tiene un valor inválido", req, null);
     }
 
+    /** JSON mal formado o tipo de notificación inexistente en el evento. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> manejarCuerpoInvalido(
-            HttpMessageNotReadableException ex
-    ) {
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "CUERPO_INVALIDO",
-                "El cuerpo de la solicitud no es valido",
-                null
-        );
+    public ResponseEntity<ApiError> handleJson(HttpMessageNotReadableException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST,
+                "El cuerpo de la solicitud no es válido: revisa el formato y el tipo de cada dato", req, null);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> manejarErrorHTTP(
-            ResponseStatusException ex
-    ) {
-        ErrorResponse cuerpo = new ErrorResponse(
-                "ERROR_HTTP",
-                ex.getReason() != null
-                        ? ex.getReason()
-                        : "Solicitud rechazada",
-                null,
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity
-                .status(ex.getStatusCode())
-                .body(cuerpo);
+    public ResponseEntity<ApiError> handleResponseStatus(ResponseStatusException ex, HttpServletRequest req) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return build(status, ex.getReason() != null ? ex.getReason() : status.getReasonPhrase(), req, null);
     }
 
+    /** Dato inválido detectado en el Service (ej. fecha inicial mayor que la final, HU-55). */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> manejarArgumentosInvalidos(
-            IllegalArgumentException ex
-    ) {
-        return respuesta(
-                HttpStatus.BAD_REQUEST,
-                "DATOS_INVALIDOS",
-                ex.getMessage(),
-                null
-        );
+    public ResponseEntity<ApiError> handleArgumento(IllegalArgumentException ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
     }
 
+    @ExceptionHandler(NoAutenticadoException.class)
+    public ResponseEntity<ApiError> handleNoAutenticado(NoAutenticadoException ex, HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
+    }
+
+    /** Cierre (RN-44): MS-Accounts no confirmó el estado de la cuenta; nunca se asume ACTIVA. */
+    @ExceptionHandler(ServicioNoDisponibleException.class)
+    public ResponseEntity<ApiError> handleNoDisponible(ServicioNoDisponibleException ex, HttpServletRequest req) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req, null);
+    }
+
+    /** Lote 6 (DOC-05): token de servicio válido, pero el servicio emisor no está autorizado para la ruta. */
+    @ExceptionHandler(AccesoDenegadoException.class)
+    public ResponseEntity<ApiError> handleAccesoDenegado(AccesoDenegadoException ex, HttpServletRequest req) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), req, null);
+    }
+
+    /**
+     * Conflicto con una restricción de la BD que NO es un evento repetido (los repetidos, incluso
+     * simultáneos, los resuelve EventoNotificacionService y responden 200).
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleIntegridad(DataIntegrityViolationException ex, HttpServletRequest req) {
+        log.warn("Violación de integridad en {}: {}", req.getRequestURI(), ex.getMostSpecificCause().getMessage());
+        return build(HttpStatus.CONFLICT, "La operación entra en conflicto con datos ya registrados", req, null);
+    }
+
+    /** Errores de Spring MVC (404 de ruta, 405 método, parámetro faltante) y cualquier error no previsto (500). */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> manejarGeneral(
-            Exception ex
-    ) {
-        return respuesta(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "ERROR_INTERNO",
-                "Ocurrio un error interno",
-                null
-        );
+    public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
+        if (ex instanceof ErrorResponse er) {
+            HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());
+            String detalle = er.getBody().getDetail() != null ? er.getBody().getDetail() : status.getReasonPhrase();
+            return build(status, detalle, req, null);
+        }
+        log.error("Error no controlado en {}", req.getRequestURI(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Ocurrió un error inesperado. Intenta nuevamente", req, null);
     }
 
-    private ResponseEntity<ErrorResponse> respuesta(
-            HttpStatus estado,
-            String codigo,
-            String mensaje,
-            String campo
-    ) {
-        ErrorResponse cuerpo = new ErrorResponse(
-                codigo,
-                mensaje,
-                campo,
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity.status(estado).body(cuerpo);
+    private ResponseEntity<ApiError> build(HttpStatus status, String mensaje, HttpServletRequest req,
+                                           Map<String, String> errores) {
+        ApiError body = new ApiError(LocalDateTime.now(), status.value(), status.getReasonPhrase(),
+                mensaje, req.getRequestURI(), errores, CorrelationId.de(req));
+        return ResponseEntity.status(status).body(body);
     }
 }

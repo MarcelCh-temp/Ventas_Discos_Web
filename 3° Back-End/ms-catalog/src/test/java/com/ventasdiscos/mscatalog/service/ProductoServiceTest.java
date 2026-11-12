@@ -1,7 +1,5 @@
 package com.ventasdiscos.mscatalog.service;
 
-import com.ventasdiscos.mscatalog.client.InventarioDto;
-import com.ventasdiscos.mscatalog.client.InventoryClient;
 import com.ventasdiscos.mscatalog.dto.FiltroProducto;
 import com.ventasdiscos.mscatalog.dto.PageResponse;
 import com.ventasdiscos.mscatalog.dto.ProductoAdminResponse;
@@ -12,9 +10,9 @@ import com.ventasdiscos.mscatalog.dto.RetiroResponse;
 import com.ventasdiscos.mscatalog.exception.OperacionNoPermitidaException;
 import com.ventasdiscos.mscatalog.exception.RecursoNoEncontradoException;
 import com.ventasdiscos.mscatalog.exception.RecursoRetiradoException;
-import com.ventasdiscos.mscatalog.exception.ServicioExternoNoDisponibleException;
 import com.ventasdiscos.mscatalog.exception.ValidacionNegocioException;
 import com.ventasdiscos.mscatalog.model.Categoria;
+import com.ventasdiscos.mscatalog.model.Disponibilidad;
 import com.ventasdiscos.mscatalog.model.DisponibilidadCatalogo;
 import com.ventasdiscos.mscatalog.model.EstadoComercial;
 import com.ventasdiscos.mscatalog.model.Producto;
@@ -41,23 +39,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyIterable;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/** Reglas de EP-02/EP-03 y degradación cuando Inventory no responde. */
+/** Reglas de EP-02/EP-03. Lote 2: el stock se consulta a InventarioService (local), ya no a un cliente HTTP. */
 class ProductoServiceTest {
 
     private ProductoRepository repo;
     private PromocionRepository promoRepo;
-    private InventoryClient inventory;
+    private InventarioService inventory;
     private ProductoService service;
 
     @BeforeEach
     void setUp() {
         repo = mock(ProductoRepository.class);
         promoRepo = mock(PromocionRepository.class);
-        inventory = mock(InventoryClient.class);
+        inventory = mock(InventarioService.class);
         service = new ProductoService(repo, promoRepo, inventory, new CalculadoraPromociones());
         when(repo.save(any(Producto.class))).thenAnswer(inv -> {
             Producto p = inv.getArgument(0);
@@ -73,21 +71,22 @@ class ProductoServiceTest {
 
     @Test
     void crearDejaProductoActivoConIdDelSistema() {
-        when(inventory.disponibilidad(anyCollection())).thenReturn(
-                Map.of(1L, new InventarioDto(1L, 0, 5, "AGOTADO")));
+        when(inventory.existencias(anyCollection())).thenReturn(
+                Map.of(1L, Fixtures.existencia(1L, 0, Disponibilidad.AGOTADO)));
         ProductoAdminResponse r = service.crear(request(Categoria.MUSICA, null));
         assertEquals(1L, r.id());
         assertEquals(EstadoComercial.ACTIVO, r.estado());
         assertEquals(DisponibilidadCatalogo.AGOTADO, r.disponibilidad());
     }
 
+    /** Lote 2 (UML 03 Producto 1-1 Inventario): crear el producto crea su inventario en la misma operación. */
     @Test
-    void crearFuncionaAunqueInventoryEsteCaido() {
-        doThrow(new ServicioExternoNoDisponibleException("caído")).when(inventory).registrarProducto(1L);
-        when(inventory.disponibilidad(anyCollection())).thenThrow(new ServicioExternoNoDisponibleException("caído"));
+    void crearRegistraSuInventario() {
+        when(inventory.existencias(anyCollection())).thenReturn(
+                Map.of(1L, Fixtures.existencia(1L, 0, Disponibilidad.AGOTADO)));
         ProductoAdminResponse r = service.crear(request(Categoria.MUSICA, null));
-        assertEquals(DisponibilidadCatalogo.NO_CONFIRMADA, r.disponibilidad());
-        assertNull(r.stockActual());
+        verify(inventory).registrarProducto(any(Producto.class));
+        assertEquals(0, r.stockActual());
     }
 
     @Test
@@ -133,8 +132,8 @@ class ProductoServiceTest {
     void detallePublicoAgotadoSeMuestraPeroNoEsComprable() {
         when(repo.findById(5L)).thenReturn(Optional.of(
                 Fixtures.producto(5L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO)));
-        when(inventory.disponibilidad(anyCollection())).thenReturn(
-                Map.of(5L, new InventarioDto(5L, 0, 5, "AGOTADO")));
+        when(inventory.existencias(anyCollection())).thenReturn(
+                Map.of(5L, Fixtures.existencia(5L, 0, Disponibilidad.AGOTADO)));
         ProductoPublicoResponse r = service.obtenerPublico(5L);
         assertEquals(DisponibilidadCatalogo.AGOTADO, r.disponibilidad());
         assertFalse(r.comprable());
@@ -144,8 +143,8 @@ class ProductoServiceTest {
     void detallePublicoConStockEsComprable() {
         when(repo.findById(5L)).thenReturn(Optional.of(
                 Fixtures.producto(5L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO)));
-        when(inventory.disponibilidad(anyCollection())).thenReturn(
-                Map.of(5L, new InventarioDto(5L, 3, 5, "STOCK_CRITICO")));
+        when(inventory.existencias(anyCollection())).thenReturn(
+                Map.of(5L, Fixtures.existencia(5L, 3, Disponibilidad.STOCK_CRITICO)));
         assertTrue(service.obtenerPublico(5L).comprable());
     }
 
@@ -155,7 +154,7 @@ class ProductoServiceTest {
     void actualizarYDetalleAdmin() {
         Producto p = Fixtures.producto(5L, "1000", Categoria.VIDEOJUEGOS, EstadoComercial.ACTIVO);
         when(repo.findById(5L)).thenReturn(Optional.of(p));
-        when(inventory.disponibilidad(anyCollection())).thenReturn(Map.of(5L, new InventarioDto(5L, 9, 5, "DISPONIBLE")));
+        when(inventory.existencias(anyCollection())).thenReturn(Map.of(5L, Fixtures.existencia(5L, 9, Disponibilidad.DISPONIBLE)));
         ProductoAdminResponse r = service.actualizar(5L, new ProductoRequest("Juego", null, new BigDecimal("4990"),
                 Categoria.VIDEOJUEGOS, "Acción", "Físico", " PS5 ", null));
         assertEquals("PS5", r.plataforma());
@@ -204,16 +203,17 @@ class ProductoServiceTest {
     @Test
     void listadoPublicoConDisponibilidad() {
         repoDevuelve(Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO));
-        when(inventory.disponibilidad(anyCollection())).thenReturn(Map.of(1L, new InventarioDto(1L, 9, 5, "DISPONIBLE")));
+        when(inventory.existencias(anyCollection())).thenReturn(Map.of(1L, Fixtures.existencia(1L, 9, Disponibilidad.DISPONIBLE)));
         PageResponse<ProductoPublicoResponse> r = service.listarPublico(filtro(null, null, null), 0, 20);
         assertTrue(r.contenido().get(0).comprable());
         assertEquals(1, r.totalElementos());
     }
 
+    /** Compatibilidad del contrato: si no hay dato de stock, no se afirma nada (NO_CONFIRMADA). */
     @Test
-    void listadoAdminConInventoryCaidoNoAfirmaStock() {
+    void listadoAdminSinDatoDeStockNoAfirmaStock() {
         repoDevuelve(Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.RETIRADO));
-        when(inventory.disponibilidad(anyCollection())).thenThrow(new ServicioExternoNoDisponibleException("caído"));
+        when(inventory.existencias(anyCollection())).thenReturn(Map.of());
         ProductoAdminResponse r = service.listarAdmin(filtro(null, null, null), 0, 20).contenido().get(0);
         assertNull(r.stockActual());
         assertEquals(DisponibilidadCatalogo.NO_CONFIRMADA, r.disponibilidad());
@@ -221,7 +221,7 @@ class ProductoServiceTest {
 
     @Test
     void filtroDisponibleSinProductosDevuelvePaginaVacia() {
-        when(inventory.productIdsPorDisponibilidad("DISPONIBLE")).thenReturn(List.of());
+        when(inventory.productIdsPorDisponibilidad(Disponibilidad.DISPONIBLE)).thenReturn(List.of());
         assertEquals(0, service.listarPublico(filtro(DisponibilidadCatalogo.DISPONIBLE, null, null), 0, 20)
                 .totalElementos());
         assertEquals(0, service.listarAdmin(filtro(DisponibilidadCatalogo.DISPONIBLE, null, null), 0, 20)
@@ -231,8 +231,8 @@ class ProductoServiceTest {
     @Test
     void filtrosDeDisponibilidadConsultanInventory() {
         repoDevuelve(Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO));
-        when(inventory.productIdsPorDisponibilidad("STOCK_CRITICO")).thenReturn(List.of(1L));
-        when(inventory.productIdsPorDisponibilidad("DISPONIBLE")).thenReturn(List.of(2L));
+        when(inventory.productIdsPorDisponibilidad(Disponibilidad.STOCK_CRITICO)).thenReturn(List.of(1L));
+        when(inventory.productIdsPorDisponibilidad(Disponibilidad.DISPONIBLE)).thenReturn(List.of(2L));
         assertEquals(1, service.listarPublico(filtro(DisponibilidadCatalogo.STOCK_CRITICO, null, null), 0, 20)
                 .totalElementos());
         assertEquals(1, service.listarPublico(filtro(DisponibilidadCatalogo.AGOTADO, null, null), 0, 20)
@@ -240,12 +240,9 @@ class ProductoServiceTest {
     }
 
     @Test
-    void filtroDisponibilidadInvalidoOInventoryCaido() {
+    void filtroDisponibilidadNoConfirmadaEsInvalido() {
         assertThrows(ValidacionNegocioException.class,
                 () -> service.listarPublico(filtro(DisponibilidadCatalogo.NO_CONFIRMADA, null, null), 0, 20));
-        when(inventory.productIdsPorDisponibilidad("DISPONIBLE")).thenThrow(new ServicioExternoNoDisponibleException("x"));
-        assertThrows(ServicioExternoNoDisponibleException.class,
-                () -> service.listarPublico(filtro(DisponibilidadCatalogo.DISPONIBLE, null, null), 0, 20));
     }
 
     @Test

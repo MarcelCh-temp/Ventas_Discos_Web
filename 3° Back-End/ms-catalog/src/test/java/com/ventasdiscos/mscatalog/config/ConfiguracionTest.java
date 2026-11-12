@@ -44,8 +44,11 @@ class ConfiguracionTest {
                         + "  -> el valor real va en el .env, no aquí");
         assertTrue(props.getProperty("spring.config.import").contains(".env"),
                 "Debe importarse el archivo .env");
-        assertTrue(props.getProperty("services.inventory.url").startsWith("${INVENTORY_URL"),
-                "services.inventory.url debe leer INVENTORY_URL");
+        // Lote 2: el inventario es local; ya no existe services.inventory.url
+        assertTrue(props.getProperty("services.inventory.url") == null,
+                "services.inventory.url ya no debe existir: el inventario vive en ms-catalog");
+        assertTrue(props.getProperty("inventory.umbral-critico-por-defecto").startsWith("${UMBRAL_CRITICO_DEFECTO"),
+                "inventory.umbral-critico-por-defecto debe leer UMBRAL_CRITICO_DEFECTO");
     }
 
     @Test

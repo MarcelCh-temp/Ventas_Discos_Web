@@ -1,3 +1,5 @@
+> **Desactualizado desde el Lote 4** (rutas sin `/api/v1`, `usuarioId` como parámetro y herencia de solicitudes). Contrato vigente: `seguimiento/CONTRATOS_API_LOTE_4.md`.
+
 # Swagger de MS-PostSale
 
 Abrir http://localhost:8085/swagger-ui.html después de iniciar MariaDB y Spring Boot.

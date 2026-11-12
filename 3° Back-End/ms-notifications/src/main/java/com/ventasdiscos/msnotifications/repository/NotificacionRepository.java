@@ -38,4 +38,10 @@ public interface NotificacionRepository
     int marcarTodasComoLeidas(
             @Param("usuarioId") Long usuarioId
     );
+
+    // Lote 5 (HU-78, RN-43): borrar TODAS las notificaciones personales de un usuario. Idempotente (si no hay, 0).
+    // No toca la tabla de eventos procesados (no guarda datos personales y evita re-crear avisos repetidos).
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Notificacion n WHERE n.usuarioId = :usuarioId")
+    int borrarPorUsuario(@Param("usuarioId") Long usuarioId);
 }

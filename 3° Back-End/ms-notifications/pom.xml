@@ -75,6 +75,13 @@
             <version>3.0.3</version>
         </dependency>
 
+        <!-- Lote 1: JWT ya usado por ms-accounts/ms-catalog; aquí solo se VALIDA el token -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.3</version>
+        </dependency>
+
         <!-- 8. PRUEBAS GENERALES: JUNIT Y MOCKITO -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -100,6 +107,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Lote 1: BD en memoria SOLO para tests (contextLoads intentaba conectarse a MariaDB real) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 

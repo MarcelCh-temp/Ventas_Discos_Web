@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.5</version>
+		<version>4.1.0</version>
 		<relativePath/>
 	</parent>
 
@@ -16,7 +16,11 @@
 	<description>Microservicio de Ordenes</description>
 
 	<properties>
-		<java.version>21</java.version>
+		<!-- Lote 1: igual que ms-accounts/ms-catalog (Boot 4.1.0 + Java 25), decisión aprobada en Fase 0.
+		     Con Boot 3.2.5 el proyecto no compila ni prueba bien en el JDK 25 que usa el equipo. -->
+		<java.version>25</java.version>
+		<!-- Lote 3: misma versión que ms-soporte -->
+		<springdoc.version>3.0.3</springdoc.version>
 	</properties>
 
 	<dependencies>
@@ -32,7 +36,7 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
 		<dependency>
@@ -47,15 +51,54 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Lote 3: JWT ya usado por ms-accounts, ms-catalog y ms-soporte; aquí solo se VALIDA el token -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>9.37.3</version>
+		</dependency>
+		<!-- Lote 3: Swagger, igual que los demás MS -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Lote 1 (Boot 4): MockMvc/@WebMvcTest viven en este módulo -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Lote 1: BD en memoria SOLO para tests (mvnw test sin XAMPP) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!-- Lote 1: desde JDK 23 Lombok debe declararse como procesador de anotaciones -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<release>${java.version}</release>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

@@ -1,6 +1,7 @@
 
 package com.ventasdiscos.msnotifications.service;
 
+import com.ventasdiscos.msnotifications.dto.DepuracionResponse;
 import com.ventasdiscos.msnotifications.exception.NotificacionNoEncontradaException;
 import com.ventasdiscos.msnotifications.model.Notificacion;
 import com.ventasdiscos.msnotifications.model.TipoNotificacion;
@@ -21,6 +22,12 @@ public class NotificacionService {
 
     public NotificacionService(NotificacionRepository repository) {
         this.repository = repository;
+    }
+
+    // Lote 5 (HU-78, RN-43): depuración idempotente de las notificaciones de una cuenta que se está eliminando.
+    @Transactional
+    public DepuracionResponse depurarUsuario(Long usuarioId) {
+        return new DepuracionResponse(usuarioId, repository.borrarPorUsuario(usuarioId));
     }
 
     // Consultar notificaciones de un usuario.

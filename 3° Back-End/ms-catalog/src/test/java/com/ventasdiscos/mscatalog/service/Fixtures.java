@@ -1,6 +1,8 @@
 package com.ventasdiscos.mscatalog.service;
 
+import com.ventasdiscos.mscatalog.dto.InventarioResponse;
 import com.ventasdiscos.mscatalog.model.Categoria;
+import com.ventasdiscos.mscatalog.model.Disponibilidad;
 import com.ventasdiscos.mscatalog.model.EstadoComercial;
 import com.ventasdiscos.mscatalog.model.Producto;
 import com.ventasdiscos.mscatalog.model.Promocion;
@@ -25,6 +27,11 @@ final class Fixtures {
         p.setFormato("CD");
         p.setEstado(estado);
         return p;
+    }
+
+    /** Lote 2: existencias como las entrega InventarioService (reemplaza al InventarioDto del cliente HTTP). */
+    static InventarioResponse existencia(long productId, int stock, Disponibilidad disponibilidad) {
+        return new InventarioResponse(productId, "Producto " + productId, Categoria.MUSICA, stock, 5, disponibilidad);
     }
 
     static Promocion promo(Long id, TipoDescuento tipo, String valor, String minimo, Producto... productos) {

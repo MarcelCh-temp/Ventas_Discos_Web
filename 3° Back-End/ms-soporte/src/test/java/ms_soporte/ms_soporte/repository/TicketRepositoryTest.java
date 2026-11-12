@@ -1,6 +1,5 @@
 package ms_soporte.ms_soporte.repository;
 
-import ms_soporte.ms_soporte.model.EstadoTicket;
 import ms_soporte.ms_soporte.model.Ticket;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +24,7 @@ class TicketRepositoryTest {
         ticket.setIdUsuario(100L);
         ticket.setAsunto("Soporte");
         ticket.setDescripcion("Consulta");
-        ticket.setEstado(EstadoTicket.ABIERTA);
+        ticket.registrarEstadoInicial(1L); // Lote 1.1: antes setEstado(ABIERTA)
 
         when(ticketRepository.findByIdUsuario(100L)).thenReturn(List.of(ticket));
 

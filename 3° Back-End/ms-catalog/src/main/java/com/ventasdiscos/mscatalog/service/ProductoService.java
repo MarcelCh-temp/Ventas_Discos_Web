@@ -1,8 +1,7 @@
 package com.ventasdiscos.mscatalog.service;
 
-import com.ventasdiscos.mscatalog.client.InventarioDto;
-import com.ventasdiscos.mscatalog.client.InventoryClient;
 import com.ventasdiscos.mscatalog.dto.FiltroProducto;
+import com.ventasdiscos.mscatalog.dto.InventarioResponse;
 import com.ventasdiscos.mscatalog.dto.PageResponse;
 import com.ventasdiscos.mscatalog.dto.Paginacion;
 import com.ventasdiscos.mscatalog.dto.ProductoAdminResponse;
@@ -13,9 +12,9 @@ import com.ventasdiscos.mscatalog.dto.RetiroResponse;
 import com.ventasdiscos.mscatalog.exception.OperacionNoPermitidaException;
 import com.ventasdiscos.mscatalog.exception.RecursoNoEncontradoException;
 import com.ventasdiscos.mscatalog.exception.RecursoRetiradoException;
-import com.ventasdiscos.mscatalog.exception.ServicioExternoNoDisponibleException;
 import com.ventasdiscos.mscatalog.exception.ValidacionNegocioException;
 import com.ventasdiscos.mscatalog.model.Categoria;
+import com.ventasdiscos.mscatalog.model.Disponibilidad;
 import com.ventasdiscos.mscatalog.model.DisponibilidadCatalogo;
 import com.ventasdiscos.mscatalog.model.EstadoComercial;
 import com.ventasdiscos.mscatalog.model.Producto;
@@ -24,7 +23,6 @@ import com.ventasdiscos.mscatalog.repository.ProductoRepository;
 import com.ventasdiscos.mscatalog.repository.PromocionRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,10 +42,10 @@ import java.util.Set;
 
 /**
  * Reglas de EP-02 (administración) y EP-03 (exploración).
- * La disponibilidad se pide a Inventory EN LOTE por página; si no responde, se degrada a
- * NO_CONFIRMADA en vez de tumbar el catálogo (ADR-15, ERS 11.3).
+ * Lote 2 (ERS 11.3/11.4, UML 03): el stock vive en este mismo MS. La disponibilidad se obtiene EN LOTE por página
+ * desde InventarioService (consulta local), en vez de llamar por HTTP a MS-Inventory. Ya no hay degradación
+ * NO_CONFIRMADA por caída de Inventory: si la BD de Catalog falla, falla la consulta completa.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductoService {
@@ -56,12 +54,15 @@ public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final PromocionRepository promocionRepository;
-    private final InventoryClient inventoryClient;
+    private final InventarioService inventarioService;
     private final CalculadoraPromociones calculadora;
 
     // ===================== ADMIN (EP-02) =====================
 
-    /** HU-08: id generado por el sistema, estado ACTIVO; el stock lo administra Inventory. */
+    /**
+     * HU-08: id generado por el sistema, estado ACTIVO.
+     * Lote 2 (UML 03: Producto "1" *-- "1" Inventario): su inventario (stock 0) se crea en la MISMA transacción.
+     */
     @Transactional
     public ProductoAdminResponse crear(ProductoRequest req) {
         validarCoherencia(req);
@@ -69,13 +70,8 @@ public class ProductoService {
         copiar(req, p);
         p.setEstado(EstadoComercial.ACTIVO);
         Producto guardado = productoRepository.save(p);
-        try {
-            inventoryClient.registrarProducto(guardado.getId());
-        } catch (ServicioExternoNoDisponibleException e) {
-            // No crítico: Inventory crea el registro (stock 0) en su primer movimiento.
-            log.warn("Producto {} creado sin aviso a Inventory; se registrará al primer movimiento", guardado.getId());
-        }
-        return toAdmin(guardado, inventarioSeguro(List.of(guardado.getId())));
+        inventarioService.registrarProducto(guardado);
+        return toAdmin(guardado, existencias(List.of(guardado)));
     }
 
     /** HU-09: id inmutable; solo campos comerciales. Pedidos ya hechos no cambian (snapshot en Orders). */
@@ -84,7 +80,7 @@ public class ProductoService {
         Producto p = buscar(id);
         validarCoherencia(req);
         copiar(req, p);
-        return toAdmin(p, inventarioSeguro(List.of(id)));
+        return toAdmin(p, existencias(List.of(p)));
     }
 
     /** HU-10: retira uno o varios; informa los que ya estaban retirados y no repite la operación. */
@@ -124,13 +120,14 @@ public class ProductoService {
         if (page == null) {
             return vacia(pagina, tamano);
         }
-        Map<Long, InventarioDto> inv = inventarioSeguro(page.map(Producto::getId).getContent());
+        Map<Long, InventarioResponse> inv = existencias(page.getContent());
         return PageResponse.of(page, page.getContent().stream().map(p -> toAdmin(p, inv)).toList());
     }
 
     @Transactional(readOnly = true)
     public ProductoAdminResponse obtenerAdmin(Long id) {
-        return toAdmin(buscar(id), inventarioSeguro(List.of(id)));
+        Producto p = buscar(id);
+        return toAdmin(p, existencias(List.of(p)));
     }
 
     // ===================== CLIENTE (EP-03) =====================
@@ -142,7 +139,7 @@ public class ProductoService {
         if (page == null) {
             return vacia(pagina, tamano);
         }
-        Map<Long, InventarioDto> inv = inventarioSeguro(page.map(Producto::getId).getContent());
+        Map<Long, InventarioResponse> inv = existencias(page.getContent());
         List<Promocion> activas = promocionRepository.findActivas(LocalDate.now());
         return PageResponse.of(page, page.getContent().stream().map(p -> toPublico(p, inv, activas)).toList());
     }
@@ -154,7 +151,7 @@ public class ProductoService {
         if (!p.estaActivo()) {
             throw new RecursoRetiradoException(MSG_RETIRADO);
         }
-        return toPublico(p, inventarioSeguro(List.of(id)), promocionRepository.findActivas(LocalDate.now()));
+        return toPublico(p, existencias(List.of(p)), promocionRepository.findActivas(LocalDate.now()));
     }
 
     // ===================== helpers =====================
@@ -170,18 +167,18 @@ public class ProductoService {
         Collection<Long> incluir = null;
         Collection<Long> excluir = null;
         if (f.disponibilidad() != null) {
-            // Dependencia crítica SOLO para este filtro: si Inventory cae -> 503 (no se afirma stock).
+            // Lote 2: consulta local al inventario de este mismo MS (antes era una llamada HTTP a Inventory).
             switch (f.disponibilidad()) {
                 case DISPONIBLE, STOCK_CRITICO -> {
-                    incluir = inventoryClient.productIdsPorDisponibilidad(f.disponibilidad().name());
+                    incluir = inventarioService.productIdsPorDisponibilidad(Disponibilidad.valueOf(f.disponibilidad().name()));
                     if (incluir.isEmpty()) {
                         return null;
                     }
                 }
                 case AGOTADO -> {
-                    // Agotado = todo producto SIN stock, incluso los que aún no tienen registro en Inventory
-                    Set<Long> conStock = new HashSet<>(inventoryClient.productIdsPorDisponibilidad("DISPONIBLE"));
-                    conStock.addAll(inventoryClient.productIdsPorDisponibilidad("STOCK_CRITICO"));
+                    // Agotado = todo producto SIN stock, incluso los que aún no tienen registro de inventario
+                    Set<Long> conStock = new HashSet<>(inventarioService.productIdsPorDisponibilidad(Disponibilidad.DISPONIBLE));
+                    conStock.addAll(inventarioService.productIdsPorDisponibilidad(Disponibilidad.STOCK_CRITICO));
                     excluir = conStock;
                 }
                 case NO_CONFIRMADA -> throw new ValidacionNegocioException("Filtro de disponibilidad inválido");
@@ -269,30 +266,27 @@ public class ProductoService {
         p.setImagenUrl(req.imagenUrl());
     }
 
-    /** Degradación informativa: si Inventory falla devolvemos null y se muestra NO_CONFIRMADA. */
-    Map<Long, InventarioDto> inventarioSeguro(Collection<Long> ids) {
-        try {
-            return inventoryClient.disponibilidad(ids);
-        } catch (ServicioExternoNoDisponibleException e) {
-            return null;
-        }
+    /** Lote 2: existencias de varios productos en UNA consulta local (antes: llamada HTTP a Inventory). */
+    Map<Long, InventarioResponse> existencias(Collection<Producto> productos) {
+        return inventarioService.existencias(productos);
     }
 
-    static DisponibilidadCatalogo disponibilidad(Map<Long, InventarioDto> inv, Long id) {
+    /** NO_CONFIRMADA queda solo por compatibilidad del contrato: con el stock local ya no se produce. */
+    static DisponibilidadCatalogo disponibilidad(Map<Long, InventarioResponse> inv, Long id) {
         if (inv == null || !inv.containsKey(id)) {
             return DisponibilidadCatalogo.NO_CONFIRMADA;
         }
-        return DisponibilidadCatalogo.valueOf(inv.get(id).disponibilidad());
+        return DisponibilidadCatalogo.valueOf(inv.get(id).disponibilidad().name());
     }
 
-    private ProductoAdminResponse toAdmin(Producto p, Map<Long, InventarioDto> inv) {
+    private ProductoAdminResponse toAdmin(Producto p, Map<Long, InventarioResponse> inv) {
         Integer stock = inv != null && inv.containsKey(p.getId()) ? inv.get(p.getId()).stockActual() : null;
         return new ProductoAdminResponse(p.getId(), p.getNombre(), p.getDescripcion(), p.getPrecioBase(),
                 p.getCategoria(), p.getGenero(), p.getFormato(), p.getPlataforma(), p.getImagenUrl(),
                 p.getEstado(), stock, disponibilidad(inv, p.getId()));
     }
 
-    private ProductoPublicoResponse toPublico(Producto p, Map<Long, InventarioDto> inv, List<Promocion> activas) {
+    private ProductoPublicoResponse toPublico(Producto p, Map<Long, InventarioResponse> inv, List<Promocion> activas) {
         DisponibilidadCatalogo disp = disponibilidad(inv, p.getId());
         Optional<Promocion> promo = calculadora.mejorPromocion(p, activas, null);
         return new ProductoPublicoResponse(p.getId(), p.getNombre(), p.getDescripcion(), p.getCategoria(),

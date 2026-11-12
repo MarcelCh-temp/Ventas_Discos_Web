@@ -1,59 +1,50 @@
 package com.ventasdiscos.mspostsale.service;
 
-import com.ventasdiscos.mspostsale.client.*;
-import com.ventasdiscos.mspostsale.dto.*;
-import com.ventasdiscos.mspostsale.model.*;
-import com.ventasdiscos.mspostsale.repository.*;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.ventasdiscos.mspostsale.client.AccountsClient;
+import com.ventasdiscos.mspostsale.dto.Reembolsar;
+import com.ventasdiscos.mspostsale.dto.SolicitudDetalleResponse;
+import com.ventasdiscos.mspostsale.exception.OperacionNoPermitidaException;
+import com.ventasdiscos.mspostsale.model.SolicitudPostVenta;
+import com.ventasdiscos.mspostsale.repository.SolicitudPostVentaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * Clase original. HU-77 / RF-POS-10 / RN-23 / RN-41: registra la SOLICITUD de reembolso cuando existe una
+ * cancelación o devolución APROBADA del Cliente. Queda REGISTRADA: no se aprueba ni se rechaza y la plataforma no
+ * procesa ni transfiere dinero (la devolución efectiva es presencial o externa).
+ * Lote 4: ahora es una SolicitudPostVenta de tipo REEMBOLSO con solicitudOrigenId (UML 04).
+ */
 @Service
 public class ReembolsoService {
-    private final CancelacionRepository cancelaciones;
-    private final DevolucionRepository devoluciones;
-    private final ReembolsoRepository reembolsos;
+
+    private final SolicitudPostVentaRepository solicitudes;
+    private final AccountsClient accounts;
     private final PostSaleSupport support;
-    public ReembolsoService(CancelacionRepository cancelaciones,
-    DevolucionRepository devoluciones,
-    ReembolsoRepository reembolsos,
-    PostSaleSupport support) {
-        this.cancelaciones = cancelaciones;
-        this.devoluciones = devoluciones;
-        this.reembolsos = reembolsos;
+
+    public ReembolsoService(SolicitudPostVentaRepository solicitudes, AccountsClient accounts, PostSaleSupport support) {
+        this.solicitudes = solicitudes;
+        this.accounts = accounts;
         this.support = support;
     }
-    @Transactional
 
-    public Map<String,Object> registrarReembolso(Reembolsar req) {
-        Long pedidoId;
-        if(req.tipoOrigen()==TipoOrigenReembolso.CANCELACION) {
-            var c=cancelaciones.findById(req.solicitudOrigenId()).orElseThrow(()->new NoSuchElementException("Cancelacion inexistente"));
-            if(!c.perteneceA(req.usuarioId())||c.getEstado()!=EstadoCancelacion.APROBADA)throw new IllegalArgumentException("Cancelacion no aprobada para este usuario");
-            pedidoId=c.getPedidoId();
+    @Transactional
+    public SolicitudDetalleResponse registrar(Long usuarioId, Reembolsar req) {
+        // Bloquea la solicitud de origen: dos clics simultáneos no crean dos reembolsos (además de uk_solicitud_origen).
+        SolicitudPostVenta origen = solicitudes.bloquear(req.solicitudOrigenId()).orElse(null);
+        SolicitudPostVenta reembolso = SolicitudPostVenta.reembolso(origen, usuarioId, req.motivoSolicitud());
+        if (solicitudes.existsBySolicitudOrigenId(origen.getId())) {
+            throw new OperacionNoPermitidaException("Ya registraste una solicitud de reembolso para la "
+                    + SolicitudPostVenta.nombre(origen.getTipo()) + " " + origen.getId());
         }
-        else {
-            var d=devoluciones.findById(req.solicitudOrigenId()).orElseThrow(()->new NoSuchElementException("Devolucion inexistente"));
-            if(!d.perteneceA(req.usuarioId())||!d.estaAprobada())throw new IllegalArgumentException("Devolucion no aprobada para este usuario");
-            pedidoId=d.getPedidoId();
-        }
-        if(reembolsos.existsByTipoOrigenAndSolicitudOrigenId(req.tipoOrigen(),req.solicitudOrigenId()))throw new IllegalStateException("Ya existe un reembolso para este origen");
-        SolicitudReembolso s=new SolicitudReembolso();
-        s.setTipoOrigen(req.tipoOrigen());
-        s.setSolicitudOrigenId(req.solicitudOrigenId());
-        s.setUsuarioId(req.usuarioId());
-        s.setPedidoId(pedidoId);
-        s=reembolsos.saveAndFlush(s);
-        support.notificarTrasCommit("reembolso-"+s.getId()+"-registrado",s.getUsuarioId(),"REEMBOLSO_REGISTRADO","Reembolso registrado","Se registro la solicitud de reembolso",s.getId());
-        return Map.of("id",s.getId(),"estado",s.getEstado().name(),"tipoOrigen",s.getTipoOrigen().name(),"solicitudOrigenId",s.getSolicitudOrigenId());
+        // Lote 5 (HU-78, RN-37, RN-44): justo antes de guardar, Accounts confirma que la cuenta está ACTIVA.
+        accounts.exigirCuentaActiva(usuarioId);
+        SolicitudPostVenta s = solicitudes.saveAndFlush(reembolso);
+        support.notificarTrasCommit("reembolso-" + s.getId() + "-registrado", usuarioId, "REEMBOLSO_REGISTRADO",
+                "Solicitud de reembolso registrada",
+                "Registramos tu solicitud de reembolso asociada a la " + SolicitudPostVenta.nombre(origen.getTipo())
+                        + " " + origen.getId() + ". La devolución del dinero se realiza de forma presencial o mediante"
+                        + " un procedimiento externo a la plataforma.", s.getId());
+        return SolicitudDetalleResponse.from(s, false);
     }
 }

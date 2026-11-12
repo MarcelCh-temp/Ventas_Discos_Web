@@ -1,11 +1,14 @@
 package com.ventasdiscos.mscatalog.service;
 
-import com.ventasdiscos.mscatalog.client.InventarioDto;
+import com.ventasdiscos.mscatalog.client.AccountsClient;
 import com.ventasdiscos.mscatalog.dto.FavoritoResponse;
+import com.ventasdiscos.mscatalog.exception.AccesoDenegadoException;
+import com.ventasdiscos.mscatalog.exception.ServicioExternoNoDisponibleException;
 import com.ventasdiscos.mscatalog.exception.OperacionNoPermitidaException;
 import com.ventasdiscos.mscatalog.exception.RecursoDuplicadoException;
 import com.ventasdiscos.mscatalog.exception.RecursoNoEncontradoException;
 import com.ventasdiscos.mscatalog.model.Categoria;
+import com.ventasdiscos.mscatalog.model.Disponibilidad;
 import com.ventasdiscos.mscatalog.model.EstadoComercial;
 import com.ventasdiscos.mscatalog.model.Favorito;
 import com.ventasdiscos.mscatalog.model.Producto;
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,13 +38,15 @@ class FavoritoServiceTest {
 
     private FavoritoRepository repo;
     private ProductoService productoService;
+    private AccountsClient cuentas;
     private FavoritoService service;
 
     @BeforeEach
     void setUp() {
         repo = mock(FavoritoRepository.class);
         productoService = mock(ProductoService.class);
-        service = new FavoritoService(repo, productoService);
+        cuentas = mock(AccountsClient.class);      // Lote 5 (HU-78): por defecto no lanza nada = cuenta ACTIVA
+        service = new FavoritoService(repo, productoService, cuentas);
     }
 
     @Test
@@ -69,8 +75,8 @@ class FavoritoServiceTest {
     void agregarFavoritoValido() {
         when(productoService.buscar(1L)).thenReturn(
                 Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO));
-        when(productoService.inventarioSeguro(anyCollection())).thenReturn(
-                Map.of(1L, new InventarioDto(1L, 0, 5, "AGOTADO")));
+        when(productoService.existencias(anyCollection())).thenReturn(
+                Map.of(1L, Fixtures.existencia(1L, 0, Disponibilidad.AGOTADO)));
         FavoritoResponse r = service.agregar(7L, 1L);
         assertEquals("Agotado", r.mensaje());
         assertFalse(r.comprable());
@@ -94,10 +100,10 @@ class FavoritoServiceTest {
         when(repo.findByUserIdOrderByIdDesc(7L)).thenReturn(List.of(
                 new Favorito(7L, retirado), new Favorito(7L, agotado), new Favorito(7L, sinDato),
                 new Favorito(7L, disponible)));
-        when(productoService.inventarioSeguro(anyCollection())).thenReturn(Map.of(
-                1L, new InventarioDto(1L, 5, 5, "STOCK_CRITICO"),
-                2L, new InventarioDto(2L, 0, 5, "AGOTADO"),
-                4L, new InventarioDto(4L, 9, 5, "DISPONIBLE")));
+        when(productoService.existencias(anyCollection())).thenReturn(Map.of(
+                1L, Fixtures.existencia(1L, 5, Disponibilidad.STOCK_CRITICO),
+                2L, Fixtures.existencia(2L, 0, Disponibilidad.AGOTADO),
+                4L, Fixtures.existencia(4L, 9, Disponibilidad.DISPONIBLE)));
 
         List<FavoritoResponse> r = service.listar(7L);
 
@@ -107,5 +113,33 @@ class FavoritoServiceTest {
         assertEquals("Disponibilidad no confirmada en este momento", r.get(2).mensaje());
         assertNull(r.get(3).mensaje());
         assertTrue(r.get(3).comprable());
+    }
+
+    // ===================== Lote 5 · Integraciones de HU-78 =====================
+
+    /** RN-37 / RN-44 / T-06: cuenta EN_ELIMINACION, ELIMINADA o no habilitada -> 403 y no se guarda. */
+    @Test
+    void cuentaQueNoPuedeOperarNoAgregaFavoritos() {
+        when(productoService.buscar(1L)).thenReturn(Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO));
+        doThrow(new AccesoDenegadoException("Tu cuenta no puede realizar nuevas operaciones")).when(cuentas).exigirCuentaActiva(7L);
+        assertThrows(AccesoDenegadoException.class, () -> service.agregar(7L, 1L));
+        verify(repo, never()).save(any());
+    }
+
+    /** Accounts no responde -> 503 y no se guarda (nunca se asume ACTIVA). */
+    @Test
+    void accountsCaidoNoAgregaFavoritos() {
+        when(productoService.buscar(1L)).thenReturn(Fixtures.producto(1L, "1000", Categoria.MUSICA, EstadoComercial.ACTIVO));
+        doThrow(new ServicioExternoNoDisponibleException("caído")).when(cuentas).exigirCuentaActiva(7L);
+        assertThrows(ServicioExternoNoDisponibleException.class, () -> service.agregar(7L, 1L));
+        verify(repo, never()).save(any());
+    }
+
+    /** RN-43: la depuración devuelve cuántos borró; repetirla borra 0 (idempotente). */
+    @Test
+    void depuracionIdempotente() {
+        when(repo.borrarPorUsuario(7L)).thenReturn(3).thenReturn(0);
+        assertEquals(3, service.depurarUsuario(7L).eliminados());
+        assertEquals(0, service.depurarUsuario(7L).eliminados());
     }
 }

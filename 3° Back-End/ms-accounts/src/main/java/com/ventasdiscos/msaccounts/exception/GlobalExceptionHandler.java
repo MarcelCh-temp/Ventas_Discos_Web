@@ -1,5 +1,6 @@
 package com.ventasdiscos.msaccounts.exception;
 
+import com.ventasdiscos.msaccounts.trazabilidad.CorrelationId;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -80,7 +81,7 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiError> build(HttpStatus status, String mensaje, HttpServletRequest req,
                                            Map<String, String> errores) {
         ApiError body = new ApiError(LocalDateTime.now(), status.value(), status.getReasonPhrase(),
-                mensaje, req.getRequestURI(), errores);
+                mensaje, req.getRequestURI(), errores, CorrelationId.de(req));
         return ResponseEntity.status(status).body(body);
     }
 }

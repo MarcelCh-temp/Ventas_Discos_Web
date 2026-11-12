@@ -1,5 +1,15 @@
 # MS-PostSale | Ventas Discos
 
+> ## Lote 4 (2026-11-11) · IMPLEMENTADO — SIN EJECUTAR
+> - **Una sola entidad** `SolicitudPostVenta` con `tipo` (CANCELACION, DEVOLUCION, REEMBOLSO) en la tabla original
+>   `solicitudes_postventa`; se eliminó la herencia (observación del profesor, UML 04).
+> - Rutas definitivas `/api/v1/post-sale/**` y `/api/v1/admin/post-sale/**` con **JWT** (el usuario sale del token).
+>   Errores con `ApiError`. Contratos: `seguimiento/CONTRATOS_API_LOTE_4.md`.
+> - Orders: contratos internos del Lote 3. Reposición de devoluciones: **MS-Catalog** (8082) con `POSTSALE-RECEPCION-{id}`.
+> - Configuración: copiar `.env.example` como `.env` (`JWT_SECRET` obligatorio). Pruebas: `mvnw.cmd clean test` (H2).
+> - **Base existente:** antes de usarla con datos antiguos, ver `seguimiento/REGISTRO_LOTE_4.md` §5 (scripts opcionales,
+>   sin ejecutar). Las secciones de abajo describen la versión ANTERIOR y quedan como historial.
+
 Microservicio de postventa en Java 25, Spring Boot 4.0.8, JPA y MariaDB. Puerto 8085.
 
 ## Alcance y origen

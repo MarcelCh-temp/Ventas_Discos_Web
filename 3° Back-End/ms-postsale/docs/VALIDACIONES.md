@@ -1,3 +1,5 @@
+> **Desactualizado desde el Lote 4** (rutas sin `/api/v1`, `usuarioId` como parámetro y herencia de solicitudes). Contrato vigente: `seguimiento/CONTRATOS_API_LOTE_4.md`.
+
 
 # Validaciones de MS-PostSale
 

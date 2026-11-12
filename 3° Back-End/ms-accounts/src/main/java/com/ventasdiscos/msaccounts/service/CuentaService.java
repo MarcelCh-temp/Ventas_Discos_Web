@@ -3,12 +3,14 @@ package com.ventasdiscos.msaccounts.service;
 import com.ventasdiscos.msaccounts.dto.ActualizarPerfilRequest;
 import com.ventasdiscos.msaccounts.dto.CambioPasswordRequest;
 import com.ventasdiscos.msaccounts.dto.EstadisticasCuentasResponse;
+import com.ventasdiscos.msaccounts.dto.EstadoOperacionResponse;
 import com.ventasdiscos.msaccounts.dto.LoginRequest;
 import com.ventasdiscos.msaccounts.dto.LoginResponse;
 import com.ventasdiscos.msaccounts.dto.PerfilResponse;
 import com.ventasdiscos.msaccounts.dto.RecuperarCorreoRequest;
 import com.ventasdiscos.msaccounts.dto.RecuperarPasswordRequest;
 import com.ventasdiscos.msaccounts.dto.RegistroRequest;
+import com.ventasdiscos.msaccounts.exception.AccesoDenegadoException;
 import com.ventasdiscos.msaccounts.exception.NoAutenticadoException;
 import com.ventasdiscos.msaccounts.exception.RecursoDuplicadoException;
 import com.ventasdiscos.msaccounts.exception.RecursoNoEncontradoException;
@@ -22,8 +24,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ventasdiscos.msaccounts.dto.CuentaAdminResponse;
 
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Reglas de negocio de EP-01 (HU-01..07). Aquí van las validaciones que necesitan
@@ -76,15 +82,18 @@ public class CuentaService {
         Usuario usuario = usuarioRepository.findByCorreo(normalizarCorreo(req.correo()))
                 .filter(u -> passwordEncoder.matches(req.password(), u.getPasswordHash()))
                 .orElseThrow(() -> new NoAutenticadoException("Correo o contraseña incorrectos"));
+        // Lote 5 (RF-CTA-02, RN-44): solo una cuenta ACTIVA inicia sesión. Se revisa DESPUÉS de la contraseña para
+        // no revelar el estado de una cuenta a quien no conoce sus credenciales.
+        exigirOperativa(usuario);
         String token = jwtService.generar(usuario);
         return new LoginResponse(token, "Bearer", jwtService.getExpiracionSegundos(),
                 usuario.getId(), usuario.getNombres(), usuario.getRol());
     }
 
-    /** HU-04: solo la propia cuenta (el id viene del token). */
+    /** HU-04: solo la propia cuenta (el id viene del token). Lote 5: solo si la cuenta está ACTIVA (RN-44). */
     @Transactional(readOnly = true)
     public PerfilResponse obtenerPerfil(Long userId) {
-        return PerfilResponse.from(buscar(userId));
+        return PerfilResponse.from(buscarOperativa(userId));
     }
 
     /** HU-05: modifica solo campos permitidos; el correo nuevo no puede ser de otra cuenta. */
@@ -93,7 +102,7 @@ public class CuentaService {
         if (req.nombres() == null && req.apellidos() == null && req.correo() == null) {
             throw new ValidacionNegocioException("Debes indicar al menos un dato a modificar");
         }
-        Usuario usuario = buscar(userId);
+        Usuario usuario = buscarOperativa(userId);
         if (req.correo() != null) {
             String correo = normalizarCorreo(req.correo());
             if (usuarioRepository.existsByCorreoAndIdNot(correo, userId)) {
@@ -113,7 +122,7 @@ public class CuentaService {
     /** HU-06: la contraseña actual debe ser correcta; si algo falla no se cambia nada. */
     @Transactional
     public void cambiarPassword(Long userId, CambioPasswordRequest req) {
-        Usuario usuario = buscar(userId);
+        Usuario usuario = buscarOperativa(userId);
         if (!passwordEncoder.matches(req.passwordActual(), usuario.getPasswordHash())) {
             throw new ValidacionNegocioException("La contraseña actual es incorrecta");
         }
@@ -130,6 +139,7 @@ public class CuentaService {
                 .filter(u -> u.getRut().equals(rut))
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe una cuenta registrada con ese correo y RUT"));
+        exigirOperativa(usuario); // Lote 5 (RF-CTA-07): no se recupera una cuenta EN_ELIMINACION o ELIMINADA
         validarConfirmacionPassword(req.nuevaPassword(), req.confirmacionPassword());
         usuario.setPasswordHash(passwordEncoder.encode(req.nuevaPassword()));
         usuarioRepository.save(usuario);
@@ -141,6 +151,7 @@ public class CuentaService {
         String rut = validarRut(req.rut());
         Usuario usuario = usuarioRepository.findByRut(rut)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe una cuenta registrada con ese RUT"));
+        exigirOperativa(usuario); // Lote 5 (RF-CTA-07)
         String correo = normalizarCorreo(req.nuevoCorreo());
         if (!correo.equals(normalizarCorreo(req.confirmacionCorreo()))) {
             throw new ValidacionNegocioException("El correo y su confirmación no coinciden");
@@ -152,10 +163,57 @@ public class CuentaService {
         usuarioRepository.save(usuario);
     }
 
-    /** HU-45: cantidad de usuarios para el Dashboard (solo lectura). */
+    /**
+     * Lote 5 · Contrato INTERNO (ERS 13.8, RN-37, RN-44): estado de la cuenta para que Orders, Support, PostSale y
+     * Catalog decidan si permiten una nueva operación. 404 si la cuenta no existe.
+     */
     @Transactional(readOnly = true)
-    public EstadisticasCuentasResponse estadisticas() {
-        return new EstadisticasCuentasResponse(usuarioRepository.count(), usuarioRepository.countByRol(Role.CLIENTE));
+    public EstadoOperacionResponse estadoOperacion(Long userId) {
+        return EstadoOperacionResponse.from(buscar(userId));
+    }
+
+    /**
+     * HU-45: cantidad de usuarios para el Dashboard (solo lectura). Lote 5: el Administrador debe estar ACTIVO y las
+     * cuentas ELIMINADA (anonimizadas, se conserva su fila) ya no se cuentan como usuarios.
+     */
+    @Transactional(readOnly = true)
+    public EstadisticasCuentasResponse estadisticas(Long adminId) {
+        buscarOperativa(adminId);
+        return new EstadisticasCuentasResponse(usuarioRepository.contarNoEliminadas(),
+                usuarioRepository.contarNoEliminadasPorRol(Role.CLIENTE));
+    }
+
+    /** Cierre (RF-PED-01/02, RF-SOP-05): máximo de ids por consulta agrupada. */
+    static final int MAX_IDS_ADMIN = 100;
+
+    /**
+     * Cierre del backend (decisión 3/4): datos mínimos de varios clientes para las vistas administrativas.
+     * El administrador debe estar ACTIVO. ids: entre 1 y 100, todos positivos (si no → 400 con errores.ids). Los
+     * repetidos se consultan una vez y los inexistentes simplemente no aparecen. Se respeta el orden pedido.
+     * No escribe en los logs datos personales.
+     */
+    @Transactional(readOnly = true)
+    public List<CuentaAdminResponse> cuentasParaAdmin(Long adminId, List<Long> ids) {
+        buscarOperativa(adminId);
+        if (ids == null || ids.isEmpty()) {
+            throw new ValidacionNegocioException("Indica al menos un id de cliente",
+                    Map.of("ids", "Debe contener entre 1 y " + MAX_IDS_ADMIN + " ids"));
+        }
+        if (ids.stream().anyMatch(id -> id == null || id <= 0)) {
+            throw new ValidacionNegocioException("Hay ids inválidos",
+                    Map.of("ids", "Cada id debe ser un número entero positivo"));
+        }
+        List<Long> distintos = ids.stream().distinct().toList();
+        if (distintos.size() > MAX_IDS_ADMIN) {
+            throw new ValidacionNegocioException("Se pueden consultar como máximo " + MAX_IDS_ADMIN + " clientes por vez",
+                    Map.of("ids", "Debe contener entre 1 y " + MAX_IDS_ADMIN + " ids"));
+        }
+        Map<Long, Usuario> encontrados = new HashMap<>();
+        for (Usuario u : usuarioRepository.findAllById(distintos)) {
+            encontrados.put(u.getId(), u);
+        }
+        return distintos.stream().filter(encontrados::containsKey)
+                .map(id -> CuentaAdminResponse.from(encontrados.get(id))).toList();
     }
 
     // ---------- helpers ----------
@@ -163,6 +221,28 @@ public class CuentaService {
     private Usuario buscar(Long userId) {
         return usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("La cuenta no existe"));
+    }
+
+    /** Lote 5 (RN-44): un token todavía vigente no basta; la cuenta debe estar ACTIVA. */
+    private Usuario buscarOperativa(Long userId) {
+        Usuario usuario = buscar(userId);
+        exigirOperativa(usuario);
+        return usuario;
+    }
+
+    /** 403 con un mensaje según el estado. Un estado desconocido se trata como NO habilitado (restrictivo). */
+    static void exigirOperativa(Usuario usuario) {
+        if (usuario.puedeOperar()) {
+            return;
+        }
+        if (usuario.estaEnEliminacion()) {
+            throw new AccesoDenegadoException("Tu cuenta está en proceso de eliminación: ya no puede iniciar sesión"
+                    + " ni realizar nuevas operaciones");
+        }
+        if (usuario.estaEliminada()) {
+            throw new AccesoDenegadoException("La cuenta fue eliminada");
+        }
+        throw new AccesoDenegadoException("La cuenta no está habilitada para operar");
     }
 
     private String validarRut(String rut) {

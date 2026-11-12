@@ -20,7 +20,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Pruebas de punta a punta (HTTP -> Controller -> Service -> H2) de EP-01. */
+/**
+ * Pruebas de punta a punta (HTTP -> Controller -> Service -> H2) de EP-01.
+ * Lote 5: rutas del ERS 12.11 (decisión del equipo): /accounts/register, /auth/recovery/password y
+ * /auth/recovery/email; las antiguas ya no existen. + POST /auth/logout.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -42,7 +46,7 @@ class CuentaITTest {
 
     @Test
     void registroIgnoraRolEnviadoYCreaCliente_201() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.rol").value("CLIENTE"))
                 .andExpect(jsonPath("$.passwordHash").doesNotExist());
@@ -50,7 +54,7 @@ class CuentaITTest {
 
     @Test
     void registroConCamposVaciosIndicaQueCorregir_400() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errores.rut").exists())
                 .andExpect(jsonPath("$.errores.correo").exists());
@@ -58,9 +62,9 @@ class CuentaITTest {
 
     @Test
     void registroDuplicado_409() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
                 .andExpect(status().isCreated());
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
                 .andExpect(status().isConflict());
     }
 
@@ -72,7 +76,7 @@ class CuentaITTest {
 
     @Test
     void loginYPerfilPropio_200_yStatsComoCliente_403() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
                 .andExpect(status().isCreated());
 
         String login = mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +102,7 @@ class CuentaITTest {
 
     /** Registra a Ana y devuelve "Bearer <token>" de su login. */
     private String registrarYLoguear() throws Exception {
-        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
                 .andExpect(status().isCreated());
         String login = mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"correo\":\"ana@mail.com\",\"password\":\"Secreta123\"}"))
@@ -131,10 +135,10 @@ class CuentaITTest {
     @Test
     void recuperarPasswordYCorreo_200() throws Exception {
         registrarYLoguear();
-        mockMvc.perform(post("/api/v1/auth/recuperacion/password").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/auth/recovery/password").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"correo\":\"ana@mail.com\",\"rut\":\"12345678-5\",\"nuevaPassword\":\"Nueva12345\",\"confirmacionPassword\":\"Nueva12345\"}"))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/auth/recuperacion/correo").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/auth/recovery/email").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rut\":\"12345678-5\",\"nuevoCorreo\":\"ana2@mail.com\",\"confirmacionCorreo\":\"ana2@mail.com\"}"))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
@@ -184,6 +188,50 @@ class CuentaITTest {
         usuarioRepository.saveAndFlush(usuario("33333333-3", "repetido@mail.com"));
         org.junit.jupiter.api.Assertions.assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
                 () -> usuarioRepository.saveAndFlush(usuario("44444444-4", "repetido@mail.com")));
+    }
+
+    // ===================== Lote 5 · Rutas definitivas (ERS 12.11) =====================
+
+    /** Decisión del equipo: sin alias antiguos. */
+    @Test
+    void rutasAntiguasYaNoExisten_404() throws Exception {
+        mockMvc.perform(post("/api/v1/accounts/registro").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/auth/recuperacion/password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\":\"ana@mail.com\",\"rut\":\"12345678-5\",\"nuevaPassword\":\"Nueva12345\",\"confirmacionPassword\":\"Nueva12345\"}"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/v1/auth/recuperacion/correo").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"rut\":\"12345678-5\",\"nuevoCorreo\":\"x@mail.com\",\"confirmacionCorreo\":\"x@mail.com\"}"))
+                .andExpect(status().isNotFound());
+        // ninguna de esas llamadas creó ni cambió una cuenta
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByCorreo("ana@mail.com").isEmpty());
+    }
+
+    /**
+     * HU-03 (decisión del equipo): POST /auth/logout responde 200 con token y 401 sin él. JWT sin estado: el endpoint
+     * NO revoca el token (sigue siendo válido en su firma hasta expirar); el frontend lo descarta.
+     */
+    @Test
+    void logoutConfirma200_yNoRevocaElToken() throws Exception {
+        String token = registrarYLoguear();
+        mockMvc.perform(post("/api/v1/auth/logout").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje").exists());
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401));
+        // Documentado: sin lista negra, el mismo token sigue aceptándose para una cuenta ACTIVA
+        mockMvc.perform(get("/api/v1/accounts/me").header("Authorization", token)).andExpect(status().isOk());
+    }
+
+    /** Lote 5: las cuentas nuevas se guardan explícitamente ACTIVA (decisión del equipo). */
+    @Test
+    void cuentaNuevaQuedaActiva() throws Exception {
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(REGISTRO))
+                .andExpect(status().isCreated());
+        Usuario u = usuarioRepository.findByCorreo("ana@mail.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(com.ventasdiscos.msaccounts.model.EstadoCuenta.ACTIVA, u.getEstado());
+        org.junit.jupiter.api.Assertions.assertTrue(u.puedeOperar());
     }
 
     private static Usuario usuario(String rut, String correo) {

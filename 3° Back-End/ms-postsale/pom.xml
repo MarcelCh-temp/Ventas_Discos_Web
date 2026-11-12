@@ -48,6 +48,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Lote 4: JWT, la misma librería y versión que ms-accounts, ms-catalog, ms-soporte y ms-ordenes.
+             Aquí solo se VALIDA el token que emite MS-Accounts (no es una tecnología nueva). -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.3</version>
+        </dependency>
+
         <!-- Swagger / OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -66,6 +74,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Lote 4 (igual que ms-ordenes, Lote 1): MockMvc en Boot 4 vive en este módulo -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Lote 4: BD en memoria SOLO para las pruebas (mvnw test sin XAMPP). La aplicación sigue con MariaDB -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 
