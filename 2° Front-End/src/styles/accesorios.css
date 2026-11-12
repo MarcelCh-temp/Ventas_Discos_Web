@@ -1,0 +1,78 @@
+
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+        
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* NAVBAR */
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* TARJETAS DE PRODUCTOS MODERNAS */
+        .card {
+            background: rgba(18, 22, 33, 0.85) !important;
+            border: 1px solid rgba(220, 53, 69, 0.2) !important;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 25px rgba(220, 53, 69, 0.4);
+        }
+
+        /* PANEL DE FILTROS MODERNO */
+        .panel-filtros {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* BOTÓN ROJO NEÓN */
+        .btn-neon-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #a71d2a 100%);
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-neon-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(220, 53, 69, 0.8);
+            color: #fff;
+        }
+
+        /* ESTILOS DE LA CÁPSULA DE ADMINISTRADOR */
+        .admin-discord-profile {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.25), rgba(111, 66, 193, 0.35)) !important;
+            border: 2px solid #ffc107 !important;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5), inset 0 0 10px rgba(220, 53, 69, 0.3);
+            padding: 5px 16px 5px 6px !important;
+            border-radius: 50rem !important;
+        }
+        .admin-badge-text {
+            color: #ffc107 !important;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+    

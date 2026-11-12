@@ -1,0 +1,1 @@
+export function StoreNotice({error,success}:{error?:string;success?:string}){return <>{error&&<div role="alert" className="alert alert-danger">{error}</div>}{success&&<div role="status" className="alert alert-success">{success}</div>}</>}

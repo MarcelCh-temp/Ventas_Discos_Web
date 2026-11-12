@@ -1,0 +1,99 @@
+
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+        
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* EFECTO DE ILUMINACIÓN AL PASAR EL CURSOR */
+        h1:hover, h2:hover, h3:hover, .navbar-brand:hover {
+            text-shadow: 0 0 15px rgba(13, 110, 253, 0.8), 0 0 30px rgba(13, 110, 253, 0.4);
+            transition: text-shadow 0.3s ease;
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Navbar futurista */
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Contenedor principal con el Video de Fondo */
+        .auth-section {
+            position: relative;
+            background-color: #0b0f19;
+            overflow: hidden;
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, rgba(13, 110, 253, 0.2) 0%, rgba(11, 15, 25, 0.9) 85%);
+            z-index: 1;
+        }
+
+        /* Tarjeta de Formulario */
+        .auth-card {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .auth-card:hover {
+            box-shadow: 0 0 30px rgba(13, 110, 253, 0.4);
+            border-color: #0d6efd;
+        }
+
+        .btn-neon {
+            background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(13, 110, 253, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-neon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(13, 110, 253, 0.8);
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+    

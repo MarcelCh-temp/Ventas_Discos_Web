@@ -1,0 +1,2 @@
+import {useSearchParams} from 'react-router-dom';import {StoreLayout} from '../components/StoreLayout';import {RealCatalog} from '../components/RealCatalog';
+export default function RealResultadosPage(){const [params]=useSearchParams();const q=params.get('q')?.trim()||'';return <StoreLayout title="Buscar productos"><RealCatalog q={q} titulo={q?`Resultados para «${q}»`:'Catálogo completo'}/></StoreLayout>}

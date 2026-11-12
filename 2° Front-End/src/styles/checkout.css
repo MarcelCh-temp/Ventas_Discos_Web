@@ -1,0 +1,25 @@
+
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.85) !important;
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-custom {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+    

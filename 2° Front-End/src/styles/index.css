@@ -1,0 +1,445 @@
+
+
+        /* EFECTO HEADER INTELIGENTE (ESTILO SPOTIFY) */
+.navbar-futurista {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    transition: transform 0.35s ease-in-out, background-color 0.35s ease;
+}
+
+/* Esta clase moverá la barra fuera de la pantalla hacia arriba */
+.navbar-oculta {
+    transform: translateY(-100%);
+}
+
+        /* REGISTRO DE VARIABLE PARA ANIMAR EL ÁNGULO DEL ARCOÍRIS */
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @keyframes girarArcoiris {
+            to {
+                --angle: 360deg;
+            }
+        }
+
+        /* ESTILOS DE LA TARJETA CON BORDE ARCOÍRIS FLUIDO */
+        .categoria-card {
+            position: relative;
+            background-color: #111827;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            z-index: 1;
+            border: none !important; /* Quita el borde por defecto */
+        }
+
+        /* CAPA INTERNA PARA LA IMAGEN Y CAPAS DE TEXTO */
+        .categoria-card img {
+            transition: transform 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
+            filter: brightness(0.85);
+        }
+
+        /* MARCO GIRATORIO ARCOÍRIS CON CONIC-GRADIENT (PSEUDOELEMENTO ::before) */
+        .categoria-card::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: conic-gradient(
+                from var(--angle), 
+                #ff0055, 
+                #7a00ff, 
+                #00e5ff, 
+                #00ff66, 
+                #ffea00, 
+                #ff0055
+            );
+            border-radius: 12px; /* Ajuste para bordes redondeados */
+            z-index: -1;
+            opacity: 0; /* Oculto por defecto */
+            transition: opacity 0.35s ease;
+            animation: girarArcoiris 2.5s linear infinite;
+        }
+
+        /* RESPLANDOR/GLOW EXTERNO CON LOS MISMOS COLORES (PSEUDOELEMENTO ::after) */
+        .categoria-card::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: conic-gradient(
+                from var(--angle), 
+                #ff0055, 
+                #7a00ff, 
+                #00e5ff, 
+                #00ff66, 
+                #ffea00, 
+                #ff0055
+            );
+            border-radius: 14px;
+            z-index: -2;
+            opacity: 0;
+            filter: blur(12px); /* Crea la luz de neón proyectada */
+            transition: opacity 0.35s ease;
+            animation: girarArcoiris 2.5s linear infinite;
+        }
+
+        /* --- EFECTOS EN HOVER --- */
+        .categoria-card:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        /* Muestra el arcoíris y su resplandor al pasar el cursor */
+        .categoria-card:hover::before,
+        .categoria-card:hover::after {
+            opacity: 1;
+        }
+
+        .categoria-card:hover img {
+            transform: scale(1.08);
+            opacity: 0.95 !important;
+            filter: brightness(1.1);
+        }
+
+        .categoria-card h3 {
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .categoria-card:hover h3 {
+            color: #ffffff !important;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(0, 229, 255, 0.8);
+            letter-spacing: 1.5px;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        body {
+            background-color: #0b0f19;
+            color: #f8f9fa;
+        }
+        
+        /* Changa para títulos */
+        h2, h3, .navbar-brand {
+            font-family: 'Changa', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* CINTILLO SUPERIOR ANIMADO EN BUCLE */
+        .cintillo-animado-container {
+            background: linear-gradient(90deg, #d63384, #0d6efd);
+            color: #ffffff;
+            font-family: 'Changa', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            height: 38px;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1020;
+        }
+
+        .cintillo-track {
+            display: inline-flex;
+            animation: deslizarCintillo 25s linear infinite;
+        }
+
+        .cintillo-track:hover {
+            animation-play-state: paused;
+        }
+
+        .cintillo-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 40px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+
+        @keyframes deslizarCintillo {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* TÍTULO INTERACTIVO CON EVITACIÓN DE SELECCIÓN DE TEXTO */
+        .hero-titulo-especial {
+            font-family: 'Dela Gothic One', sans-serif !important;
+            letter-spacing: 2px;
+            font-size: 2.8rem;
+            cursor: pointer;
+            transition: text-shadow 0.3s ease, transform 0.1s ease;
+            display: inline-block;
+            
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .hero-titulo-especial:hover {
+            text-shadow: 0 0 20px rgba(13, 110, 253, 0.9), 0 0 40px rgba(13, 110, 253, 0.5);
+        }
+
+        /* ANIMACIÓN DE TEMBLOR AL HACER CLIC */
+        @keyframes temblor-anim {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 3px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-3px, -2px) rotate(0deg); }
+            80% { transform: translate(2px, 2px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .temblando {
+            animation: temblor-anim 0.2s ease infinite;
+        }
+
+        h2:hover, h3:hover, .navbar-brand:hover {
+            text-shadow: 0 0 15px rgba(13, 110, 253, 0.8), 0 0 30px rgba(13, 110, 253, 0.4);
+            transition: text-shadow 0.3s ease;
+        }
+
+        .hover-light:hover {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* NAVBAR 100% TRANSLÚCIDA Y MODERNA FORZADA */
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.3) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* CÁPSULA DE ADMINISTRADOR ESTILO DISCORD ULTRATRANSPARENTE */
+        .admin-discord-profile {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(111, 66, 193, 0.25)) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 2px solid rgba(255, 193, 7, 0.85) !important;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.35), inset 0 0 10px rgba(220, 53, 69, 0.2);
+            padding: 5px 16px 5px 6px !important;
+            border-radius: 50rem !important;
+            animation: adminGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes adminGlow {
+            0% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.3), inset 0 0 5px rgba(220, 53, 69, 0.2); }
+            100% { box-shadow: 0 0 22px rgba(255, 193, 7, 0.75), inset 0 0 12px rgba(255, 193, 7, 0.4); }
+        }
+
+        .admin-badge-text {
+            color: #ffc107 !important;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
+        }
+
+        /* HERO SECTION DEL INICIO CON VIDEO */
+        .hero-futurista {
+            position: relative;
+            background-color: #0b0f19;
+            overflow: hidden;
+            min-height: 55vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, rgba(13, 110, 253, 0.25) 0%, rgba(11, 15, 25, 0.95) 80%);
+            z-index: 1;
+        }
+
+        .hero-subtítulo {
+            color: #ffffff !important;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Tarjetas de productos y categorías */
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 25px rgba(13, 110, 253, 0.4);
+        }
+
+        /* ESTILOS PARA LAS TARJETAS DE CATEGORÍAS */
+        .categoria-card {
+            transition: all 0.3s ease;
+            background-color: #111827;
+        }
+
+        .categoria-card:hover {
+            transform: translateY(-4px);
+            border-color: #0d6efd !important;
+            box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+        }
+
+        .categoria-card img {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+
+        .categoria-card:hover img {
+            transform: scale(1.08);
+            opacity: 0.9 !important;
+        }
+
+        .text-shadow {
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* BOTÓN FLOTANTE DE REGALO (RULETA) */
+        #ruletaWidget {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 9999;
+        }
+
+        /* WIDGET DE RADIO FLOTANTE */
+        #radioWidget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+        }
+        .radio-panel {
+            display: none;
+            width: 320px;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(13, 110, 253, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .radio-panel.active {
+            display: block;
+        }
+        .equalizer-icon {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 22px;
+            width: 24px;
+        }
+        .eq-bar {
+            width: 4px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            height: 6px;
+        }
+        .equalizer-icon.playing .eq-bar:nth-child(1) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.1s; }
+        .equalizer-icon.playing .eq-bar:nth-child(2) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.4s; }
+        .equalizer-icon.playing .eq-bar:nth-child(3) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.2s; }
+        .equalizer-icon.playing .eq-bar:nth-child(4) { animation: eqAnim 0.8s ease-in-out infinite alternate; animation-delay: 0.5s; }
+        @keyframes eqAnim {
+            0% { transform: scaleY(0.4); }
+            100% { transform: scaleY(1.3); }
+        }
+
+        /* MODAL DE LA RULETA */
+        .ruleta-overlay-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 15, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 1050;
+            justify-content: center;
+            align-items: center;
+        }
+        .ruleta-overlay-modal.active {
+            display: flex;
+        }
+
+        .ruleta-modal-content {
+            background: #111827;
+            border: 2px solid rgba(220, 53, 69, 0.6);
+            border-radius: 22px;
+            width: 92%;
+            max-width: 600px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+            position: relative;
+            animation: aparecerModal 0.3s ease;
+        }
+
+        @keyframes aparecerModal {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .ruleta-canvas-container {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            margin: 20px auto;
+        }
+        #ruletaCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1);
+        }
+        .ruleta-puntero {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 30px solid #ff4757;
+            z-index: 20;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
+        }
+    

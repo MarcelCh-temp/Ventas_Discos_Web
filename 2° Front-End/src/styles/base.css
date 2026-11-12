@@ -1,0 +1,4 @@
+/* No sustituye el CSS original: solamente asegura la estructura raíz de la SPA. */
+html, body, #root { min-height: 100%; }
+.nackson-legacy-page { min-height: 100vh; display: flex; flex-direction: column; }
+.nackson-legacy-page > .flex-grow-1 { flex-grow: 1 !important; }

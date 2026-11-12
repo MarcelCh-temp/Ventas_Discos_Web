@@ -1,0 +1,17 @@
+
+        body { background-color: #0b0f19; color: #f8f9fa; }
+        h2, h3, h5, .navbar-brand { font-family: 'Changa', sans-serif !important; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        
+        .navbar-futurista {
+            background: rgba(11, 15, 25, 0.3) !important;
+            backdrop-filter: blur(18px) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        .card-carrito {
+            background: rgba(18, 22, 33, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 16px;
+        }
+    

@@ -1,0 +1,36 @@
+
+        body {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Dela Gothic One', sans-serif !important;
+            letter-spacing: 0.5px;
+        }
+        .hover-danger:hover {
+            color: #dc3545 !important;
+        }
+        .hover-light:hover {
+            color: #ffffff !important;
+        }
+        #radioWidget {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+        }
+        .radio-panel {
+            display: none;
+            width: 320px;
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .radio-panel.active {
+            display: block;
+        }
+    
