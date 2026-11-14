@@ -32,24 +32,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
+    // Dependencia inyectada para acceder a cuenta service sin crearla manualmente.
     private final CuentaService cuentaService;
 
     /** HU-03 / RF-CTA-03: requiere un token válido (401 si falta). Ver la nota de la clase: no revoca el JWT. */
     @Operation(summary = "HU-03 Cerrar sesión (el frontend descarta el token)",
             security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/logout")
+    // POST: crea o procesa una solicitud; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<MensajeResponse> logout(@Parameter(hidden = true) AuthUser user) {
         return ResponseEntity.ok(new MensajeResponse("Sesión cerrada. El token debe descartarse en este dispositivo"));
     }
 
     @Operation(summary = "HU-02 Login único Cliente/Admin")
     @PostMapping("/login")
+    // POST: crea o procesa una solicitud; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
         return ResponseEntity.ok(cuentaService.login(req));
     }
 
     @Operation(summary = "HU-07 Recuperar contraseña (simulado: correo + RUT)")
     @PostMapping("/recovery/password")
+    // POST: recibe una solicitud y ejecuta una operación. Método recuperarPassword (recuperar password).
     public ResponseEntity<MensajeResponse> recuperarPassword(@Valid @RequestBody RecuperarPasswordRequest req) {
         cuentaService.recuperarPassword(req);
         return ResponseEntity.ok(new MensajeResponse("Contraseña restablecida. Ya puedes iniciar sesión"));
@@ -57,6 +61,7 @@ public class AuthController {
 
     @Operation(summary = "HU-07 Recuperar/actualizar correo identificando la cuenta por RUT")
     @PostMapping("/recovery/email")
+    // POST: recibe una solicitud y ejecuta una operación. Método recuperarCorreo (recuperar correo).
     public ResponseEntity<MensajeResponse> recuperarCorreo(@Valid @RequestBody RecuperarCorreoRequest req) {
         cuentaService.recuperarCorreo(req);
         return ResponseEntity.ok(new MensajeResponse("Correo actualizado. Ya puedes iniciar sesión con el nuevo correo"));

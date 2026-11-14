@@ -23,7 +23,9 @@ import java.util.Map;
 public class InventoryClient {
 
     private static final Logger log = LoggerFactory.getLogger(InventoryClient.class);
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
 
     /** APLICADA: 201 o 200 (ya estaba). RECHAZADA: 4xx (no se reintenta). NO_CONFIRMADA: sin respuesta o 5xx. */
@@ -31,18 +33,23 @@ public class InventoryClient {
         APLICADA, RECHAZADA, NO_CONFIRMADA
     }
 
+    // Cliente de integración: realiza respuesta con otro microservicio y trata su respuesta.
     public record Respuesta(Resultado resultado, int status, String detalle) {
     }
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
+    // Cliente de integración: realiza inventory client con otro microservicio y trata su respuesta.
     public InventoryClient(RestTemplate restTemplate, @Value("${services.catalog.url}") String baseUrl) {
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
 
     /** ENTRADA de unidades devueltas aptas (RF-POS-09, RN-25). */
+    // Cliente de integración: realiza reponer con otro microservicio y trata su respuesta.
     public Respuesta reponer(String operacionId, String motivo, Long productoId, Integer cantidad) {
         Map<String, Object> item = Map.of("productId", productoId, "tipo", "ENTRADA", "cantidad", cantidad);
         Map<String, Object> body = Map.of("operacionId", operacionId, "motivo", motivo, "items", List.of(item));
@@ -67,6 +74,7 @@ public class InventoryClient {
         return new Respuesta(Resultado.NO_CONFIRMADA, 0, null);
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperar (esperar).
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

@@ -1,5 +1,6 @@
 package ms_ordenes.ms_ordenes.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -26,21 +27,33 @@ public class ItemCarrito {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "carrito_id", nullable = false)
+    @NotNull
+    // Atributo carrito: propiedad que se guarda o utiliza en esta entidad.
     private Carrito carrito;
 
     @Column(name = "product_id", nullable = false)
+    @Positive
+    @NotNull
+    // Atributo productId: propiedad que se guarda o utiliza en esta entidad.
     private Long productId;
 
     @Column(nullable = false)
+    @NotNull
+    // Cantidad utilizada por la regla de negocio; sus límites se comprueban antes de guardar; validación: valor obligatorio (no nulo).
     private Integer cantidad;
 
     @Column(name = "precio_unitario", nullable = false, precision = 12, scale = 2)
+    @DecimalMin(value = "0.0")
+    @NotNull
+    // Importe monetario; se conserva la precisión decimal para evitar errores de redondeo; validación: valor obligatorio (no nulo), límite inferior decimal.
     private BigDecimal precioUnitario;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método ItemCarrito (item carrito).
     protected ItemCarrito() {
     }
 
@@ -51,11 +64,13 @@ public class ItemCarrito {
         this.precioUnitario = precioUnitario == null ? BigDecimal.ZERO : precioUnitario;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método calcularSubtotal (calcular subtotal).
     public BigDecimal calcularSubtotal() {
         return precioUnitario.multiply(BigDecimal.valueOf(cantidad));
     }
 
     /** RN-11: entera y mayor que cero. */
+    // Ejecuta tiene cantidad valida como parte de las responsabilidades de esta clase.
     public boolean tieneCantidadValida() {
         return cantidad != null && cantidad > 0;
     }

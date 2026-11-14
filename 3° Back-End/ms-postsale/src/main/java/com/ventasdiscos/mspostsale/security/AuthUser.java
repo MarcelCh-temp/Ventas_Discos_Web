@@ -8,13 +8,16 @@ import com.ventasdiscos.mspostsale.exception.AccesoDenegadoException;
  */
 public record AuthUser(Long userId, String rol) {
 
+    // Constante ADMINISTRADOR: valor compartido que no cambia durante la ejecución.
     public static final String ADMINISTRADOR = "ADMINISTRADOR";
 
+    // Ejecuta es administrador como parte de las responsabilidades de esta clase.
     public boolean esAdministrador() {
         return ADMINISTRADOR.equals(rol);
     }
 
     /** 403 si no es Administrador (HU-72 a HU-76 son acciones del Administrador). */
+    // Ejecuta require admin como parte de las responsabilidades de esta clase.
     public void requireAdmin() {
         if (!esAdministrador()) {
             throw new AccesoDenegadoException("No tienes permisos para realizar esta acción");

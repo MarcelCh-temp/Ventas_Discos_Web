@@ -43,6 +43,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class InventarioAdminController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final InventarioService service;
 
     @Operation(summary = "HU-38/39 Listar, buscar y filtrar existencias (paginado)")
@@ -62,6 +63,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-38 Existencias de un producto")
     @GetMapping("/{productId}")
+    // GET: consulta información sin modificar registros. Método obtener (obtener).
     public ResponseEntity<InventarioResponse> obtener(@Parameter(hidden = true) AuthUser user,
                                                       @PathVariable Long productId) {
         user.requireAdmin();
@@ -70,6 +72,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-41 Registrar entrada o salida de stock")
     @PostMapping("/{productId}/movements")
+    // POST: recibe una solicitud y ejecuta una operación. Método movimiento (movimiento).
     public ResponseEntity<MovimientoResponse> movimiento(@Parameter(hidden = true) AuthUser user,
                                                          @PathVariable Long productId,
                                                          @Valid @RequestBody MovimientoRequest req) {
@@ -79,6 +82,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-40 Ajuste por diferencia de inventario físico (motivo obligatorio)")
     @PostMapping("/{productId}/adjustments")
+    // POST: recibe una solicitud y ejecuta una operación. Método ajuste (ajuste).
     public ResponseEntity<MovimientoResponse> ajuste(@Parameter(hidden = true) AuthUser user,
                                                      @PathVariable Long productId,
                                                      @Valid @RequestBody AjusteRequest req) {
@@ -88,6 +92,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-42 Configurar umbral de stock crítico")
     @PutMapping("/{productId}/critical-level")
+    // PUT: actualiza un recurso de acuerdo con las reglas del servicio. Método umbral (umbral).
     public ResponseEntity<InventarioResponse> umbral(@Parameter(hidden = true) AuthUser user,
                                                      @PathVariable Long productId,
                                                      @Valid @RequestBody UmbralRequest req) {
@@ -97,6 +102,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-43 Historial de movimientos (filtrable)")
     @GetMapping("/movements")
+    // GET: consulta información sin modificar registros. Método historial (historial).
     public ResponseEntity<PageResponse<MovimientoResponse>> historial(
             @Parameter(hidden = true) AuthUser user,
             @RequestParam(required = false) Long productId,
@@ -111,6 +117,7 @@ public class InventarioAdminController {
 
     @Operation(summary = "HU-44 Operación masiva (todo o nada)")
     @PostMapping("/bulk")
+    // POST: recibe una solicitud y ejecuta una operación. Método masivo (masivo).
     public ResponseEntity<List<MovimientoResponse>> masivo(@Parameter(hidden = true) AuthUser user,
                                                            @Valid @RequestBody OperacionMasivaRequest req) {
         user.requireAdmin();

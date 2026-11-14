@@ -25,6 +25,7 @@ public record SolicitudDetalleResponse(Long id, TipoSolicitud tipo, EstadoSolici
                                        List<Producto> items, List<Recepcion> recepciones) {
 
     /** ItemDevolucion: lo solicitado y lo ya recibido (para saber cuánto falta por recibir). */
+    // Ejecuta producto como parte de las responsabilidades de esta clase.
     public record Producto(Long id, Long productoId, int cantidadSolicitada, int cantidadRecibida) {
     }
 
@@ -37,6 +38,7 @@ public record SolicitudDetalleResponse(Long id, TipoSolicitud tipo, EstadoSolici
                            CondicionProducto condicion, String operacionId, EstadoReposicion estadoReposicion) {
     }
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static SolicitudDetalleResponse from(SolicitudPostVenta s, boolean vistaAdmin) {
         List<Producto> productos = s.getItems().stream()
                 .map(i -> new Producto(i.getId(), i.getProductoId(), i.getCantidadSolicitada(), s.cantidadRecibida(i)))
@@ -47,12 +49,14 @@ public record SolicitudDetalleResponse(Long id, TipoSolicitud tipo, EstadoSolici
                 s.getFechaResolucion(), vistaAdmin ? s.getUsuarioResolucionId() : null, productos, recepciones);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método recepcion (recepcion).
     private static Recepcion recepcion(RecepcionDevolucion r, boolean vistaAdmin) {
         return new Recepcion(r.getId(), r.getFechaRecepcion(), r.getObservaciones(),
                 vistaAdmin ? r.getUsuarioRecepcionId() : null,
                 r.getItems().stream().map(i -> recibido(i, vistaAdmin)).toList());
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método recibido (recibido).
     private static Recibido recibido(ItemRecepcionDevolucion i, boolean vistaAdmin) {
         ItemDevolucion d = i.getItemDevolucion();
         boolean conReposicion = vistaAdmin && i.getReposicion() != null;

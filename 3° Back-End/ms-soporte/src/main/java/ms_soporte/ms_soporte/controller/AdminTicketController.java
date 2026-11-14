@@ -28,6 +28,7 @@ import java.time.LocalDate;
 public class AdminTicketController {
 
     @Autowired
+    // Dependencia inyectada para acceder a ticket service sin crearla manualmente.
     private TicketService ticketService;
 
     // HU-63, HU-64: q = número de ticket o asunto; todos los filtros son opcionales y combinables
@@ -46,6 +47,7 @@ public class AdminTicketController {
     }
 
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método obtener (obtener).
     public ResponseEntity<TicketDetalleResponse> obtener(@Parameter(hidden = true) AuthUser user,
                                                          @PathVariable Long id) {
         user.requireAdmin();

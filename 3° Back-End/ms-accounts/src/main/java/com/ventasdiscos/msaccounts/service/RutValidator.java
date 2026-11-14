@@ -6,10 +6,12 @@ package com.ventasdiscos.msaccounts.service;
  */
 public final class RutValidator {
 
+    // Procesa rut validator aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private RutValidator() {
     }
 
     /** "12.345.678-k" -> "12345678-K". Devuelve null si el formato no es reconocible. */
+    // Procesa normalizar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public static String normalizar(String rut) {
         if (rut == null) {
             return null;
@@ -22,6 +24,7 @@ public final class RutValidator {
     }
 
     /** true si el formato es correcto y el DV coincide. */
+    // Procesa es valido aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public static boolean esValido(String rut) {
         String normal = normalizar(rut);
         if (normal == null) {
@@ -32,6 +35,7 @@ public final class RutValidator {
         return calcularDv(cuerpo) == dv;
     }
 
+    // Procesa calcular dv aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static char calcularDv(String cuerpo) {
         int suma = 0;
         int multiplicador = 2;

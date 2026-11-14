@@ -38,23 +38,28 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CuentaController {
 
+    // Dependencia inyectada para acceder a cuenta service sin crearla manualmente.
     private final CuentaService cuentaService;
+    // Dependencia inyectada para acceder a eliminacion service sin crearla manualmente.
     private final EliminacionCuentaService eliminacionService;
 
     @Operation(summary = "HU-01 Registro público (crea solo Cliente)")
     @PostMapping("/register")
+    // POST: crea o procesa una solicitud; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<PerfilResponse> registrar(@Valid @RequestBody RegistroRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cuentaService.registrar(req));
     }
 
     @Operation(summary = "HU-04 Ver mi perfil", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/me")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<PerfilResponse> perfil(@Parameter(hidden = true) AuthUser user) {
         return ResponseEntity.ok(cuentaService.obtenerPerfil(user.userId()));
     }
 
     @Operation(summary = "HU-05 Editar mi perfil", security = @SecurityRequirement(name = "bearerAuth"))
     @PatchMapping("/me")
+    // PATCH: modifica parcialmente un recurso. Método actualizar (actualizar).
     public ResponseEntity<PerfilResponse> actualizar(@Parameter(hidden = true) AuthUser user,
                                                      @Valid @RequestBody ActualizarPerfilRequest req) {
         return ResponseEntity.ok(cuentaService.actualizarPerfil(user.userId(), req));
@@ -62,6 +67,7 @@ public class CuentaController {
 
     @Operation(summary = "HU-06 Cambiar mi contraseña", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/me/password")
+    // PUT: actualiza un recurso de acuerdo con las reglas del servicio. Método cambiarPassword (cambiar password).
     public ResponseEntity<MensajeResponse> cambiarPassword(@Parameter(hidden = true) AuthUser user,
                                                            @Valid @RequestBody CambioPasswordRequest req) {
         cuentaService.cambiarPassword(user.userId(), req);
@@ -70,6 +76,7 @@ public class CuentaController {
 
     @Operation(summary = "HU-45 Cantidad de usuarios (Dashboard, solo Admin)", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/stats")
+    // GET: consulta información sin modificar registros. Método estadisticas (estadisticas).
     public ResponseEntity<EstadisticasCuentasResponse> estadisticas(@Parameter(hidden = true) AuthUser user) {
         user.requireAdmin();
         return ResponseEntity.ok(cuentaService.estadisticas(user.userId()));

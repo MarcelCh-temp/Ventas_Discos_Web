@@ -25,6 +25,7 @@ public record PromocionResponse(
         EstadoPromocion estado,
         LocalDateTime fechaDesactivacion
 ) {
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PromocionResponse from(Promocion p, LocalDate hoy) {
         return new PromocionResponse(p.getId(), p.getNombre(), p.getTipoDescuento(), p.getValor(),
                 p.getFechaInicio(), p.getFechaFin(), p.getMontoMinimoCompra(), p.getCategoria(),

@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "bearerAuth")
 public class ProductoAdminController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final ProductoService service;
 
     @Operation(summary = "HU-11/12 Catálogo administrativo con búsqueda y filtros")
@@ -47,6 +48,7 @@ public class ProductoAdminController {
 
     @Operation(summary = "HU-11 Detalle administrativo (incluye retirados)")
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<ProductoAdminResponse> detalle(@Parameter(hidden = true) AuthUser user,
                                                          @PathVariable Long id) {
         user.requireAdmin();
@@ -55,6 +57,7 @@ public class ProductoAdminController {
 
     @Operation(summary = "HU-08 Registrar producto (id generado, stock en Inventory)")
     @PostMapping
+    // POST: recibe una solicitud y ejecuta una operación. Método crear (crear).
     public ResponseEntity<ProductoAdminResponse> crear(@Parameter(hidden = true) AuthUser user,
                                                        @Valid @RequestBody ProductoRequest req) {
         user.requireAdmin();
@@ -63,6 +66,7 @@ public class ProductoAdminController {
 
     @Operation(summary = "HU-09 Editar datos comerciales")
     @PutMapping("/{id}")
+    // PUT: actualiza un recurso de acuerdo con las reglas del servicio. Método editar (editar).
     public ResponseEntity<ProductoAdminResponse> editar(@Parameter(hidden = true) AuthUser user,
                                                         @PathVariable Long id,
                                                         @Valid @RequestBody ProductoRequest req) {
@@ -72,6 +76,7 @@ public class ProductoAdminController {
 
     @Operation(summary = "HU-10 Retirar uno o varios productos")
     @PostMapping("/retire")
+    // POST: recibe una solicitud y ejecuta una operación. Método retirar (retirar).
     public ResponseEntity<RetiroResponse> retirar(@Parameter(hidden = true) AuthUser user,
                                                   @Valid @RequestBody RetiroRequest req) {
         user.requireAdmin();

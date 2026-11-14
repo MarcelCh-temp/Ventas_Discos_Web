@@ -19,6 +19,7 @@ public record PedidoDetalleResponse(Long id, String numeroPedido, Long userId, L
                                     DespachoResponse despacho, List<HistorialPedidoResponse> historial,
                                     boolean reposicionStockPendiente) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PedidoDetalleResponse from(Orden o, boolean vistaAdministrador) {
         return new PedidoDetalleResponse(o.getId(), o.getNumeroPedido(), o.getIdUsuario(), o.getFechaCreacion(),
                 o.getEstado(), o.getItems().stream().map(ItemPedidoResponse::from).toList(),

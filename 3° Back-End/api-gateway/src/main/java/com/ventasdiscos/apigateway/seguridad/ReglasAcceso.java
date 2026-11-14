@@ -42,8 +42,10 @@ public final class ReglasAcceso {
             // MS-Support (ms-soporte, 8087)
             "/api/v1/support", "/api/v1/admin/support");
 
+    // Constante PARSER: valor compartido que no cambia durante la ejecución.
     private static final PathPatternParser PARSER = PathPatternParser.defaultInstance;
 
+    // Ejecuta regla como parte de las responsabilidades de esta clase.
     private record Regla(String metodo, PathPattern patron) {
         boolean coincide(String metodoPedido, PathContainer ruta) {
             String m = "HEAD".equals(metodoPedido) ? "GET" : metodoPedido;
@@ -68,13 +70,16 @@ public final class ReglasAcceso {
             regla("GET", "/api/v1/checkout/delivery-methods"),
             regla("GET", "/api/v1/checkout/payment-methods"));
 
+    // Ejecuta reglas acceso como parte de las responsabilidades de esta clase.
     private ReglasAcceso() {
     }
 
+    // Ejecuta regla como parte de las responsabilidades de esta clase.
     private static Regla regla(String metodo, String patron) {
         return new Regla(metodo, PARSER.parse(patron));
     }
 
+    // Ejecuta clasificar como parte de las responsabilidades de esta clase.
     public static Acceso clasificar(String metodo, String path) {
         String minusculas = path.toLowerCase(Locale.ROOT);
         if (minusculas.equals("/api/v1/internal") || minusculas.startsWith("/api/v1/internal/")) {
@@ -96,6 +101,7 @@ public final class ReglasAcceso {
         return Acceso.CLIENTE;
     }
 
+    // Ejecuta enrutada como parte de las responsabilidades de esta clase.
     static boolean enrutada(String path) {
         for (String base : BASES_ENRUTADAS) {
             if (path.equals(base) || path.startsWith(base + "/")) {

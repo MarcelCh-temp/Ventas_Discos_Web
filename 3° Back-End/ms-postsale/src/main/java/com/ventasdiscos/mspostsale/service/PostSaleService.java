@@ -39,12 +39,17 @@ import java.util.Map;
 @Service
 public class PostSaleService {
 
+    // Constante MAX_TAMANO: valor compartido que no cambia durante la ejecución.
     static final int MAX_TAMANO = 100;
     private static final Sort RECIENTES = Sort.by(Sort.Order.desc("fechaSolicitud"), Sort.Order.desc("id"));
 
+    // Atributo solicitudes: dato o dependencia utilizada por esta clase.
     private final SolicitudPostVentaRepository solicitudes;
+    // Dependencia inyectada para acceder a cancelacion service sin crearla manualmente.
     private final CancelacionService cancelacionService;
+    // Dependencia inyectada para acceder a devolucion service sin crearla manualmente.
     private final DevolucionService devolucionService;
+    // Dependencia inyectada para acceder a reembolso service sin crearla manualmente.
     private final ReembolsoService reembolsoService;
 
     public PostSaleService(SolicitudPostVentaRepository solicitudes, CancelacionService cancelacionService,
@@ -61,10 +66,12 @@ public class PostSaleService {
         return cancelacionService.solicitar(usuarioId, request);
     }
 
+    // Procesa solicitar devolucion aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse solicitarDevolucion(Long usuarioId, Devolver request) {
         return devolucionService.solicitar(usuarioId, request);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método registrarReembolso (registrar reembolso).
     public SolicitudDetalleResponse registrarReembolso(Long usuarioId, Reembolsar request) {
         return reembolsoService.registrar(usuarioId, request);
     }
@@ -80,6 +87,7 @@ public class PostSaleService {
 
     /** HU-71 / RF-POS-04: una ajena responde 404 (no se revela que existe). */
     @Transactional(readOnly = true)
+    // Procesa detalle mio aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse detalleMio(Long usuarioId, Long id) {
         SolicitudPostVenta s = solicitudes.findById(id)
                 .filter(x -> x.estaMigrada() && x.perteneceA(usuarioId))
@@ -119,14 +127,17 @@ public class PostSaleService {
         return PageResponse.of(p, p.getContent().stream().map(s -> SolicitudDetalleResponse.from(s, true)).toList());
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método resolverCancelacion (resolver cancelacion).
     public CancelacionResueltaResponse resolverCancelacion(Long id, Resolver request, Long adminId) {
         return cancelacionService.resolver(id, request, adminId);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método resolverDevolucion (resolver devolucion).
     public SolicitudDetalleResponse resolverDevolucion(Long id, Resolver request, Long adminId) {
         return devolucionService.resolver(id, request, adminId);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método recibir (recibir).
     public SolicitudDetalleResponse recibir(Long id, Recibir request, Long adminId) {
         return devolucionService.recibir(id, request, adminId);
     }
@@ -168,6 +179,7 @@ public class PostSaleService {
         };
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método pagina (pagina).
     private static PageRequest pagina(int page, int size) {
         if (page < 0 || size < 1 || size > MAX_TAMANO) {
             throw new ValidacionNegocioException("Paginación no válida",

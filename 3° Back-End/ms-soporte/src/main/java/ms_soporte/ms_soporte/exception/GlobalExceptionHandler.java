@@ -32,12 +32,14 @@ public class GlobalExceptionHandler {
 
     /** Solicitud inexistente o ajena (HU-60, HU-61: no se revela que existe). */
     @ExceptionHandler(RecursoNoEncontradoException.class)
+    // Ejecuta handle no encontrado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoEncontrado(RecursoNoEncontradoException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
     }
 
     /** @Valid falló en el DTO: campo -> mensaje para corregir sin perder lo válido (RF-SOP-01, RNF-04). */
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    // Ejecuta handle validacion como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errores = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
@@ -48,6 +50,7 @@ public class GlobalExceptionHandler {
 
     /** JSON mal formado o tipo incorrecto (ej. texto donde va número). */
     @ExceptionHandler(HttpMessageNotReadableException.class)
+    // Ejecuta handle json como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleJson(HttpMessageNotReadableException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El cuerpo de la solicitud no es válido: revisa el formato y el tipo de cada dato", req, null);
@@ -55,6 +58,7 @@ public class GlobalExceptionHandler {
 
     /** Parámetro de URL con tipo o valor incorrecto (ej. /requests/abc o ?estado=INVENTADO). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    // Ejecuta handle tipo como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleTipo(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El parámetro '" + ex.getName() + "' tiene un valor inválido", req, null);
@@ -70,34 +74,40 @@ public class GlobalExceptionHandler {
 
     /** Lote 5 (HU-78): Accounts no respondió; no se pudo confirmar que la cuenta esté ACTIVA -> 503. */
     @ExceptionHandler(ServicioNoDisponibleException.class)
+    // Ejecuta handle no disponible como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoDisponible(ServicioNoDisponibleException ex, HttpServletRequest req) {
         return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req, null);
     }
 
     /** Dato inválido detectado en el Service (ej. rango de fechas o página del filtro, HU-64). */
     @ExceptionHandler(IllegalArgumentException.class)
+    // Ejecuta handle argumento como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleArgumento(IllegalArgumentException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
     }
 
     /** Regla de estado: solicitud cerrada o transición no permitida (RN-30, HU-66, HU-67). */
     @ExceptionHandler(IllegalStateException.class)
+    // Ejecuta handle estado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleEstado(IllegalStateException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), req, null);
     }
 
     @ExceptionHandler(NoAutenticadoException.class)
+    // Ejecuta handle no autenticado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoAutenticado(NoAutenticadoException ex, HttpServletRequest req) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
     }
 
     @ExceptionHandler(AccesoDenegadoException.class)
+    // Ejecuta handle acceso denegado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleAccesoDenegado(AccesoDenegadoException ex, HttpServletRequest req) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), req, null);
     }
 
     /** 2.ª barrera: restricción UNIQUE de la BD (ej. numero_ticket). */
     @ExceptionHandler(DataIntegrityViolationException.class)
+    // Ejecuta handle integridad como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleIntegridad(DataIntegrityViolationException ex, HttpServletRequest req) {
         log.warn("Violación de integridad en {}: {}", req.getRequestURI(), ex.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "La operación entra en conflicto con datos ya registrados", req, null);
@@ -105,6 +115,7 @@ public class GlobalExceptionHandler {
 
     /** Errores de Spring MVC (404 de ruta, 405 método...) y cualquier error no previsto (500). */
     @ExceptionHandler(Exception.class)
+    // Ejecuta handle general como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
         if (ex instanceof ErrorResponse er) {
             HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());

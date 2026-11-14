@@ -1,0 +1,493 @@
+package com.ventasdiscos.msaccounts;
+
+import com.ventasdiscos.msaccounts.security.Servicios;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import com.ventasdiscos.msaccounts.client.DependenciasCuentaClient;
+import com.ventasdiscos.msaccounts.client.DependenciasCuentaClient.DependenciaNoConfirmadaException;
+import com.ventasdiscos.msaccounts.model.EstadoCuenta;
+import com.ventasdiscos.msaccounts.model.Role;
+import com.ventasdiscos.msaccounts.model.Usuario;
+import com.ventasdiscos.msaccounts.repository.UsuarioRepository;
+import com.ventasdiscos.msaccounts.security.JwtService;
+import com.ventasdiscos.msaccounts.service.EliminacionCuentaService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Lote 5 · HU-78 / RF-CTA-08 / RN-35 a RN-38, RN-43, RN-44 y estados de cuenta (decisiones del equipo).
+ * HTTP -> Controller -> Service -> H2. Orders, Support, PostSale, Catalog y Notifications se simulan con
+ * DependenciasCuentaClient (@MockitoBean): por defecto no hay pendientes y las depuraciones responden bien.
+ * SIN @Transactional: el proceso usa sus propias transacciones y bloqueos, como en la aplicación real.
+ * Cada prueba crea sus propias cuentas. IMPLEMENTADO — SIN EJECUTAR.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+class EliminacionCuentaITTest {
+
+    private static final String CLAVE = "Secreta123";
+    private static final String SECRETO_PRUEBAS = "test-secret-de-al-menos-32-caracteres-xx";
+    private static final AtomicLong SECUENCIA = new AtomicLong(21_000_000);
+
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private UsuarioRepository usuarios;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private JdbcTemplate jdbc;
+    @Autowired
+    // Dato eliminacion service del registro.
+    private EliminacionCuentaService eliminacionService;
+    @MockitoBean
+    // Dato dependencias del registro.
+    private DependenciasCuentaClient dependencias;
+
+    // ===================== Apoyo =====================
+
+    private static String rutValido(long cuerpo) {
+        String c = String.valueOf(cuerpo);
+        int suma = 0;
+        int m = 2;
+        for (int i = c.length() - 1; i >= 0; i--) {
+            suma += (c.charAt(i) - '0') * m;
+            m = m == 7 ? 2 : m + 1;
+        }
+        int resto = 11 - (suma % 11);
+        char dv = resto == 11 ? '0' : resto == 10 ? 'K' : (char) ('0' + resto);
+        return c + "-" + dv;
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crear (crear).
+    private Usuario crear(Role rol) {
+        long n = SECUENCIA.incrementAndGet();
+        Usuario u = new Usuario();
+        u.setRut(rutValido(n));
+        u.setNombres("Ana");
+        u.setApellidos("Pérez");
+        u.setCorreo("u" + n + "@mail.com");
+        u.setPasswordHash(passwordEncoder.encode(CLAVE));
+        u.setRol(rol);
+        return usuarios.save(u);
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método cliente (cliente).
+    private Usuario cliente() {
+        return crear(Role.CLIENTE);
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método token (token).
+    private String token(Usuario u) {
+        return "Bearer " + jwtService.generar(u);
+    }
+
+    /** Token con la firma correcta pero ya vencido. */
+    private static String tokenVencido(Long userId) throws Exception {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder().subject(String.valueOf(userId)).claim("rol", "CLIENTE")
+                .expirationTime(new Date(System.currentTimeMillis() - 60_000)).build();
+        SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
+        jwt.sign(new MACSigner(SECRETO_PRUEBAS.getBytes(StandardCharsets.UTF_8)));
+        return "Bearer " + jwt.serialize();
+    }
+
+    private void fijarEstado(Long id, String estado) {
+        jdbc.update("update usuario set estado = ? where id = ?", estado, id);
+    }
+
+    private String estadoGuardado(Long id) {
+        return jdbc.queryForObject("select estado from usuario where id = ?", String.class, id);
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método eliminar (eliminar).
+    private ResultActions eliminar(String token, String cuerpo) throws Exception {
+        var req = delete("/api/v1/accounts/me");
+        if (token != null) {
+            req.header("Authorization", token);
+        }
+        if (cuerpo != null) {
+            req.contentType(MediaType.APPLICATION_JSON).content(cuerpo);
+        }
+        return mockMvc.perform(req);
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método eliminarConClave (eliminar con clave).
+    private ResultActions eliminarConClave(Usuario u) throws Exception {
+        return eliminar(token(u), "{\"password\":\"" + CLAVE + "\"}");
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método estadoOperacion (estado operacion).
+    private ResultActions estadoOperacion(Long id) throws Exception {
+        return mockMvc.perform(get("/api/v1/internal/accounts/" + id + "/operation-status").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS)));
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método login (login).
+    private ResultActions login(String correo, String clave) throws Exception {
+        return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"correo\":\"" + correo + "\",\"password\":\"" + clave + "\"}"));
+    }
+
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método caido (caido).
+    private static DependenciaNoConfirmadaException caido(String servicio) {
+        return new DependenciaNoConfirmadaException(servicio, "no respondió");
+    }
+
+    // ===================== Estados de cuenta (decisión 3/3) =====================
+
+    @Test
+    void cuentaNuevaSeGuardaExplicitamenteActiva() throws Exception {
+        Usuario u = cliente();
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        estadoOperacion(u.getId()).andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(u.getId()))
+                .andExpect(jsonPath("$.estado").value("ACTIVA"))
+                .andExpect(jsonPath("$.puedeOperar").value(true));
+    }
+
+    @Test
+    void cuentaHistoricaConEstadoNullSeTrataComoActivaSinModificarLaFila() throws Exception {
+        Usuario u = cliente();
+        fijarEstado(u.getId(), null);
+        estadoOperacion(u.getId()).andExpect(jsonPath("$.estado").value("ACTIVA")).andExpect(jsonPath("$.puedeOperar").value(true));
+        login(u.getCorreo(), CLAVE).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/accounts/me").header("Authorization", token(u))).andExpect(status().isOk());
+        // Leerla no reescribe la fila: sigue NULL hasta que se ejecute (si se aprueba) el script opcional
+        assertEquals(null, estadoGuardado(u.getId()));
+    }
+
+    @Test
+    void cuentaEnEliminacionNoIniciaSesionNiOpera() throws Exception {
+        Usuario u = cliente();
+        String tokenVigente = token(u);
+        fijarEstado(u.getId(), "EN_ELIMINACION");
+        estadoOperacion(u.getId()).andExpect(jsonPath("$.estado").value("EN_ELIMINACION")).andExpect(jsonPath("$.puedeOperar").value(false));
+        login(u.getCorreo(), CLAVE).andExpect(status().isForbidden());
+        // RN-44: el token todavía es válido, pero ya no autoriza operaciones
+        mockMvc.perform(get("/api/v1/accounts/me").header("Authorization", tokenVigente)).andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/v1/accounts/me").header("Authorization", tokenVigente)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"nombres\":\"Otra\"}")).andExpect(status().isForbidden());
+        // RF-CTA-07: no se recupera el acceso
+        mockMvc.perform(post("/api/v1/auth/recovery/password").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\":\"" + u.getCorreo() + "\",\"rut\":\"" + u.getRut()
+                                + "\",\"nuevaPassword\":\"Nueva12345\",\"confirmacionPassword\":\"Nueva12345\"}"))
+                .andExpect(status().isForbidden());
+        assertEquals("Ana", usuarios.findById(u.getId()).orElseThrow().getNombres());
+    }
+
+    @Test
+    void estadoDesconocidoNoSeTrataComoActiva() throws Exception {
+        Usuario u = cliente();
+        fijarEstado(u.getId(), "BLOQUEADA");
+        estadoOperacion(u.getId()).andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value(nullValue()))
+                .andExpect(jsonPath("$.puedeOperar").value(false));
+        login(u.getCorreo(), CLAVE).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/accounts/me").header("Authorization", token(u))).andExpect(status().isForbidden());
+        eliminarConClave(u).andExpect(status().isForbidden());
+        verifyNoInteractions(dependencias);
+        assertEquals("BLOQUEADA", estadoGuardado(u.getId()));
+    }
+
+    @Test
+    void estadoDeCuentaInexistente404() throws Exception {
+        estadoOperacion(987_654_321L).andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
+    }
+
+    // ===================== Confirmación (decisión: contraseña actual) =====================
+
+    @Test
+    void sinTokenOTokenVencido401() throws Exception {
+        Usuario u = cliente();
+        eliminar(null, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isUnauthorized());
+        eliminar(tokenVencido(u.getId()), "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isUnauthorized());
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        verifyNoInteractions(dependencias);
+    }
+
+    @Test
+    void contrasenaIncorrectaOAusente400SinCambiosNiDepuraciones() throws Exception {
+        Usuario u = cliente();
+        eliminar(token(u), "{\"password\":\"Otra12345\"}").andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errores.password").exists())
+                .andExpect(jsonPath("$.mensaje").value("La contraseña es incorrecta"));
+        eliminar(token(u), "{}").andExpect(status().isBadRequest()).andExpect(jsonPath("$.errores.password").exists());
+        eliminar(token(u), null).andExpect(status().isBadRequest());
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        verifyNoInteractions(dependencias);
+    }
+
+    @Test
+    void administradorNoEliminaSuCuenta403() throws Exception {
+        Usuario admin = crear(Role.ADMINISTRADOR);
+        eliminarConClave(admin).andExpect(status().isForbidden());
+        assertEquals("ACTIVA", estadoGuardado(admin.getId()));
+        verifyNoInteractions(dependencias);
+    }
+
+    // ===================== Verificaciones (RF-CTA-08, RN-36) =====================
+
+    @Test
+    void conPedidosActivosSeRechaza409YLaCuentaSigueActiva() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.tienePedidosActivos(u.getId())).thenReturn(true);
+        eliminarConClave(u).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errores.pedidos").exists());
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        verify(dependencias, never()).depurarFavoritos(anyLong());
+        verify(dependencias, never()).depurarNotificaciones(anyLong());
+        login(u.getCorreo(), CLAVE).andExpect(status().isOk());
+    }
+
+    @Test
+    void conTicketsAbiertosSeRechaza409() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.tieneTicketsAbiertos(u.getId())).thenReturn(true);
+        eliminarConClave(u).andExpect(status().isConflict()).andExpect(jsonPath("$.errores.soporte").exists());
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        verify(dependencias, never()).depurarFavoritos(anyLong());
+    }
+
+    @Test
+    void conSolicitudesPendientesSeRechaza409() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.tieneSolicitudesPendientes(u.getId())).thenReturn(true);
+        eliminarConClave(u).andExpect(status().isConflict()).andExpect(jsonPath("$.errores.postventa").exists());
+        assertEquals("ACTIVA", estadoGuardado(u.getId()));
+        verify(dependencias, never()).depurarNotificaciones(anyLong());
+    }
+
+    @Test
+    void siCualquieraDeLasTresConsultasFallaNoSeAsumeLibre503() throws Exception {
+        Usuario a = cliente();
+        when(dependencias.tienePedidosActivos(a.getId())).thenThrow(caido("Orders"));
+        eliminarConClave(a).andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.errores.pedidos").exists());
+        Usuario b = cliente();
+        when(dependencias.tieneTicketsAbiertos(b.getId())).thenThrow(caido("Support"));
+        eliminarConClave(b).andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.errores.soporte").exists());
+        Usuario c = cliente();
+        when(dependencias.tieneSolicitudesPendientes(c.getId())).thenThrow(caido("PostSale"));
+        eliminarConClave(c).andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.errores.postventa").exists());
+        for (Usuario u : List.of(a, b, c)) {
+            assertEquals("ACTIVA", estadoGuardado(u.getId()));        // primer intento: nada se depuró, vuelve a ACTIVA
+            verify(dependencias, never()).depurarFavoritos(u.getId());
+            verify(dependencias, never()).depurarNotificaciones(u.getId());
+        }
+    }
+
+    // ===================== Eliminación completa (RN-38, RN-43) =====================
+
+    @Test
+    void sinPendientesSeAnonimizaYConservaLaFilaYSuId() throws Exception {
+        Usuario u = cliente();
+        Long id = u.getId();
+        String rut = u.getRut();
+        String correo = u.getCorreo();
+        eliminarConClave(u).andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(id))
+                .andExpect(jsonPath("$.estado").value("ELIMINADA"))
+                .andExpect(jsonPath("$.fechaEliminacion").exists())
+                .andExpect(jsonPath("$.fechaSolicitudEliminacion").exists());
+
+        Usuario despues = usuarios.findById(id).orElseThrow();      // la fila y su id se conservan
+        assertEquals(EstadoCuenta.ELIMINADA, despues.getEstado());
+        assertNotEquals(rut, despues.getRut());
+        assertNotEquals(correo, despues.getCorreo());
+        assertEquals("Cuenta", despues.getNombres());
+        assertEquals("eliminada", despues.getApellidos());
+        assertEquals(Usuario.PASSWORD_INUTILIZABLE, despues.getPasswordHash());
+        assertFalse(passwordEncoder.matches(CLAVE, despues.getPasswordHash()));
+        assertNotNull(despues.getFechaEliminacion());
+
+        // Credenciales antiguas: ya no autentican
+        login(correo, CLAVE).andExpect(status().isUnauthorized());
+        estadoOperacion(id).andExpect(jsonPath("$.estado").value("ELIMINADA")).andExpect(jsonPath("$.puedeOperar").value(false));
+
+        // Accounts solo consultó (dos verificaciones) y depuró una vez cada cosa. Nunca pidió borrar pedidos,
+        // tickets ni solicitudes: su historial se conserva en sus MS.
+        verify(dependencias, times(2)).tienePedidosActivos(id);
+        verify(dependencias, times(2)).tieneTicketsAbiertos(id);
+        verify(dependencias, times(2)).tieneSolicitudesPendientes(id);
+        verify(dependencias, times(1)).depurarFavoritos(id);
+        verify(dependencias, times(1)).depurarNotificaciones(id);
+        verifyNoMoreInteractions(dependencias);
+
+        // Sin colisiones UNIQUE: la persona puede volver a registrarse con su RUT y correo
+        String registro = "{\"rut\":\"" + rut + "\",\"nombres\":\"Ana\",\"apellidos\":\"Pérez\",\"correo\":\"" + correo
+                + "\",\"confirmacionCorreo\":\"" + correo + "\",\"password\":\"Secreta123\",\"confirmacionPassword\":\"Secreta123\"}";
+        mockMvc.perform(post("/api/v1/accounts/register").contentType(MediaType.APPLICATION_JSON).content(registro))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", org.hamcrest.Matchers.not(id.intValue())));
+    }
+
+    @Test
+    void repetirDeleteDeUnaCuentaEliminadaEsIdempotente() throws Exception {
+        Usuario u = cliente();
+        String t = token(u);
+        eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isOk());
+        eliminar(t, null).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ELIMINADA"));
+        verify(dependencias, times(1)).depurarFavoritos(u.getId());
+    }
+
+    // ===================== Reintentos (decisión 2/3) =====================
+
+    @Test
+    void depuracionCaidaQuedaEnEliminacion202YLaTareaLaCompletaAlRecuperarse() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.depurarNotificaciones(u.getId())).thenThrow(caido("Notifications"));
+        eliminarConClave(u).andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.estado").value("EN_ELIMINACION"));
+        assertEquals("EN_ELIMINACION", estadoGuardado(u.getId()));     // nunca ELIMINADA con una depuración pendiente
+        estadoOperacion(u.getId()).andExpect(jsonPath("$.puedeOperar").value(false));
+        login(u.getCorreo(), CLAVE).andExpect(status().isForbidden());
+
+        // Notifications vuelve: la tarea programada completa sin intervención del Cliente
+        when(dependencias.depurarNotificaciones(u.getId())).thenReturn(0);
+        assertTrue(eliminacionService.reintentarPendientes() >= 1);
+        assertEquals("ELIMINADA", estadoGuardado(u.getId()));
+        // Favoritos se repitió de forma segura (contrato idempotente): 2 llamadas, sin efectos duplicados
+        verify(dependencias, times(2)).depurarFavoritos(u.getId());
+    }
+
+    @Test
+    void deleteRepetidoContinuaSinPedirLaContrasena() throws Exception {
+        Usuario u = cliente();
+        String t = token(u);
+        when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
+        eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
+        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        // Continuación de la eliminación ya autorizada: sin cuerpo y con el mismo token
+        eliminar(t, null).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ELIMINADA"));
+        // Ese token sigue sin servir para otras operaciones
+        mockMvc.perform(get("/api/v1/accounts/me").header("Authorization", t)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void conTokenVencidoLaTareaProgramadaTerminaLaEliminacion() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.depurarNotificaciones(u.getId())).thenThrow(caido("Notifications"));
+        eliminarConClave(u).andExpect(status().isAccepted());
+        eliminar(tokenVencido(u.getId()), null).andExpect(status().isUnauthorized());
+        when(dependencias.depurarNotificaciones(u.getId())).thenReturn(0);
+        eliminacionService.reintentarPendientes();
+        assertEquals("ELIMINADA", estadoGuardado(u.getId()));
+    }
+
+    @Test
+    void enUnReintentoUnServicioCaidoNoReactivaLaCuenta() throws Exception {
+        Usuario u = cliente();
+        String t = token(u);
+        when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
+        eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
+        when(dependencias.tieneTicketsAbiertos(u.getId())).thenThrow(caido("Support"));
+        eliminar(t, null).andExpect(status().isServiceUnavailable());
+        eliminacionService.reintentarPendientes();
+        assertEquals("EN_ELIMINACION", estadoGuardado(u.getId()));     // sigue bloqueada, no vuelve a ACTIVA
+        when(dependencias.tieneTicketsAbiertos(u.getId())).thenReturn(false);
+        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        eliminacionService.reintentarPendientes();
+        assertEquals("ELIMINADA", estadoGuardado(u.getId()));
+    }
+
+    @Test
+    void enUnReintentoUnImpedimentoDetieneSinFinalizarYSinReactivar() throws Exception {
+        Usuario u = cliente();
+        String t = token(u);
+        when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
+        eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
+        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        when(dependencias.tienePedidosActivos(u.getId())).thenReturn(true);
+        eliminar(t, null).andExpect(status().isConflict()).andExpect(jsonPath("$.errores.pedidos").exists())
+                .andExpect(jsonPath("$.mensaje", startsWith("No es posible eliminar la cuenta")));
+        assertEquals("EN_ELIMINACION", estadoGuardado(u.getId()));
+    }
+
+    /** RN-37: la verificación final (justo antes de anonimizar) detecta un pedido creado durante la depuración. */
+    @Test
+    void laVerificacionFinalDetectaUnPedidoCreadoEnLaVentanaDeCarrera() throws Exception {
+        Usuario u = cliente();
+        when(dependencias.tienePedidosActivos(u.getId())).thenReturn(false).thenReturn(true).thenReturn(false);
+        eliminarConClave(u).andExpect(status().isConflict());
+        assertEquals("EN_ELIMINACION", estadoGuardado(u.getId()));     // ya se depuró: no se reactiva ni se finaliza
+        eliminacionService.reintentarPendientes();                     // el pedido terminó: ahora sí se completa
+        assertEquals("ELIMINADA", estadoGuardado(u.getId()));
+    }
+
+    /** Dos DELETE o un DELETE y la tarea a la vez: la fila bloqueada evita resultados contradictorios. */
+    @Test
+    void deleteYTareaSimultaneosCompletanUnaSolaVez() throws Exception {
+        Usuario u = cliente();
+        String t = token(u);
+        when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
+        eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
+        when(dependencias.depurarFavoritos(u.getId())).thenAnswer(inv -> {
+            Thread.sleep(300);
+            return 0;
+        });
+        ExecutorService ex = Executors.newFixedThreadPool(3);
+        try {
+            List<Callable<Integer>> tareas = new ArrayList<>();
+            tareas.add(() -> eliminar(t, null).andReturn().getResponse().getStatus());
+            tareas.add(() -> eliminar(t, null).andReturn().getResponse().getStatus());
+            tareas.add(() -> {
+                eliminacionService.reintentarPendientes();
+                return 0;
+            });
+            List<Integer> codigos = new ArrayList<>();
+            for (Future<Integer> f : ex.invokeAll(tareas)) {
+                codigos.add(f.get());
+            }
+            assertTrue(codigos.subList(0, 2).stream().allMatch(c -> c == 200), "códigos: " + codigos);
+        } finally {
+            ex.shutdown();
+        }
+        assertEquals("ELIMINADA", estadoGuardado(u.getId()));
+        // 1 llamada fallida del primer DELETE + 1 de quien completó: los demás ya la vieron ELIMINADA
+        verify(dependencias, times(2)).depurarFavoritos(eq(u.getId()));
+        verify(dependencias, times(1)).depurarNotificaciones(eq(u.getId()));
+    }
+}

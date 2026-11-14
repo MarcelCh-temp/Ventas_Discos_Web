@@ -11,6 +11,7 @@ import com.ventasdiscos.msaccounts.model.Usuario;
  */
 public record CuentaAdminResponse(Long id, String nombres, String apellidos, String correo, EstadoCuenta estado) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static CuentaAdminResponse from(Usuario u) {
         return new CuentaAdminResponse(u.getId(), u.getNombres(), u.getApellidos(), u.getCorreo(), u.getEstado());
     }

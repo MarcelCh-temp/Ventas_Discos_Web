@@ -1,5 +1,6 @@
 package ms_ordenes.ms_ordenes.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,26 +42,39 @@ public class Orden {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     /** UML 02 numeroPedido (RN-40). Columna nueva; null en pedidos antiguos hasta asignarlo. */
     @Column(name = "numero_pedido", unique = true, length = 20)
+
+    // Atributo numeroPedido: propiedad que se guarda o utiliza en esta entidad.
     private String numeroPedido;
 
     @Column(name = "id_usuario", nullable = false)
+    @Positive
+    @NotNull
+    // Atributo idUsuario: propiedad que se guarda o utiliza en esta entidad.
     private Long idUsuario;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @DecimalMin(value = "0.0")
+    @NotNull
+    // Atributo total: propiedad que se guarda o utiliza en esta entidad.
     private BigDecimal total;
 
     @Column(name = "descuento_historico", precision = 12, scale = 2)
+    // Atributo descuentoHistorico: propiedad que se guarda o utiliza en esta entidad.
     private BigDecimal descuentoHistorico;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @NotNull
+    // Dato estado del registro; validación: valor obligatorio (no nulo); enum persistido con las opciones permitidas.
     private EstadoOrden estado;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    // Fecha u hora utilizada para registrar o controlar el proceso.
     private LocalDateTime fechaCreacion;
 
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -69,6 +83,7 @@ public class Orden {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "datos_entrega_id", unique = true)
+    // Dato datos entrega del registro; relación JPA entre entidades del mismo microservicio.
     private DatosEntrega datosEntrega;
 
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL)
@@ -77,9 +92,11 @@ public class Orden {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "despacho_id", unique = true)
+    // Dato despacho del registro; relación JPA entre entidades del mismo microservicio.
     private Despacho despacho;
 
     @PrePersist
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método onCreate (on create).
     protected void onCreate() {
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();
@@ -89,6 +106,7 @@ public class Orden {
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método Orden (orden).
     protected Orden() {
     }
 
@@ -119,6 +137,7 @@ public class Orden {
     }
 
     /** Número visible (ej. PED-000015). Se asigna una vez, después de guardar (igual que SOP- en Soporte). */
+    // Ejecuta asignar numero pedido como parte de las responsabilidades de esta clase.
     public void asignarNumeroPedido() {
         if (this.id == null) {
             throw new IllegalStateException("El número se asigna después de guardar el pedido");
@@ -152,15 +171,18 @@ public class Orden {
     }
 
     /** RN-18 / RN-19: cancelable mientras no haya sido despachado. */
+    // Ejecuta puede cancelarse como parte de las responsabilidades de esta clase.
     public boolean puedeCancelarse() {
         return estado == EstadoOrden.PENDIENTE || estado == EstadoOrden.CONFIRMADO || estado == EstadoOrden.PREPARANDO;
     }
 
+    // Ejecuta esta activo como parte de las responsabilidades de esta clase.
     public boolean estaActivo() {
         return !estaFinalizado();
     }
 
     /** UML 02: CANCELADO y ENTREGADO son terminales. */
+    // Ejecuta esta finalizado como parte de las responsabilidades de esta clase.
     public boolean estaFinalizado() {
         return estado == EstadoOrden.ENTREGADO || estado == EstadoOrden.CANCELADO;
     }
@@ -172,6 +194,7 @@ public class Orden {
     }
 
     /** RF-PED-05: los datos de entrega se corrigen solo antes de DESPACHADO (y nunca en CANCELADO). */
+    // Ejecuta permite corregir entrega como parte de las responsabilidades de esta clase.
     public boolean permiteCorregirEntrega() {
         return estado == EstadoOrden.PENDIENTE || estado == EstadoOrden.CONFIRMADO || estado == EstadoOrden.PREPARANDO;
     }
@@ -218,6 +241,7 @@ public class Orden {
     // ===================== Revisión Lote 3: reposición de stock al cancelar =====================
 
     public static final String MOTIVO_REPOSICION_PENDIENTE = "Reposición de stock pendiente";
+    // Constante MOTIVO_STOCK_REPUESTO: valor compartido que no cambia durante la ejecución.
     public static final String MOTIVO_STOCK_REPUESTO = "Stock repuesto";
 
     /**
@@ -233,6 +257,7 @@ public class Orden {
     }
 
     /** Cierra la marca cuando Catalog confirmó la reposición. Si no había marca pendiente, no hace nada. */
+    // Ejecuta confirmar reposicion como parte de las responsabilidades de esta clase.
     public boolean confirmarReposicion(Long responsableId) {
         if (!reposicionPendiente()) {
             return false;
@@ -242,6 +267,7 @@ public class Orden {
     }
 
     /** true si la última marca de reposición del historial sigue sin confirmarse. */
+    // Ejecuta reposicion pendiente como parte de las responsabilidades de esta clase.
     public boolean reposicionPendiente() {
         boolean pendiente = false;
         for (HistorialPedido h : historial) {
@@ -255,6 +281,7 @@ public class Orden {
     }
 
     /** Evento relevante sin cambio de estado (por ejemplo, el descuento de stock quedó por confirmar). */
+    // Ejecuta registrar evento como parte de las responsabilidades de esta clase.
     public void registrarEvento(String motivo, String descripcion, Long responsableId) {
         historial.add(new HistorialPedido(this, estado, estado, motivo, descripcion, responsableId));
     }

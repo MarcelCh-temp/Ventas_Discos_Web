@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase NotificacionRepository.
 public interface NotificacionRepository
         extends JpaRepository<Notificacion, Long>,
                 JpaSpecificationExecutor<Notificacion> {

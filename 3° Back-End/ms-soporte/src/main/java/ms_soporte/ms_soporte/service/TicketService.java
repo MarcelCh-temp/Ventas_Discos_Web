@@ -42,12 +42,15 @@ import java.util.List;
 public class TicketService {
 
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
+    // Constante TAMANO_MAXIMO_PAGINA: valor compartido que no cambia durante la ejecución.
     private static final int TAMANO_MAXIMO_PAGINA = 100;
 
     @Autowired
+    // Dependencia inyectada para acceder a ticket repository sin crearla manualmente.
     private TicketRepository ticketRepository;
 
     @Autowired
+    // Dependencia inyectada para acceder a notificaciones client sin crearla manualmente.
     private NotificacionesClient notificacionesClient;
 
     // Lote 5 (integración de HU-78): confirma con Accounts que la cuenta está ACTIVA antes de crear un ticket
@@ -62,6 +65,7 @@ public class TicketService {
 
     /** HU-59: crea la solicitud con estado inicial ABIERTA, primer mensaje y número único. */
     @Transactional
+    // Procesa crear ticket aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public TicketDetalleResponse crearTicket(CrearTicketRequest datos, Long idUsuario) {
         Ticket ticket = new Ticket();
         ticket.setIdUsuario(idUsuario);
@@ -94,6 +98,7 @@ public class TicketService {
 
     /** Lote 5 · Contrato interno para Accounts (HU-78, RN-36): tickets ABIERTA o EN_PROCESO. Solo lectura. */
     @Transactional(readOnly = true)
+    // Procesa tiene tickets abiertos aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ExisteResponse tieneTicketsAbiertos(Long idUsuario) {
         return new ExisteResponse(idUsuario,
                 ticketRepository.existsByIdUsuarioAndEstadoIn(idUsuario, List.of(EstadoTicket.ABIERTA, EstadoTicket.EN_PROCESO)));
@@ -101,6 +106,7 @@ public class TicketService {
 
     /** HU-60: solo las solicitudes del usuario autenticado. */
     @Transactional(readOnly = true)
+    // Procesa listar propios aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<TicketResumenResponse> listarPropios(Long idUsuario) {
         return ticketRepository.findByIdUsuarioOrderByFechaCreacionDesc(idUsuario).stream()
                 .map(TicketResumenResponse::desde)
@@ -109,12 +115,14 @@ public class TicketService {
 
     /** HU-61: detalle de una solicitud propia. */
     @Transactional(readOnly = true)
+    // Procesa obtener propio aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public TicketDetalleResponse obtenerPropio(Long id, Long idUsuario) {
         return TicketDetalleResponse.desde(buscarPropio(id, idUsuario));
     }
 
     /** HU-62: el cliente responde en su solicitud, solo si no está cerrada (RN-30). */
     @Transactional
+    // Procesa responder como cliente aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public TicketDetalleResponse responderComoCliente(Long id, Long idUsuario, String contenido) {
         Ticket ticket = buscarPropio(id, idUsuario);
         validarQueAceptaRespuestas(ticket);
@@ -170,12 +178,14 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método obtenerParaAdministrador (obtener para administrador). @Transactional controla el alcance de la transacción de base de datos.
     public TicketDetalleResponse obtenerParaAdministrador(Long id) {
         return TicketDetalleResponse.desde(obtenerTicketPorId(id));
     }
 
     /** HU-65: respuesta del administrador; solo en solicitudes ABIERTA o EN_PROCESO. */
     @Transactional
+    // Procesa responder como administrador aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public TicketDetalleResponse responderComoAdministrador(Long id, Long idAdministrador, String contenido) {
         Ticket ticket = obtenerTicketPorId(id);
         validarQueAceptaRespuestas(ticket);
@@ -230,6 +240,7 @@ public class TicketService {
     }
 
     /** Una solicitud de otro cliente se responde igual que una inexistente (404). */
+    // Procesa buscar propio aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Ticket buscarPropio(Long id, Long idUsuario) {
         Ticket ticket = obtenerTicketPorId(id);
         if (!ticket.perteneceA(idUsuario)) {
@@ -270,10 +281,12 @@ public class TicketService {
     }
 
     /** Tickets anteriores al Lote 1 no tienen numeroTicket: en el aviso se muestra su id (#12). */
+    // Procesa referencia aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static String referencia(Ticket ticket) {
         return ticket.getNumeroTicket() != null ? ticket.getNumeroTicket() : "#" + ticket.getId();
     }
 
+    // Procesa como numero aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Long comoNumero(String texto) {
         try {
             return Long.valueOf(texto);
@@ -283,6 +296,7 @@ public class TicketService {
     }
 
     /** RN-30: una solicitud CERRADA no acepta nuevas respuestas (no hay regla de reapertura aprobada). */
+    // Procesa validar que acepta respuestas aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void validarQueAceptaRespuestas(Ticket ticket) {
         if (ticket.estaCerrada()) {
             throw new IllegalStateException("La solicitud está cerrada y no acepta nuevas respuestas");

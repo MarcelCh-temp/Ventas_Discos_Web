@@ -29,23 +29,28 @@ public class OperacionReposicion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @NotBlank
     @Column(name = "operacion_id", nullable = false, unique = true, length = 100)
+    // Atributo operacionId: propiedad que se guarda o utiliza en esta entidad.
     private String operacionId;
 
     @NotNull
     @Positive
     @Column(nullable = false)
+    // Atributo cantidad: propiedad que se guarda o utiliza en esta entidad.
     private Integer cantidad;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    // Dato estado del registro; validación: valor obligatorio (no nulo); enum persistido con las opciones permitidas.
     private EstadoReposicion estado = EstadoReposicion.PENDIENTE;
 
     /** Para JPA. */
+    // Ejecuta operacion reposicion como parte de las responsabilidades de esta clase.
     protected OperacionReposicion() {
     }
 
@@ -55,18 +60,21 @@ public class OperacionReposicion {
     }
 
     /** Solo desde PENDIENTE: una operación ya FALLIDA no cambia sola (la revisa el Administrador). */
+    // Ejecuta confirmar como parte de las responsabilidades de esta clase.
     public void confirmar() {
         if (estado == EstadoReposicion.PENDIENTE) {
             estado = EstadoReposicion.CONFIRMADA;
         }
     }
 
+    // Ejecuta marcar fallida como parte de las responsabilidades de esta clase.
     public void marcarFallida() {
         if (estado == EstadoReposicion.PENDIENTE) {
             estado = EstadoReposicion.FALLIDA;
         }
     }
 
+    // Ejecuta esta pendiente como parte de las responsabilidades de esta clase.
     public boolean estaPendiente() {
         return estado == EstadoReposicion.PENDIENTE;
     }

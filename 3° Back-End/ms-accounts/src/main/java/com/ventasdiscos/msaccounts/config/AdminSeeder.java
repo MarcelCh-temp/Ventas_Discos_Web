@@ -25,19 +25,26 @@ import java.util.Locale;
 public class AdminSeeder implements CommandLineRunner {
 
     /** Misma regla mínima que el registro y el cambio de contraseña. */
+    // Constante LARGO_MINIMO_PASSWORD: valor compartido que no cambia durante la ejecución.
     static final int LARGO_MINIMO_PASSWORD = 8;
 
+    // Dependencia inyectada para acceder a usuario repository sin crearla manualmente.
     private final UsuarioRepository usuarioRepository;
+    // Atributo passwordEncoder: dato o dependencia utilizada por esta clase.
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.rut:}")
+    // Atributo rut: dato o dependencia utilizada por esta clase.
     private String rut;
     @Value("${app.admin.correo:}")
+    // Atributo correo: dato o dependencia utilizada por esta clase.
     private String correo;
     @Value("${app.admin.password:}")
+    // Atributo password: dato o dependencia utilizada por esta clase.
     private String password;
 
     @Override
+    // Ejecuta run como parte de las responsabilidades de esta clase.
     public void run(String... args) {
         if (rut.isBlank() || correo.isBlank() || password.isBlank()) {
             return;

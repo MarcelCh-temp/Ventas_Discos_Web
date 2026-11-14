@@ -13,12 +13,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
+// Servicio: concentra reglas de negocio y coordina operaciones entre repositorios y otros servicios. Clase EventoNotificacionService.
 public class EventoNotificacionService {
 
+    // Dato evento procesado repository del registro.
     private final EventoProcesadoRepository eventoProcesadoRepository;
+    // Dato notificacion repository del registro.
     private final NotificacionRepository notificacionRepository;
+    // Dato transaccion del registro.
     private final TransactionTemplate transaccion;
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método EventoNotificacionService (evento notificacion service).
     public EventoNotificacionService(
             EventoProcesadoRepository eventoProcesadoRepository,
             NotificacionRepository notificacionRepository,

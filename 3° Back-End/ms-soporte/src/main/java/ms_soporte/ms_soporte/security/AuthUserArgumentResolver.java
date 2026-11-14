@@ -15,13 +15,16 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
+    // Dependencia inyectada para acceder a jwt service sin crearla manualmente.
     private final JwtService jwtService;
 
+    // Ejecuta auth user argument resolver como parte de las responsabilidades de esta clase.
     public AuthUserArgumentResolver(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
     @Override
+    // Ejecuta supports parameter como parte de las responsabilidades de esta clase.
     public boolean supportsParameter(MethodParameter parameter) {
         return AuthUser.class.equals(parameter.getParameterType());
     }

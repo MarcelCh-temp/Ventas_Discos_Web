@@ -17,10 +17,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OfertaController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final PromocionService service;
 
     @Operation(summary = "HU-52 Productos con promociones vigentes")
     @GetMapping
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<List<OfertaResponse>> ofertas() {
         return ResponseEntity.ok(service.ofertasVigentes());
     }

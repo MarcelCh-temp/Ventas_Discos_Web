@@ -29,17 +29,22 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 public class CuentaActivaInterceptor implements HandlerInterceptor {
 
+    // Constante ADMINISTRADOR: valor compartido que no cambia durante la ejecución.
     static final String ADMINISTRADOR = "ADMINISTRADOR";
 
+    // Dependencia inyectada para acceder a jwt service sin crearla manualmente.
     private final ObjectProvider<JwtService> jwtService;
+    // Dependencia inyectada para acceder a accounts client sin crearla manualmente.
     private final ObjectProvider<AccountsClient> accountsClient;
 
+    // Ejecuta cuenta activa interceptor como parte de las responsabilidades de esta clase.
     public CuentaActivaInterceptor(ObjectProvider<JwtService> jwtService, ObjectProvider<AccountsClient> accountsClient) {
         this.jwtService = jwtService;
         this.accountsClient = accountsClient;
     }
 
     @Override
+    // Ejecuta pre handle como parte de las responsabilidades de esta clase.
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod metodo) || !recibeUsuario(metodo)
                 || request.getAttribute(ServicioInternoInterceptor.ATRIBUTO_EMISOR) != null
@@ -68,8 +73,10 @@ public class CuentaActivaInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    // Constante NO_DISPONIBLE: valor compartido que no cambia durante la ejecución.
     static final String NO_DISPONIBLE = "No fue posible confirmar el estado de tu cuenta. Intenta nuevamente en unos minutos";
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método recibeUsuario (recibe usuario).
     private static boolean recibeUsuario(HandlerMethod metodo) {
         for (MethodParameter p : metodo.getMethodParameters()) {
             if (AuthUser.class.equals(p.getParameterType())) {

@@ -33,8 +33,10 @@ import java.time.LocalDate;
 @RequestMapping("/api/v1/orders/me")
 public class OrdenController {
 
+    // Dependencia inyectada para acceder a orden service sin crearla manualmente.
     private final OrdenService ordenService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public OrdenController(OrdenService ordenService) {
         this.ordenService = ordenService;
     }
@@ -54,12 +56,14 @@ public class OrdenController {
 
     @Operation(summary = "HU-35: detalle de un pedido propio (precios históricos)")
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<PedidoDetalleResponse> detalle(@Parameter(hidden = true) AuthUser user, @PathVariable Long id) {
         return ResponseEntity.ok(ordenService.detalleMio(user.userId(), id));
     }
 
     @Operation(summary = "HU-36 / RN-40: seguimiento por id (15) o número de pedido (PED-000015)")
     @GetMapping("/{referencia}/tracking")
+    // GET: consulta información sin modificar registros. Método seguimiento (seguimiento).
     public ResponseEntity<SeguimientoResponse> seguimiento(@Parameter(hidden = true) AuthUser user,
                                                            @PathVariable String referencia) {
         return ResponseEntity.ok(ordenService.seguimiento(user.userId(), referencia));

@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 public record ItemPedidoResponse(Long productId, String nombreProducto, BigDecimal precioUnitario, int cantidad,
                                  BigDecimal subtotal) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static ItemPedidoResponse from(ItemPedido i) {
         return new ItemPedidoResponse(i.getProductId(), i.getNombreProductoSnapshot(), i.getPrecioHistorico(),
                 i.getCantidad(), i.getSubtotalHistorico());

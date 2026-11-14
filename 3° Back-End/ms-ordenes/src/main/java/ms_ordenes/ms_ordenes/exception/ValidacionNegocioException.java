@@ -6,10 +6,12 @@ import java.util.Map;
 
 /** Lote 3: dato que no cumple una regla de negocio (por ejemplo, falta la dirección en DESPACHO_DOMICILIO) -> 400. */
 public class ValidacionNegocioException extends ApiException {
+    // Ejecuta validacion negocio exception como parte de las responsabilidades de esta clase.
     public ValidacionNegocioException(String mensaje) {
         super(HttpStatus.BAD_REQUEST, mensaje);
     }
 
+    // Ejecuta validacion negocio exception como parte de las responsabilidades de esta clase.
     public ValidacionNegocioException(String mensaje, Map<String, String> errores) {
         super(HttpStatus.BAD_REQUEST, mensaje, errores);
     }

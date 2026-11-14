@@ -1,0 +1,55 @@
+spring.application.name=api-gateway
+# Lote 6: punto de entrada único del frontend (ERS 11.10). Los MS siguen en 8081-8087 y escuchan solo en 127.0.0.1.
+server.port=${PORT:8080}
+
+# ---- Decisión 3/4: JWT de USUARIO (el mismo JWT_SECRET de MS-Accounts). El Gateway NO conoce SERVICE_JWT_SECRET ----
+security.jwt.secret=${JWT_SECRET}
+
+# ---- Decisión 2/4: CORS solo aquí. Orígenes exactos separados por coma; NO se admite "*" ----
+gateway.cors.allowed-origins=${CORS_ORIGINS:http://localhost:5500,http://127.0.0.1:5500}
+
+# ---- Cierre (decisión 4/4, ERS 12.7): tiempos máximos hacia los microservicios ----
+# Spring Cloud Gateway Server Web MVC 5.0 no tiene propiedades propias de tiempo de espera: usa el cliente HTTP que
+# configura Spring Boot 4 con estas propiedades oficiales (antes spring.http.client.*). Sin ellas, el cliente HTTP del
+# JDK no corta nunca. Conexión = igual que entre MS; lectura = margen para la operación normal más lenta (PostSale).
+# Un timeout responde 504 (ApiError) pero NO demuestra que el MS haya cancelado la operación.
+spring.http.clients.connect-timeout=${GATEWAY_CONNECT_TIMEOUT:2s}
+spring.http.clients.read-timeout=${GATEWAY_READ_TIMEOUT:30s}
+
+# ---- DOC-06: el correlationId aparece en cada línea de log ----
+logging.pattern.correlation=[%X{correlationId:-}]
+
+# ---- Decisión 1/4: rutas hacia los seis microservicios definitivos (Spring Cloud Gateway Server Web MVC) ----
+# Ninguna ruta incluye /api/v1/internal/**: las llamadas MS -> MS no pasan por el Gateway (ERS 11.10).
+# Si se agrega o cambia una ruta aquí, actualizar también ReglasAcceso.BASES_ENRUTADAS (lo comprueba RutasConfiguradasTest).
+# MS-Inventory (8083) NO tiene ruta: su funcionalidad está integrada en MS-Catalog (ERS V2.0).
+
+# MS-Accounts (8081): cuentas, perfil, autenticación y recuperación de acceso
+spring.cloud.gateway.server.webmvc.routes[0].id=ms-accounts
+spring.cloud.gateway.server.webmvc.routes[0].uri=${ACCOUNTS_URL:http://127.0.0.1:8081}
+spring.cloud.gateway.server.webmvc.routes[0].predicates[0]=Path=/api/v1/accounts/**,/api/v1/auth/**,/api/v1/admin/accounts/**
+
+# MS-Catalog (8082): productos, ofertas, favoritos, disponibilidad pública y administración de catálogo/inventario/promociones
+spring.cloud.gateway.server.webmvc.routes[1].id=ms-catalog
+spring.cloud.gateway.server.webmvc.routes[1].uri=${CATALOG_URL:http://127.0.0.1:8082}
+spring.cloud.gateway.server.webmvc.routes[1].predicates[0]=Path=/api/v1/products/**,/api/v1/offers/**,/api/v1/favorites/**,/api/v1/inventory/**,/api/v1/admin/products/**,/api/v1/admin/inventory/**,/api/v1/admin/promotions/**
+
+# MS-Orders (ms-ordenes, 8084): carrito, checkout, pedidos del cliente y gestión administrativa de pedidos
+spring.cloud.gateway.server.webmvc.routes[2].id=ms-orders
+spring.cloud.gateway.server.webmvc.routes[2].uri=${ORDERS_URL:http://127.0.0.1:8084}
+spring.cloud.gateway.server.webmvc.routes[2].predicates[0]=Path=/api/v1/cart/**,/api/v1/checkout/**,/api/v1/orders/**,/api/v1/admin/orders/**
+
+# MS-PostSale (8085): cancelaciones, devoluciones, reembolsos y su resolución administrativa
+spring.cloud.gateway.server.webmvc.routes[3].id=ms-postsale
+spring.cloud.gateway.server.webmvc.routes[3].uri=${POSTSALE_URL:http://127.0.0.1:8085}
+spring.cloud.gateway.server.webmvc.routes[3].predicates[0]=Path=/api/v1/post-sale/**,/api/v1/admin/post-sale/**
+
+# MS-Notifications (8086): notificaciones del usuario (los eventos internos NO se exponen)
+spring.cloud.gateway.server.webmvc.routes[4].id=ms-notifications
+spring.cloud.gateway.server.webmvc.routes[4].uri=${NOTIFICATIONS_URL:http://127.0.0.1:8086}
+spring.cloud.gateway.server.webmvc.routes[4].predicates[0]=Path=/api/v1/notifications/**
+
+# MS-Support (ms-soporte, 8087): solicitudes de soporte del cliente y su gestión administrativa
+spring.cloud.gateway.server.webmvc.routes[5].id=ms-support
+spring.cloud.gateway.server.webmvc.routes[5].uri=${SUPPORT_URL:http://127.0.0.1:8087}
+spring.cloud.gateway.server.webmvc.routes[5].predicates[0]=Path=/api/v1/support/**,/api/v1/admin/support/**

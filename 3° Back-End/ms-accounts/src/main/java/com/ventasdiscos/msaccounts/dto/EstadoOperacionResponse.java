@@ -10,6 +10,7 @@ import com.ventasdiscos.msaccounts.model.Usuario;
  */
 public record EstadoOperacionResponse(Long userId, EstadoCuenta estado, boolean puedeOperar) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static EstadoOperacionResponse from(Usuario u) {
         return new EstadoOperacionResponse(u.getId(), u.getEstado(), u.puedeOperar());
     }

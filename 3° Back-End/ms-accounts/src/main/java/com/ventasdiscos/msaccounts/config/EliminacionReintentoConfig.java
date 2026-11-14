@@ -19,14 +19,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 @ConditionalOnProperty(name = "accounts.eliminacion.reintento-habilitado", havingValue = "true", matchIfMissing = true)
 public class EliminacionReintentoConfig {
 
+    // Dependencia inyectada para acceder a eliminacion service sin crearla manualmente.
     private final EliminacionCuentaService eliminacionService;
 
+    // Ejecuta eliminacion reintento config como parte de las responsabilidades de esta clase.
     public EliminacionReintentoConfig(EliminacionCuentaService eliminacionService) {
         this.eliminacionService = eliminacionService;
     }
 
     @Scheduled(fixedDelayString = "${accounts.eliminacion.reintento-ms:300000}",
             initialDelayString = "${accounts.eliminacion.reintento-ms:300000}")
+    // Ejecuta reintentar como parte de las responsabilidades de esta clase.
     public void reintentar() {
         try {
             int revisadas = eliminacionService.reintentarPendientes();

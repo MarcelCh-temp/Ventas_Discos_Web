@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
  */
 public final class ApiErrorJson {
 
+    // Ejecuta api error json como parte de las responsabilidades de esta clase.
     private ApiErrorJson() {
     }
 
@@ -31,6 +32,7 @@ public final class ApiErrorJson {
         response.getWriter().flush();
     }
 
+    // Ejecuta json como parte de las responsabilidades de esta clase.
     static String json(HttpStatus status, String mensaje, String path, String correlationId) {
         return "{"
                 + "\"timestamp\":\"" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\","
@@ -44,6 +46,7 @@ public final class ApiErrorJson {
     }
 
     /** Cadena JSON escapada, o null. */
+    // Ejecuta texto como parte de las responsabilidades de esta clase.
     static String texto(String valor) {
         if (valor == null) {
             return "null";

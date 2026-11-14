@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase TicketRepository.
 public interface TicketRepository extends JpaRepository<Ticket, Long>, JpaSpecificationExecutor<Ticket> {
 
     List<Ticket> findByIdUsuario(Long idUsuario);

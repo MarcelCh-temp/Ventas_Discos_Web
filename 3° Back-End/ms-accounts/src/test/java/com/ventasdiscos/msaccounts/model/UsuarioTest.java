@@ -72,8 +72,8 @@ class UsuarioTest {
         assertEquals(42L, u.getId());                       // la fila y su id se conservan
         assertEquals("ELIM-42", u.getRut());
         assertTrue(u.getRut().length() <= 12);
-        assertEquals("cuenta-eliminada-42", u.getCorreo());
-        assertFalse(u.getCorreo().contains("@"));          // nunca coincide con un correo real
+        assertEquals("cuenta-eliminada-42@example.invalid", u.getCorreo());
+        assertTrue(u.getCorreo().endsWith("@example.invalid"));          // nunca coincide con un correo real
         assertEquals("Cuenta", u.getNombres());
         assertEquals("eliminada", u.getApellidos());
         assertEquals(Usuario.PASSWORD_INUTILIZABLE, u.getPasswordHash());

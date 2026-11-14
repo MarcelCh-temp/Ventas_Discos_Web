@@ -1,5 +1,6 @@
 package com.ventasdiscos.mscatalog.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,15 +30,22 @@ public class Favorito {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @Column(name = "user_id", nullable = false)
+    @Positive
+    @NotNull
+    // Atributo userId: propiedad que se guarda o utiliza en esta entidad.
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "producto_id", nullable = false)
+    @NotNull
+    // Dato producto del registro; validación: valor obligatorio (no nulo); relación JPA entre entidades del mismo microservicio.
     private Producto producto;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método Favorito (favorito).
     public Favorito(Long userId, Producto producto) {
         this.userId = userId;
         this.producto = producto;

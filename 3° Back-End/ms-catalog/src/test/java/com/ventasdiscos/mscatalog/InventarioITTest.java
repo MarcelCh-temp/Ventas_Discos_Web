@@ -46,6 +46,7 @@ class InventarioITTest {
         return conAdmin(req.contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método producto (producto).
     private long producto(String nombre, String categoria, String plataforma) throws Exception {
         String body = """
                 {"nombre":"%s","precioBase":9990,"categoria":"%s","genero":"Rock","formato":"CD"%s}
@@ -56,10 +57,12 @@ class InventarioITTest {
         return ((Number) JsonPath.read(resp, "$.id")).longValue();
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método producto (producto).
     private long producto(String nombre) throws Exception {
         return producto(nombre, "MUSICA", null);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método entrada (entrada).
     private void entrada(long productId, int cantidad) throws Exception {
         jsonAdmin(post("/api/v1/admin/inventory/" + productId + "/movements"),
                 "{\"tipo\":\"ENTRADA\",\"cantidad\":" + cantidad + "}")

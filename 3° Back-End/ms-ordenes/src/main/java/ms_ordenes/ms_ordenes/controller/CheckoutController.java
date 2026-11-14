@@ -33,20 +33,24 @@ import java.util.List;
 @RequestMapping("/api/v1/checkout")
 public class CheckoutController {
 
+    // Dependencia inyectada para acceder a checkout service sin crearla manualmente.
     private final CheckoutService checkoutService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public CheckoutController(CheckoutService checkoutService) {
         this.checkoutService = checkoutService;
     }
 
     @Operation(summary = "HU-22: métodos de entrega disponibles y sus campos obligatorios")
     @GetMapping("/delivery-methods")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<List<MetodoEntregaResponse>> metodosEntrega() {
         return ResponseEntity.ok(checkoutService.metodosEntrega());
     }
 
     @Operation(summary = "HU-25: métodos de pago permitidos (simulación académica)")
     @GetMapping("/payment-methods")
+    // GET: consulta información sin modificar registros. Método metodosPago (metodos pago).
     public ResponseEntity<OpcionesPagoResponse> metodosPago() {
         return ResponseEntity.ok(checkoutService.opcionesPago());
     }
@@ -54,6 +58,7 @@ public class CheckoutController {
     @Operation(summary = "HU-24: resumen recalculado antes de pagar")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/validate")
+    // POST: recibe una solicitud y ejecuta una operación. Método validar (validar).
     public ResponseEntity<ResumenCompraResponse> validar(@Parameter(hidden = true) AuthUser user,
                                                          @Valid @RequestBody ValidarCheckoutRequest req) {
         return ResponseEntity.ok(checkoutService.validar(user.userId(), req));
@@ -62,6 +67,7 @@ public class CheckoutController {
     @Operation(summary = "HU-25: pago simulado y confirmación (201 confirmado, 202 pendiente de stock)")
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/confirm")
+    // POST: recibe una solicitud y ejecuta una operación. Método confirmar (confirmar).
     public ResponseEntity<ConfirmacionCompraResponse> confirmar(@Parameter(hidden = true) AuthUser user,
                                                                 @Valid @RequestBody ConfirmarCompraRequest req) {
         ConfirmacionCompraResponse r = checkoutService.confirmar(user.userId(), req);

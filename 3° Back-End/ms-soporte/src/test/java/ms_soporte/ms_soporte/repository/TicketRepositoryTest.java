@@ -12,9 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase TicketRepositoryTest.
 class TicketRepositoryTest {
 
     @Mock
+    // Dato ticket repository del registro.
     private TicketRepository ticketRepository;
 
     @Test

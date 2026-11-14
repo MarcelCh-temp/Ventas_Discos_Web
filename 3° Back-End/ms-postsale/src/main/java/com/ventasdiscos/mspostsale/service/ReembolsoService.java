@@ -18,10 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReembolsoService {
 
+    // Atributo solicitudes: dato o dependencia utilizada por esta clase.
     private final SolicitudPostVentaRepository solicitudes;
+    // Atributo accounts: dato o dependencia utilizada por esta clase.
     private final AccountsClient accounts;
+    // Atributo support: dato o dependencia utilizada por esta clase.
     private final PostSaleSupport support;
 
+    // Procesa reembolso service aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ReembolsoService(SolicitudPostVentaRepository solicitudes, AccountsClient accounts, PostSaleSupport support) {
         this.solicitudes = solicitudes;
         this.accounts = accounts;
@@ -29,6 +33,7 @@ public class ReembolsoService {
     }
 
     @Transactional
+    // Procesa registrar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse registrar(Long usuarioId, Reembolsar req) {
         // Bloquea la solicitud de origen: dos clics simultáneos no crean dos reembolsos (además de uk_solicitud_origen).
         SolicitudPostVenta origen = solicitudes.bloquear(req.solicitudOrigenId()).orElse(null);

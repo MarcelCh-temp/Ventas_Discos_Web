@@ -33,17 +33,22 @@ import java.util.stream.Collectors;
 @Service
 public class CarritoService {
 
+    // Constante MSG_NO_ENCONTRADO: valor compartido que no cambia durante la ejecución.
     static final String MSG_NO_ENCONTRADO = "Producto no encontrado";
 
+    // Dependencia inyectada para acceder a carrito repository sin crearla manualmente.
     private final CarritoRepository carritoRepository;
+    // Dependencia inyectada para acceder a catalog client sin crearla manualmente.
     private final CatalogClient catalogClient;
 
+    // Procesa carrito service aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoService(CarritoRepository carritoRepository, CatalogClient catalogClient) {
         this.carritoRepository = carritoRepository;
         this.catalogClient = catalogClient;
     }
 
     /** Carrito con los precios y la disponibilidad de Catalog en este momento. */
+    // Procesa carrito cotizado aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public record CarritoCotizado(Carrito carrito, Cotizacion cotizacion, Map<Long, Disponibilidad> disponibilidad) {
 
         LineaCotizada linea(Long productId) {
@@ -55,6 +60,7 @@ public class CarritoService {
 
     /** HU-19. Actualiza los precios guardados con los de Catalog; si Catalog no responde, muestra los guardados. */
     @Transactional
+    // Procesa obtener aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse obtener(Long userId) {
         Carrito carrito = carritoRepository.findByUserId(userId).orElse(null);
         if (carrito == null || carrito.estaVacio()) {
@@ -73,6 +79,7 @@ public class CarritoService {
 
     /** HU-18: producto activo, con stock suficiente para la cantidad resultante. Si ya estaba, suma. */
     @Transactional
+    // Procesa agregar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse agregar(Long userId, AgregarItemRequest req) {
         Carrito carrito = carritoRepository.findByUserIdForUpdate(userId)
                 .orElseGet(() -> carritoRepository.save(new Carrito(userId)));
@@ -87,6 +94,7 @@ public class CarritoService {
 
     /** HU-20 / RN-12: entero >= 1 y sin superar el stock. */
     @Transactional
+    // Procesa cambiar cantidad aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse cambiarCantidad(Long userId, Long productId, int cantidad) {
         Carrito carrito = carritoRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El producto " + productId + " no está en tu carrito"));
@@ -102,6 +110,7 @@ public class CarritoService {
 
     /** HU-21: acción independiente de bajar la cantidad. */
     @Transactional
+    // Procesa quitar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse quitar(Long userId, Long productId) {
         Carrito carrito = carritoRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El producto " + productId + " no está en tu carrito"));
@@ -120,6 +129,7 @@ public class CarritoService {
 
     /** RF-COM-02/04: vaciar (la confirmación la pide el frontend antes de llamar). */
     @Transactional
+    // Procesa vaciar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse vaciar(Long userId) {
         carritoRepository.findByUserIdForUpdate(userId).ifPresent(Carrito::vaciar);
         return vacio();
@@ -129,6 +139,7 @@ public class CarritoService {
 
     /** HU-25: carrito del usuario cotizado en este momento; vacío -> 409 (RF-COM-02: no se avanza a la compra). */
     @Transactional(readOnly = true)
+    // Procesa cotizar para compra aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoCotizado cotizarParaCompra(Long userId) {
         Carrito carrito = carritoRepository.findByUserId(userId).orElse(null);
         if (carrito == null || carrito.estaVacio()) {
@@ -144,6 +155,7 @@ public class CarritoService {
     }
 
     /** Cotiza el carrito como quedaría con "cantidad" unidades del producto (antes de cambiarlo). */
+    // Procesa cotizar con aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private CarritoCotizado cotizarCon(Carrito carrito, Long productId, int cantidad) {
         List<ItemSolicitado> items = new ArrayList<>();
         boolean incluido = false;
@@ -161,6 +173,7 @@ public class CarritoService {
         return consultarCatalogo(carrito, items);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método consultarCatalogo (consultar catalogo).
     private CarritoCotizado consultarCatalogo(Carrito carrito, List<ItemSolicitado> items) {
         Cotizacion cotizacion = catalogClient.cotizar(items);
         List<ItemSolicitado> conocidos = cotizacion.lineas().stream()
@@ -173,6 +186,7 @@ public class CarritoService {
     }
 
     /** RF-COM-01/03: activo y con stock suficiente; si no, 404 o 409 con el motivo. */
+    // Procesa validar comprable aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static void validarComprable(CarritoCotizado c, Long productId, int cantidad) {
         LineaCotizada linea = c.linea(productId);
         if (linea == null || MSG_NO_ENCONTRADO.equals(linea.motivo())) {
@@ -190,6 +204,7 @@ public class CarritoService {
         }
     }
 
+    // Procesa actualizar precios aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static void actualizarPrecios(CarritoCotizado c) {
         for (LineaCotizada l : c.cotizacion().lineas()) {
             if (l.comprable() && l.precioFinalUnitario() != null) {
@@ -200,6 +215,7 @@ public class CarritoService {
     }
 
     /** Respuesta con los datos de Catalog. El total suma solo lo comprable; el resto se informa en avisos. */
+    // Procesa armar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static CarritoResponse armar(CarritoCotizado c) {
         Map<Long, LineaCotizada> lineas = c.cotizacion().lineas().stream()
                 .collect(Collectors.toMap(LineaCotizada::productId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
@@ -241,6 +257,7 @@ public class CarritoService {
                 listo && !items.isEmpty(), true, avisos);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método sinCatalogo (sin catalogo).
     private static CarritoResponse sinCatalogo(Carrito carrito) {
         List<ItemCarritoResponse> items = carrito.getItems().stream()
                 .map(i -> new ItemCarritoResponse(i.getProductId(), null, i.getCantidad(), null, null, i.getPrecioUnitario(),
@@ -252,6 +269,7 @@ public class CarritoService {
                 + "se muestran los últimos precios conocidos. No se puede comprar hasta que se actualicen"));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método vacio (vacio).
     private static CarritoResponse vacio() {
         return new CarritoResponse(List.of(), 0, 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, true, false, true,
                 List.of("Tu carrito está vacío"));

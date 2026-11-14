@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ApiGatewayApplication {
 
+    // Ejecuta main como parte de las responsabilidades de esta clase.
     public static void main(String[] args) {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }

@@ -38,8 +38,10 @@ import java.time.LocalDate;
 @RequestMapping("/api/v1/admin/post-sale")
 public class AdminPostSaleController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final PostSaleService service;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public AdminPostSaleController(PostSaleService service) {
         this.service = service;
     }
@@ -63,6 +65,7 @@ public class AdminPostSaleController {
 
     @Operation(summary = "HU-74: aprobar o rechazar una cancelación (revalida el pedido en Orders)")
     @PostMapping("/cancellations/{id}/resolve")
+    // POST: recibe una solicitud y ejecuta una operación. Método cancelar (cancelar).
     public ResponseEntity<CancelacionResueltaResponse> cancelar(@Parameter(hidden = true) AuthUser user,
                                                                 @PathVariable Long id,
                                                                 @Valid @RequestBody Resolver request) {
@@ -72,6 +75,7 @@ public class AdminPostSaleController {
 
     @Operation(summary = "HU-75: aprobar o rechazar una devolución (revalida el pedido en Orders)")
     @PostMapping("/returns/{id}/resolve")
+    // POST: recibe una solicitud y ejecuta una operación. Método devolver (devolver).
     public ResponseEntity<SolicitudDetalleResponse> devolver(@Parameter(hidden = true) AuthUser user,
                                                              @PathVariable Long id,
                                                              @Valid @RequestBody Resolver request) {
@@ -81,6 +85,7 @@ public class AdminPostSaleController {
 
     @Operation(summary = "HU-76: registrar la recepción de una devolución APROBADA (repone en Catalog solo lo apto)")
     @PostMapping("/returns/{id}/reception")
+    // POST: recibe una solicitud y ejecuta una operación. Método recibir (recibir).
     public ResponseEntity<SolicitudDetalleResponse> recibir(@Parameter(hidden = true) AuthUser user,
                                                             @PathVariable Long id,
                                                             @Valid @RequestBody Recibir request) {

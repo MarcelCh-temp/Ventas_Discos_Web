@@ -2,6 +2,7 @@ package com.ventasdiscos.mscatalog.model;
 
 import com.ventasdiscos.mscatalog.exception.StockInsuficienteException;
 import com.ventasdiscos.mscatalog.exception.ValidacionNegocioException;
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,30 +33,43 @@ import lombok.NoArgsConstructor;
 public class Inventario {
 
     /** Revisión Lote 2: stock_actual es int; ninguna entrada puede dejarlo sobre este valor. */
+    // Constante STOCK_MAXIMO: valor compartido que no cambia durante la ejecución.
     public static final int STOCK_MAXIMO = Integer.MAX_VALUE;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     /** UML 03: un inventario por producto. Solo lectura: la columna la escribe productId. */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false, insertable = false, updatable = false)
+    @NotNull
+    // Atributo producto: propiedad que se guarda o utiliza en esta entidad.
     private Producto producto;
 
     /** Columna original de ms-inventory. Las consultas por id siguen igual que en el código original. */
     @Column(name = "product_id", nullable = false)
+    @Positive
+    @NotNull
+    // Atributo productId: propiedad que se guarda o utiliza en esta entidad.
     private Long productId;
 
     /** RN-10/RN-11: entero, nunca negativo. */
     @Column(nullable = false)
+    @PositiveOrZero
+    @NotNull
+    // Atributo stockActual: propiedad que se guarda o utiliza en esta entidad.
     private Integer stockActual;
 
     /** HU-42: umbral configurado por el Admin (entero >= 0). */
     @Column(nullable = false)
+    @NotNull
+    // Atributo umbralCritico: propiedad que se guarda o utiliza en esta entidad.
     private Integer umbralCritico;
 
     /** Producto nuevo: stock 0 (Agotado, RN-09) y umbral por defecto. */
+    // Ejecuta inventario como parte de las responsabilidades de esta clase.
     public Inventario(Producto producto, int umbralCritico) {
         this.producto = producto;
         this.productId = producto.getId();
@@ -70,6 +84,7 @@ public class Inventario {
     }
 
     /** Revisión Lote 2: si la suma no cabe en int, se rechaza y el stock no cambia (antes quedaba negativo). */
+    // Ejecuta aumentar stock como parte de las responsabilidades de esta clase.
     public void aumentarStock(int cantidad) {
         validarCantidadPositiva(cantidad);
         if ((long) this.stockActual + cantidad > STOCK_MAXIMO) {
@@ -80,6 +95,7 @@ public class Inventario {
     }
 
     /** RN-10: una salida mayor que el stock se rechaza y el stock no cambia. */
+    // Ejecuta descontar stock como parte de las responsabilidades de esta clase.
     public void descontarStock(int cantidad) {
         validarCantidadPositiva(cantidad);
         if (!hayStockSuficiente(cantidad)) {
@@ -90,6 +106,7 @@ public class Inventario {
     }
 
     /** HU-40: fija el valor contado físicamente (entero >= 0). */
+    // Ejecuta ajustar stock como parte de las responsabilidades de esta clase.
     public void ajustarStock(int nuevoStock) {
         if (nuevoStock < 0) {
             throw new ValidacionNegocioException("El stock no puede ser negativo");
@@ -97,11 +114,13 @@ public class Inventario {
         this.stockActual = nuevoStock;
     }
 
+    // Ejecuta esta agotado como parte de las responsabilidades de esta clase.
     public boolean estaAgotado() {
         return stockActual == 0;
     }
 
     /** RN-09: 0 < stock <= umbral. */
+    // Ejecuta esta en nivel critico como parte de las responsabilidades de esta clase.
     public boolean estaEnNivelCritico() {
         return stockActual > 0 && stockActual <= umbralCritico;
     }
@@ -109,6 +128,7 @@ public class Inventario {
     // ===================== apoyo =====================
 
     /** RN-09: 0 -> Agotado; 0 < stock <= umbral -> Crítico; stock > umbral -> Disponible. */
+    // Ejecuta get disponibilidad como parte de las responsabilidades de esta clase.
     public Disponibilidad getDisponibilidad() {
         if (estaAgotado()) {
             return Disponibilidad.AGOTADO;
@@ -117,6 +137,7 @@ public class Inventario {
     }
 
     /** Aplica un movimiento usando los métodos del UML (lo usa InventarioService al registrar el historial). */
+    // Ejecuta aplicar como parte de las responsabilidades de esta clase.
     public void aplicar(TipoMovimiento tipo, int cantidad) {
         switch (tipo) {
             case ENTRADA -> aumentarStock(cantidad);
@@ -126,6 +147,7 @@ public class Inventario {
     }
 
     /** HU-42: el Admin define el umbral (entero >= 0); la disponibilidad se recalcula sola. */
+    // Ejecuta configurar umbral como parte de las responsabilidades de esta clase.
     public void configurarUmbral(int umbralCritico) {
         if (umbralCritico < 0) {
             throw new ValidacionNegocioException("El umbral no puede ser negativo");
@@ -133,6 +155,7 @@ public class Inventario {
         this.umbralCritico = umbralCritico;
     }
 
+    // Ejecuta validar cantidad positiva como parte de las responsabilidades de esta clase.
     private static void validarCantidadPositiva(int cantidad) {
         if (cantidad <= 0) {
             throw new ValidacionNegocioException("La cantidad debe ser mayor que cero");

@@ -27,20 +27,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/cart")
 public class CarritoController {
 
+    // Dependencia inyectada para acceder a carrito service sin crearla manualmente.
     private final CarritoService carritoService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public CarritoController(CarritoService carritoService) {
         this.carritoService = carritoService;
     }
 
     @Operation(summary = "HU-19: ver mi carrito con precios, subtotales y total calculados por el backend")
     @GetMapping
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<CarritoResponse> obtener(@Parameter(hidden = true) AuthUser user) {
         return ResponseEntity.ok(carritoService.obtener(user.userId()));
     }
 
     @Operation(summary = "HU-18: agregar un producto (activo y con stock)")
     @PostMapping("/items")
+    // POST: recibe una solicitud y ejecuta una operación. Método agregar (agregar).
     public ResponseEntity<CarritoResponse> agregar(@Parameter(hidden = true) AuthUser user,
                                                    @Valid @RequestBody AgregarItemRequest req) {
         return ResponseEntity.ok(carritoService.agregar(user.userId(), req));
@@ -48,6 +52,7 @@ public class CarritoController {
 
     @Operation(summary = "HU-20: cambiar la cantidad (entero >= 1, sin superar el stock)")
     @PatchMapping("/items/{productId}")
+    // PATCH: modifica parcialmente un recurso. Método cambiarCantidad (cambiar cantidad).
     public ResponseEntity<CarritoResponse> cambiarCantidad(@Parameter(hidden = true) AuthUser user,
                                                            @PathVariable Long productId,
                                                            @Valid @RequestBody CambiarCantidadRequest req) {
@@ -56,12 +61,14 @@ public class CarritoController {
 
     @Operation(summary = "HU-21: quitar un producto del carrito")
     @DeleteMapping("/items/{productId}")
+    // DELETE: solicita la eliminación o desactivación de un recurso. Método quitar (quitar).
     public ResponseEntity<CarritoResponse> quitar(@Parameter(hidden = true) AuthUser user, @PathVariable Long productId) {
         return ResponseEntity.ok(carritoService.quitar(user.userId(), productId));
     }
 
     @Operation(summary = "RF-COM-02/04: vaciar el carrito (el frontend pide confirmación antes)")
     @DeleteMapping
+    // DELETE: solicita la eliminación o desactivación de un recurso. Método vaciar (vaciar).
     public ResponseEntity<CarritoResponse> vaciar(@Parameter(hidden = true) AuthUser user) {
         return ResponseEntity.ok(carritoService.vaciar(user.userId()));
     }

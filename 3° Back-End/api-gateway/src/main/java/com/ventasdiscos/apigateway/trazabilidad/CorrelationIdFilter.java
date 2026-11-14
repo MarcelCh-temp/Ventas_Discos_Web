@@ -50,6 +50,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     /** Muestra el X-Correlation-Id definitivo a todo lo que viene después (incluido el reenvío al MS). */
     static final class PeticionConCorrelationId extends HttpServletRequestWrapper {
 
+        // Atributo id: dato o dependencia utilizada por esta clase.
         private final String id;
 
         PeticionConCorrelationId(HttpServletRequest request, String id) {
@@ -58,17 +59,20 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         }
 
         @Override
+        // Ejecuta get header como parte de las responsabilidades de esta clase.
         public String getHeader(String name) {
             return CorrelationId.HEADER.equalsIgnoreCase(name) ? id : super.getHeader(name);
         }
 
         @Override
+        // Ejecuta get headers como parte de las responsabilidades de esta clase.
         public Enumeration<String> getHeaders(String name) {
             return CorrelationId.HEADER.equalsIgnoreCase(name)
                     ? Collections.enumeration(List.of(id)) : super.getHeaders(name);
         }
 
         @Override
+        // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getHeaderNames (consultar header names).
         public Enumeration<String> getHeaderNames() {
             Set<String> nombres = new LinkedHashSet<>();
             Enumeration<String> originales = super.getHeaderNames();

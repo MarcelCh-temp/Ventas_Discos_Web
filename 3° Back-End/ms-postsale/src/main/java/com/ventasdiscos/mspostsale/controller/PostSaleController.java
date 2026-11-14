@@ -37,8 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/post-sale")
 public class PostSaleController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final PostSaleService service;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public PostSaleController(PostSaleService service) {
         this.service = service;
     }
@@ -52,6 +54,7 @@ public class PostSaleController {
 
     @Operation(summary = "HU-69: solicitar la devolución de productos de un pedido propio ENTREGADO")
     @PostMapping("/returns")
+    // POST: recibe una solicitud y ejecuta una operación. Método devolver (devolver).
     public ResponseEntity<SolicitudDetalleResponse> devolver(@Parameter(hidden = true) AuthUser user,
                                                              @Valid @RequestBody Devolver request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.solicitarDevolucion(user.userId(), request));
@@ -59,6 +62,7 @@ public class PostSaleController {
 
     @Operation(summary = "HU-70: mis solicitudes (cancelación, devolución y reembolso), más recientes primero")
     @GetMapping("/requests/me")
+    // GET: consulta información sin modificar registros. Método mias (mias).
     public ResponseEntity<PageResponse<SolicitudResumenResponse>> mias(@Parameter(hidden = true) AuthUser user,
                                                                        @RequestParam(required = false) TipoSolicitud tipo,
                                                                        @RequestParam(required = false) EstadoSolicitud estado,
@@ -69,6 +73,7 @@ public class PostSaleController {
 
     @Operation(summary = "HU-71: detalle de una solicitud propia (404 si no existe o no es tuya)")
     @GetMapping("/requests/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<SolicitudDetalleResponse> detalle(@Parameter(hidden = true) AuthUser user,
                                                             @PathVariable Long id) {
         return ResponseEntity.ok(service.detalleMio(user.userId(), id));

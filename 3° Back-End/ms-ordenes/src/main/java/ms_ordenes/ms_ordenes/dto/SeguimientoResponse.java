@@ -12,6 +12,7 @@ public record SeguimientoResponse(Long id, String numeroPedido, EstadoOrden esta
                                   boolean finalizado, List<Paso> pasos, DespachoResponse despacho,
                                   List<HistorialPedidoResponse> historial) {
 
+    // Ejecuta paso como parte de las responsabilidades de esta clase.
     public record Paso(EstadoOrden estado, boolean completado, boolean actual) {
     }
 }

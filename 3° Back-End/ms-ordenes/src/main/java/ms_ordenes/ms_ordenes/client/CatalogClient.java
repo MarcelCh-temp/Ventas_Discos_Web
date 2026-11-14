@@ -38,25 +38,33 @@ import java.util.regex.Pattern;
 public class CatalogClient {
 
     private static final Logger log = LoggerFactory.getLogger(CatalogClient.class);
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
     private static final Pattern MENSAJE = Pattern.compile("\"mensaje\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+    // Constante NO_DISPONIBLE: valor compartido que no cambia durante la ejecución.
     static final String NO_DISPONIBLE = "No fue posible comunicarse con el catálogo. Intenta nuevamente en unos minutos";
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
+    // Cliente de integración: realiza catalog client con otro microservicio y trata su respuesta.
     public CatalogClient(RestTemplate restTemplate, @Value("${services.catalog.url}") String baseUrl) {
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método cotizar (cotizar).
     public Cotizacion cotizar(List<ItemSolicitado> items) {
         Map<String, Object> body = Map.of("items", items);
         return consultar(() -> restTemplate.postForObject(baseUrl + "/api/v1/internal/catalog/pricing", body,
                 Cotizacion.class));
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método disponibilidad (disponibilidad).
     public List<Disponibilidad> disponibilidad(List<ItemSolicitado> items) {
         HttpEntity<Map<String, Object>> body = new HttpEntity<>(Map.of("items", items));
         return consultar(() -> restTemplate.exchange(baseUrl + "/api/v1/inventory/availability/query",
@@ -65,6 +73,7 @@ public class CatalogClient {
     }
 
     /** tipo: "SALIDA" (venta) o "ENTRADA" (reposición por cancelación). */
+    // Cliente de integración: realiza aplicar operacion con otro microservicio y trata su respuesta.
     public RespuestaOperacion aplicarOperacion(String operacionId, String motivo, String tipo, List<ItemSolicitado> items) {
         List<Map<String, Object>> lineas = items.stream()
                 .map(i -> Map.<String, Object>of("productId", i.productId(), "tipo", tipo, "cantidad", i.cantidad()))
@@ -96,6 +105,7 @@ public class CatalogClient {
         return new RespuestaOperacion(ResultadoOperacion.NO_CONFIRMADA, NO_DISPONIBLE);
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método consultar (consultar).
     private <T> T consultar(Supplier<T> llamada) {
         for (int intento = 1; intento <= MAX_INTENTOS; intento++) {
             try {
@@ -118,11 +128,13 @@ public class CatalogClient {
     }
 
     /** Toma "mensaje" del ApiError de Catalog; si no viene, un texto genérico. */
+    // Cliente de integración: realiza mensaje con otro microservicio y trata su respuesta.
     static String mensaje(HttpClientErrorException e) {
         Matcher m = MENSAJE.matcher(e.getResponseBodyAsString());
         return m.find() ? m.group(1).replace("\\\"", "\"") : "El catálogo rechazó la solicitud (" + e.getStatusCode().value() + ")";
     }
 
+    // Cliente de integración: realiza esperar con otro microservicio y trata su respuesta.
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

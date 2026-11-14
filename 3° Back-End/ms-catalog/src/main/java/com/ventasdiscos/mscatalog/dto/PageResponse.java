@@ -16,11 +16,13 @@ public record PageResponse<T>(
         long totalElementos,
         int totalPaginas
 ) {
+    // Ejecuta of como parte de las responsabilidades de esta clase.
     public static <E, T> PageResponse<T> of(Page<E> page, Function<E, T> mapper) {
         return new PageResponse<>(page.getContent().stream().map(mapper).toList(),
                 page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
+    // Ejecuta of como parte de las responsabilidades de esta clase.
     public static <T> PageResponse<T> of(Page<?> page, List<T> contenido) {
         return new PageResponse<>(contenido, page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages());

@@ -7,11 +7,14 @@ import org.springframework.data.domain.Sort;
 /** Valida page/size antes de consultar (RNF-11: limitar size evita respuestas gigantes). */
 public final class Paginacion {
 
+    // Constante TAMANO_MAXIMO: valor compartido que no cambia durante la ejecución.
     public static final int TAMANO_MAXIMO = 100;
 
+    // Ejecuta paginacion como parte de las responsabilidades de esta clase.
     private Paginacion() {
     }
 
+    // Ejecuta of como parte de las responsabilidades de esta clase.
     public static PageRequest of(int pagina, int tamano, Sort orden) {
         if (pagina < 0) {
             throw new ValidacionNegocioException("La página debe ser 0 o mayor");

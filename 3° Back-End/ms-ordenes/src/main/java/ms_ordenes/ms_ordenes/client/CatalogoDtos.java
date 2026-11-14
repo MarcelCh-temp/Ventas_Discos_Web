@@ -9,9 +9,11 @@ import java.util.List;
  */
 public final class CatalogoDtos {
 
+    // Cliente de integración: realiza catalogo dtos con otro microservicio y trata su respuesta.
     private CatalogoDtos() {
     }
 
+    // Cliente de integración: realiza item solicitado con otro microservicio y trata su respuesta.
     public record ItemSolicitado(Long productId, int cantidad) {
     }
 
@@ -38,20 +40,27 @@ public final class CatalogoDtos {
      */
     public enum ResultadoOperacion {
         /** 201 aplicada ahora o 200 ya aplicada antes (idempotencia por operacionId). */
+        // Opción APLICADA: representa el estado o tipo «aplicada» permitido en este dominio.
         APLICADA,
         /** Lo asigna OrdenService (nunca el cliente): 409 + Catalog confirma que falta stock. No se movió stock. */
+        // Opción SIN_STOCK: representa el estado o tipo «sin stock» permitido en este dominio.
         SIN_STOCK,
         /** 409 sin falta de stock demostrada (por ejemplo, operacionId ya usada con otro contenido). Requiere revisión. */
+        // Opción CONFLICTO: representa el estado o tipo «conflicto» permitido en este dominio.
         CONFLICTO,
         /** Otro 4xx (400 datos inválidos, 404 producto inexistente, 401/403): Catalog no aceptó la solicitud. */
+        // Opción RECHAZADA: representa el estado o tipo «rechazada» permitido en este dominio.
         RECHAZADA,
         /** Catalog no respondió (conexión, tiempo de espera, 5xx): no se sabe si se aplicó. Reintentar es seguro. */
+        // Opción NO_CONFIRMADA: representa el estado o tipo «no confirmada» permitido en este dominio.
         NO_CONFIRMADA
     }
 
     /** status = código HTTP de Catalog (0 si no hubo respuesta). */
+    // Cliente de integración: realiza respuesta operacion con otro microservicio y trata su respuesta.
     public record RespuestaOperacion(ResultadoOperacion resultado, String mensaje, int status) {
 
+        // Cliente de integración: realiza respuesta operacion con otro microservicio y trata su respuesta.
         public RespuestaOperacion(ResultadoOperacion resultado, String mensaje) {
             this(resultado, mensaje, 0);
         }

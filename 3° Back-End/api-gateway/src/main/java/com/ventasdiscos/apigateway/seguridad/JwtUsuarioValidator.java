@@ -24,13 +24,18 @@ import java.util.Set;
 @Component
 public class JwtUsuarioValidator {
 
+    // Constante EMISOR: valor compartido que no cambia durante la ejecución.
     static final String EMISOR = "ms-accounts";
     static final Set<String> ROLES = Set.of("CLIENTE", "ADMINISTRADOR");
+    // Constante TOKEN_INVALIDO: valor compartido que no cambia durante la ejecución.
     static final String TOKEN_INVALIDO = "Token inválido";
+    // Constante SESION_EXPIRADA: valor compartido que no cambia durante la ejecución.
     static final String SESION_EXPIRADA = "Tu sesión expiró, inicia sesión nuevamente";
 
+    // Atributo secreto: dato o dependencia utilizada por esta clase.
     private final byte[] secreto;
 
+    // Ejecuta jwt usuario validator como parte de las responsabilidades de esta clase.
     public JwtUsuarioValidator(@Value("${security.jwt.secret}") String secreto) {
         if (secreto == null || secreto.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException("security.jwt.secret (JWT_SECRET) debe tener al menos 32 caracteres");
@@ -39,6 +44,7 @@ public class JwtUsuarioValidator {
     }
 
     /** Usuario del token, o NoAutenticadoException (401). */
+    // Ejecuta validar como parte de las responsabilidades de esta clase.
     public UsuarioToken validar(String token) {
         JWTClaimsSet c;
         try {

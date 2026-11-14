@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
  * el carrito queda igual para corregir y reintentar. Simulación académica: no hay pasarela real.
  */
 public class PagoRechazadoException extends ApiException {
+    // Ejecuta pago rechazado exception como parte de las responsabilidades de esta clase.
     public PagoRechazadoException(String mensaje) {
         super(HttpStatus.PAYMENT_REQUIRED, mensaje);
     }

@@ -17,6 +17,7 @@ public record TicketResumenResponse(
         LocalDateTime fechaCreacion,
         LocalDateTime fechaCierre
 ) {
+    // Ejecuta desde como parte de las responsabilidades de esta clase.
     public static TicketResumenResponse desde(Ticket t) {
         return new TicketResumenResponse(t.getId(), t.getNumeroTicket(), t.getIdUsuario(), t.getOrderId(),
                 t.getAsunto(), t.getCategoria(), t.getEstado(), t.getFechaCreacion(), t.getFechaCierre());

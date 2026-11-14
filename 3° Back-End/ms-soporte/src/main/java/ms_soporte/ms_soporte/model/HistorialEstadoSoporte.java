@@ -1,5 +1,6 @@
 package ms_soporte.ms_soporte.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class HistorialEstadoSoporte {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     // null solo en el primer registro (creación de la solicitud)
@@ -24,9 +26,12 @@ public class HistorialEstadoSoporte {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_nuevo", nullable = false)
+    @NotNull
+    // Atributo estadoNuevo: propiedad que se guarda o utiliza en esta entidad.
     private EstadoTicket estadoNuevo;
 
     @Column(name = "fecha_hora", nullable = false)
+    // Fecha u hora utilizada para registrar o controlar el proceso.
     private LocalDateTime fechaHora;
 
     // Lote 1.1 (DOC-01 aprobado, RNF-09): quién hizo el cambio. Es el usuario autenticado (token):
@@ -37,10 +42,13 @@ public class HistorialEstadoSoporte {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ticket_id", nullable = false)
+    @NotNull
+    // Atributo ticket: propiedad que se guarda o utiliza en esta entidad.
     private Ticket ticket;
 
     public HistorialEstadoSoporte() {}
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método HistorialEstadoSoporte (historial estado soporte).
     public HistorialEstadoSoporte(EstadoTicket estadoAnterior, EstadoTicket estadoNuevo, Long usuarioResponsableId) {
         this.estadoAnterior = estadoAnterior;
         this.estadoNuevo = estadoNuevo;
@@ -49,11 +57,18 @@ public class HistorialEstadoSoporte {
         this.fechaHora = LocalDateTime.now();
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getId (consultar id).
     public Long getId() { return id; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getEstadoAnterior (consultar estado anterior).
     public EstadoTicket getEstadoAnterior() { return estadoAnterior; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getEstadoNuevo (consultar estado nuevo).
     public EstadoTicket getEstadoNuevo() { return estadoNuevo; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getFechaHora (consultar fecha hora).
     public LocalDateTime getFechaHora() { return fechaHora; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getUsuarioResponsableId (consultar usuario responsable id).
     public Long getUsuarioResponsableId() { return usuarioResponsableId; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getTicket (consultar ticket).
     public Ticket getTicket() { return ticket; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método setTicket (actualizar ticket).
     public void setTicket(Ticket ticket) { this.ticket = ticket; }
 }

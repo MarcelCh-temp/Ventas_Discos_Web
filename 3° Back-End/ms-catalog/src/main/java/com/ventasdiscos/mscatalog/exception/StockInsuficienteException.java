@@ -7,10 +7,12 @@ import java.util.Map;
 /** 409: una salida dejaría el stock bajo cero (RN-10). "errores" indica qué fila del lote falló. Lote 2: desde ms-inventory. */
 public class StockInsuficienteException extends ApiException {
 
+    // Ejecuta stock insuficiente exception como parte de las responsabilidades de esta clase.
     public StockInsuficienteException(String mensaje) {
         super(HttpStatus.CONFLICT, mensaje);
     }
 
+    // Ejecuta stock insuficiente exception como parte de las responsabilidades de esta clase.
     public StockInsuficienteException(String mensaje, Map<String, String> errores) {
         super(HttpStatus.CONFLICT, mensaje, errores);
     }

@@ -24,6 +24,7 @@ public class RestTemplateConfig {
     /** Catalog y Notifications: respuestas rápidas. */
     @Bean
     @Primary
+    // Ejecuta rest template como parte de las responsabilidades de esta clase.
     public RestTemplate restTemplate(ServicioJwtService servicioJwt) {
         return crear(Duration.ofSeconds(2), Duration.ofSeconds(3), servicioJwt);
     }
@@ -38,6 +39,7 @@ public class RestTemplateConfig {
         return crear(Duration.ofSeconds(2), Duration.ofSeconds(12), servicioJwt);
     }
 
+    // Ejecuta crear como parte de las responsabilidades de esta clase.
     private static RestTemplate crear(Duration conexion, Duration lectura, ServicioJwtService servicioJwt) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(conexion);

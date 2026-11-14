@@ -27,7 +27,9 @@ import java.util.Date;
 @Service
 public class JwtService {
 
+    // Atributo secret: dato o dependencia utilizada por esta clase.
     private final byte[] secret;
+    // Atributo expiracionMinutos: dato o dependencia utilizada por esta clase.
     private final long expiracionMinutos;
 
     public JwtService(@Value("${security.jwt.secret}") String secret,
@@ -40,6 +42,7 @@ public class JwtService {
     }
 
     /** HU-02: token emitido tras validar credenciales. El rol viene de la cuenta (RN-02). */
+    // Ejecuta generar como parte de las responsabilidades de esta clase.
     public String generar(Usuario usuario) {
         Instant ahora = Instant.now();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
@@ -58,11 +61,13 @@ public class JwtService {
         }
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método getExpiracionSegundos (consultar expiracion segundos).
     public long getExpiracionSegundos() {
         return expiracionMinutos * 60;
     }
 
     /** Valida firma y expiración. Cualquier problema -> 401. */
+    // Ejecuta validar como parte de las responsabilidades de esta clase.
     public AuthUser validar(String token) {
         try {
             SignedJWT jwt = SignedJWT.parse(token);

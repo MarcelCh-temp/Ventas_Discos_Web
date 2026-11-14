@@ -30,12 +30,15 @@ import com.ventasdiscos.mscatalog.security.ServiciosPermitidos;
 @RequiredArgsConstructor
 public class InternalCatalogController {
 
+    // Dependencia inyectada para acceder a pricing service sin crearla manualmente.
     private final PricingService pricingService;
+    // Dependencia inyectada para acceder a favorito service sin crearla manualmente.
     private final FavoritoService favoritoService;
 
     @Operation(summary = "Orders: precio comercial + promociones vigentes de un carrito")
     @ServiciosPermitidos(Servicios.ORDERS)
     @PostMapping("/pricing")
+    // POST: crea o procesa una solicitud; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<PricingResponse> cotizar(@Valid @RequestBody PricingRequest req) {
         return ResponseEntity.ok(pricingService.cotizar(req));
     }

@@ -23,14 +23,17 @@ public class ReposicionReintentoConfig {
 
     private static final Logger log = LoggerFactory.getLogger(ReposicionReintentoConfig.class);
 
+    // Dependencia inyectada para acceder a devolucion service sin crearla manualmente.
     private final DevolucionService devolucionService;
 
+    // Ejecuta reposicion reintento config como parte de las responsabilidades de esta clase.
     public ReposicionReintentoConfig(DevolucionService devolucionService) {
         this.devolucionService = devolucionService;
     }
 
     @Scheduled(fixedDelayString = "${postsale.reposiciones.reintento-ms:300000}",
             initialDelayString = "${postsale.reposiciones.reintento-ms:300000}")
+    // Ejecuta reintentar como parte de las responsabilidades de esta clase.
     public void reintentar() {
         try {
             int intentadas = devolucionService.reintentarReposicionesPendientes();

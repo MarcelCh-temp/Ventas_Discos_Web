@@ -33,10 +33,12 @@ public class CorsGatewayFilter extends CorsFilter {
     static final List<String> METODOS = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
     static final List<String> CABECERAS = List.of("Authorization", "Content-Type", "Accept", CorrelationId.HEADER);
 
+    // Ejecuta cors gateway filter como parte de las responsabilidades de esta clase.
     public CorsGatewayFilter(@Value("${gateway.cors.allowed-origins}") String[] origenes) {
         super(fuente(origenes));
     }
 
+    // Ejecuta fuente como parte de las responsabilidades de esta clase.
     static UrlBasedCorsConfigurationSource fuente(String[] origenes) {
         List<String> limpios = origenes == null ? List.of()
                 : Arrays.stream(origenes).map(String::trim).filter(o -> !o.isEmpty()).toList();

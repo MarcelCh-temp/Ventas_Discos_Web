@@ -27,6 +27,7 @@ import java.util.List;
 public class TicketController {
 
     @Autowired
+    // Dependencia inyectada para acceder a ticket service sin crearla manualmente.
     private TicketService ticketService;
 
     // HU-59

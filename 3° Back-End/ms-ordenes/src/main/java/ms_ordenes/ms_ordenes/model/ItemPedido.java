@@ -1,5 +1,6 @@
 package ms_ordenes.ms_ordenes.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,30 +25,48 @@ public class ItemPedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "orden_id", nullable = false)
+    @NotNull
+    // Atributo orden: propiedad que se guarda o utiliza en esta entidad.
     private Orden orden;
 
     @Column(name = "product_id", nullable = false)
+    @Positive
+    @NotNull
+    // Atributo productId: propiedad que se guarda o utiliza en esta entidad.
     private Long productId;
 
     @Column(name = "nombre_producto_snapshot", nullable = false, length = 150)
+    @NotBlank
+    // Dato nombre producto snapshot del registro; validación: texto obligatorio y no vacío.
     private String nombreProductoSnapshot;
 
     @Column(name = "precio_historico", nullable = false, precision = 12, scale = 2)
+    @DecimalMin(value = "0.0")
+    @NotNull
+    // Importe monetario; se conserva la precisión decimal para evitar errores de redondeo; validación: valor obligatorio (no nulo), límite inferior decimal.
     private BigDecimal precioHistorico;
 
     @Column(name = "subtotal_historico", nullable = false, precision = 12, scale = 2)
+    @NotNull
+    // Importe monetario; se conserva la precisión decimal para evitar errores de redondeo; validación: valor obligatorio (no nulo).
     private BigDecimal subtotalHistorico;
 
     @Column(nullable = false)
+    @Positive
+    @NotNull
+    // Cantidad utilizada por la regla de negocio; sus límites se comprueban antes de guardar; validación: valor obligatorio (no nulo), número mayor que cero.
     private Integer cantidad;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método ItemPedido (item pedido).
     protected ItemPedido() {
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método ItemPedido (item pedido).
     public ItemPedido(Long productId, String nombreProducto, BigDecimal precioUnitario, int cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
@@ -66,14 +85,21 @@ public class ItemPedido {
         this.orden = orden;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método calcularSubtotal (calcular subtotal).
     public BigDecimal calcularSubtotal() {
         return precioHistorico.multiply(BigDecimal.valueOf(cantidad));
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getId (consultar id).
     public Long getId() { return id; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getProductId (consultar product id).
     public Long getProductId() { return productId; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getNombreProductoSnapshot (consultar nombre producto snapshot).
     public String getNombreProductoSnapshot() { return nombreProductoSnapshot; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getPrecioHistorico (consultar precio historico).
     public BigDecimal getPrecioHistorico() { return precioHistorico; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getSubtotalHistorico (consultar subtotal historico).
     public BigDecimal getSubtotalHistorico() { return subtotalHistorico; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getCantidad (consultar cantidad).
     public Integer getCantidad() { return cantidad; }
 }

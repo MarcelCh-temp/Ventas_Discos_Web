@@ -29,12 +29,14 @@ public class GlobalExceptionHandler {
 
     /** Excepciones propias del negocio: cada una ya trae su código HTTP. */
     @ExceptionHandler(ApiException.class)
+    // Ejecuta handle api como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest req) {
         return build(ex.getStatus(), ex.getMessage(), req, ex.getErrores());
     }
 
     /** @Valid falló en el DTO: devolvemos campo -> mensaje para corregir sin perder lo válido. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    // Ejecuta handle validacion como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errores = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
@@ -45,6 +47,7 @@ public class GlobalExceptionHandler {
 
     /** JSON mal formado o tipo incorrecto (ej. texto donde va número). */
     @ExceptionHandler(HttpMessageNotReadableException.class)
+    // Ejecuta handle json como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleJson(HttpMessageNotReadableException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El cuerpo de la solicitud no es válido: revisa el formato y el tipo de cada dato", req, null);
@@ -52,6 +55,7 @@ public class GlobalExceptionHandler {
 
     /** Parámetro de URL con tipo incorrecto (ej. /products/abc). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    // Ejecuta handle tipo como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleTipo(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El parámetro '" + ex.getName() + "' tiene un valor inválido", req, null);
@@ -59,6 +63,7 @@ public class GlobalExceptionHandler {
 
     /** 2.ª barrera: constraint UNIQUE de la BD (por si dos peticiones simultáneas pasan la validación). */
     @ExceptionHandler(DataIntegrityViolationException.class)
+    // Ejecuta handle integridad como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleIntegridad(DataIntegrityViolationException ex, HttpServletRequest req) {
         log.warn("Violación de integridad en {}: {}", req.getRequestURI(), ex.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "La operación entra en conflicto con datos ya registrados", req, null);
@@ -66,6 +71,7 @@ public class GlobalExceptionHandler {
 
     /** Errores de Spring MVC (404 de ruta, 405 método, parámetro faltante) y cualquier error no previsto (500). */
     @ExceptionHandler(Exception.class)
+    // Ejecuta handle general como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
         if (ex instanceof ErrorResponse er) {
             HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());

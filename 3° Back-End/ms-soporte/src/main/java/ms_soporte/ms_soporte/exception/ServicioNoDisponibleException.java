@@ -5,6 +5,7 @@ package ms_soporte.ms_soporte.exception;
  * No se crea la solicitud (RN-37, RN-44).
  */
 public class ServicioNoDisponibleException extends RuntimeException {
+    // Ejecuta servicio no disponible exception como parte de las responsabilidades de esta clase.
     public ServicioNoDisponibleException(String mensaje) {
         super(mensaje);
     }

@@ -34,10 +34,12 @@ public final class TestTokens {
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método admin (admin).
     public static String admin() {
         return bearer(1L, "ADMINISTRADOR");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método cliente (cliente).
     public static String cliente(long userId) {
         return bearer(userId, "CLIENTE");
     }

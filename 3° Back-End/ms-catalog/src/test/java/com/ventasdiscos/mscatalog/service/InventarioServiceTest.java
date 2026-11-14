@@ -107,6 +107,7 @@ class InventarioServiceTest {
         when(movRepo.save(any(MovimientoStock.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método inventario (inventario).
     private Inventario inventario(Long productId, int stock) {
         Inventario i = new Inventario(catalogo.get(productId), 5);
         if (stock > 0) {
@@ -487,6 +488,7 @@ class InventarioServiceTest {
         assertThrows(RecursoNoEncontradoException.class, () -> service.disponibilidadPublica(99L));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método consulta (consulta).
     private ConsultaDisponibilidadRequest consulta(long[]... pares) {
         return new ConsultaDisponibilidadRequest(java.util.Arrays.stream(pares)
                 .map(p -> new ConsultaDisponibilidadRequest.Item(p[0], (int) p[1])).toList());

@@ -1,5 +1,6 @@
 package com.ventasdiscos.mscatalog.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,41 +32,58 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @Column(nullable = false, length = 150)
+    @NotBlank
+    // Atributo nombre: propiedad que se guarda o utiliza en esta entidad.
     private String nombre;
 
     @Column(length = 2000)
+    // Dato descripcion del registro.
     private String descripcion;
 
     /** Dinero en BigDecimal, nunca double. */
     @Column(nullable = false, precision = 12, scale = 2)
+    @DecimalMin(value = "0.0")
+    @NotNull
+    // Atributo precioBase: propiedad que se guarda o utiliza en esta entidad.
     private BigDecimal precioBase;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
+    @NotNull
+    // Atributo categoria: propiedad que se guarda o utiliza en esta entidad.
     private Categoria categoria;
 
     /** Género/subcategoría: atributo/filtro, no categoría principal (HU-14, HU-16). */
     @Column(nullable = false, length = 60)
+    @NotBlank
+    // Atributo genero: propiedad que se guarda o utiliza en esta entidad.
     private String genero;
 
     /** CD, Vinilo, DVD, Blu-ray, Físico, Digital... (atributo/filtro). */
     @Column(nullable = false, length = 60)
+    // Atributo formato: propiedad que se guarda o utiliza en esta entidad.
     private String formato;
 
     /** Solo Videojuegos (PS5, Switch, PC...). */
     @Column(length = 60)
+    // Atributo plataforma: propiedad que se guarda o utiliza en esta entidad.
     private String plataforma;
 
     @Column(length = 500)
+    // Atributo imagenUrl: propiedad que se guarda o utiliza en esta entidad.
     private String imagenUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @NotNull
+    // Atributo estado: propiedad que se guarda o utiliza en esta entidad.
     private EstadoComercial estado;
 
+    // Ejecuta esta activo como parte de las responsabilidades de esta clase.
     public boolean estaActivo() {
         return estado == EstadoComercial.ACTIVO;
     }

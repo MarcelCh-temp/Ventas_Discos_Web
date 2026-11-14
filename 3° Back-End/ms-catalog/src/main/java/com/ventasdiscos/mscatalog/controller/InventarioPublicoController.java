@@ -26,16 +26,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InventarioPublicoController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final InventarioService service;
 
     @Operation(summary = "Disponibilidad de un producto (410 si fue retirado)")
     @GetMapping("/{productId}/availability")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<DisponibilidadResponse> disponibilidad(@PathVariable Long productId) {
         return ResponseEntity.ok(service.disponibilidadPublica(productId));
     }
 
     @Operation(summary = "¿Hay stock suficiente para estas cantidades? (carrito / revalidación; no descuenta)")
     @PostMapping("/availability/query")
+    // POST: crea o procesa una solicitud; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<List<DisponibilidadItemResponse>> consultar(@Valid @RequestBody ConsultaDisponibilidadRequest req) {
         return ResponseEntity.ok(service.consultarDisponibilidad(req));
     }

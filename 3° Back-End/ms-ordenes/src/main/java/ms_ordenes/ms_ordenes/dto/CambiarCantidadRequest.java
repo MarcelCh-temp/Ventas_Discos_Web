@@ -13,6 +13,7 @@ public record CambiarCantidadRequest(
         @Positive(message = "La cantidad debe ser mayor que cero; para quitar el producto usa eliminar")
         BigDecimal cantidad) {
 
+    // Ejecuta cantidad entera como parte de las responsabilidades de esta clase.
     public int cantidadEntera() {
         return cantidad.intValueExact();
     }

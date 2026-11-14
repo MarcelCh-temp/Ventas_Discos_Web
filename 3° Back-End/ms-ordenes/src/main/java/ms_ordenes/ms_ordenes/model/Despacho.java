@@ -1,5 +1,6 @@
 package ms_ordenes.ms_ordenes.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,17 +22,23 @@ public class Despacho {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @Column(name = "fecha_despacho", nullable = false)
+    @NotNull
+    // Atributo fechaDespacho: propiedad que se guarda o utiliza en esta entidad.
     private LocalDateTime fechaDespacho;
 
     @Column(nullable = false, length = 100)
+    // Atributo transportista: propiedad que se guarda o utiliza en esta entidad.
     private String transportista;
 
     @Column(name = "numero_seguimiento", length = 100)
+    // Atributo numeroSeguimiento: propiedad que se guarda o utiliza en esta entidad.
     private String numeroSeguimiento;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método Despacho (despacho).
     protected Despacho() {
     }
 
@@ -39,6 +46,7 @@ public class Despacho {
         actualizar(transportista, numeroSeguimiento, fechaDespacho);
     }
 
+    // Ejecuta actualizar como parte de las responsabilidades de esta clase.
     final void actualizar(String transportista, String numeroSeguimiento, LocalDateTime fechaDespacho) {
         String t = transportista == null ? "" : transportista.trim();
         if (t.isEmpty()) {
@@ -56,8 +64,12 @@ public class Despacho {
         this.fechaDespacho = fecha;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getId (consultar id).
     public Long getId() { return id; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getFechaDespacho (consultar fecha despacho).
     public LocalDateTime getFechaDespacho() { return fechaDespacho; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getTransportista (consultar transportista).
     public String getTransportista() { return transportista; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getNumeroSeguimiento (consultar numero seguimiento).
     public String getNumeroSeguimiento() { return numeroSeguimiento; }
 }

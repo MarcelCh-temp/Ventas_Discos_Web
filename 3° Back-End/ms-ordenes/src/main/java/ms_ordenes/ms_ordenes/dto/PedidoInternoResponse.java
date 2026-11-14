@@ -14,9 +14,11 @@ import java.util.List;
 public record PedidoInternoResponse(Long id, String numeroPedido, Long userId, EstadoOrden estado,
                                     LocalDateTime fechaCompra, BigDecimal total, List<Item> items) {
 
+    // Ejecuta item como parte de las responsabilidades de esta clase.
     public record Item(Long productId, String nombreProducto, int cantidad) {
     }
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PedidoInternoResponse from(Orden o) {
         return new PedidoInternoResponse(o.getId(), o.getNumeroPedido(), o.getIdUsuario(), o.getEstado(),
                 o.getFechaCreacion(), o.getTotal(),

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase FavoritoRepository.
 public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
 
     boolean existsByUserIdAndProductoId(Long userId, Long productoId);

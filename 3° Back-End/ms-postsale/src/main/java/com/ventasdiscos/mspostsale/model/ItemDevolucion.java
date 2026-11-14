@@ -27,24 +27,29 @@ public class ItemDevolucion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "solicitud_id", nullable = false)
+    // Atributo solicitud: propiedad que se guarda o utiliza en esta entidad.
     private SolicitudPostVenta solicitud;
 
     @NotNull
     @Positive
     @Column(nullable = false)
+    // Atributo productoId: propiedad que se guarda o utiliza en esta entidad.
     private Long productoId;
 
     @NotNull
     @Positive
     @Column(nullable = false)
+    // Cantidad utilizada por la regla de negocio; sus límites se comprueban antes de guardar; validación: valor obligatorio (no nulo), número mayor que cero.
     private Integer cantidadSolicitada;
 
     /** Para JPA. */
+    // Ejecuta item devolucion como parte de las responsabilidades de esta clase.
     protected ItemDevolucion() {
     }
 
@@ -58,6 +63,7 @@ public class ItemDevolucion {
         }
     }
 
+    // Ejecuta tiene cantidad valida como parte de las responsabilidades de esta clase.
     public boolean tieneCantidadValida() {
         return cantidadSolicitada != null && cantidadSolicitada > 0;
     }

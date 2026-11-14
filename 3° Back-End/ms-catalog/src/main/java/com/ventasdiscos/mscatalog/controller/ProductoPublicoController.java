@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProductoPublicoController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final ProductoService service;
 
     @Operation(summary = "HU-13..16 Catálogo público: categoría, búsqueda y filtros combinables")
@@ -33,6 +34,7 @@ public class ProductoPublicoController {
 
     @Operation(summary = "HU-17 Detalle de producto (410 si fue retirado)")
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<ProductoPublicoResponse> detalle(@PathVariable Long id) {
         return ResponseEntity.ok(service.obtenerPublico(id));
     }

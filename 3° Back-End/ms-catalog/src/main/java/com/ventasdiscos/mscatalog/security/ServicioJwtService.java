@@ -41,14 +41,20 @@ import java.util.List;
 public class ServicioJwtService {
 
     /** Vigencia aprobada (Lote 6, decisión 4/4): 5 minutos. */
+    // Constante VIGENCIA_SEGUNDOS: valor compartido que no cambia durante la ejecución.
     public static final long VIGENCIA_SEGUNDOS = 300;
     /** Diferencia de reloj tolerada solo para un iat "en el futuro" (los MS corren en el mismo equipo). */
+    // Constante TOLERANCIA_RELOJ_SEGUNDOS: valor compartido que no cambia durante la ejecución.
     static final long TOLERANCIA_RELOJ_SEGUNDOS = 30;
 
+    // Constante TOKEN_INVALIDO: valor compartido que no cambia durante la ejecución.
     static final String TOKEN_INVALIDO = "Token de servicio inválido";
+    // Constante TOKEN_EXPIRADO: valor compartido que no cambia durante la ejecución.
     static final String TOKEN_EXPIRADO = "El token de servicio expiró";
 
+    // Atributo secreto: dato o dependencia utilizada por esta clase.
     private final byte[] secreto;
+    // Atributo reloj: dato o dependencia utilizada por esta clase.
     private final Clock reloj;
 
     @Autowired
@@ -70,6 +76,7 @@ public class ServicioJwtService {
     }
 
     /** Token nuevo para llamar a {@code audiencia} (uno por llamada). */
+    // Ejecuta emitir como parte de las responsabilidades de esta clase.
     public String emitir(String audiencia) {
         if (audiencia == null || !Servicios.TODOS.contains(audiencia)) {
             throw new IllegalArgumentException("Servicio destino desconocido: " + audiencia);

@@ -24,18 +24,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
+    // Atributo authUserArgumentResolver: dato o dependencia utilizada por esta clase.
     private final AuthUserArgumentResolver authUserArgumentResolver;
 
+    // Atributo servicioJwt: dato o dependencia utilizada por esta clase.
     private final ObjectProvider<ServicioJwtService> servicioJwt;
 
     /** Solo NUESTROS controllers llevan /api/v1 (Swagger y Actuator quedan en sus rutas normales). */
     @Override
+    // Ejecuta configure path match como parte de las responsabilidades de esta clase.
     public void configurePathMatch(PathMatchConfigurer configurer) {
         configurer.addPathPrefix("/api/v1", c -> c.isAnnotationPresent(RestController.class)
                 && c.getPackageName().startsWith("com.ventasdiscos"));
     }
 
     @Override
+    // Ejecuta add argument resolvers como parte de las responsabilidades de esta clase.
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(authUserArgumentResolver);
     }

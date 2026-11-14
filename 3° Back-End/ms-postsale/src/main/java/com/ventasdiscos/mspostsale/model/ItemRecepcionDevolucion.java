@@ -27,36 +27,44 @@ import lombok.Getter;
 public class ItemRecepcionDevolucion {
 
     /** Formato ORIGINAL de PostSale, conservado por DOC-08 (prefijo POSTSALE- obligatorio en Catalog). */
+    // Constante OPERACION_REPOSICION: valor compartido que no cambia durante la ejecución.
     public static final String OPERACION_REPOSICION = "POSTSALE-RECEPCION-%d";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recepcion_id", nullable = false)
+    // Atributo recepcion: propiedad que se guarda o utiliza en esta entidad.
     private RecepcionDevolucion recepcion;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_devolucion_id", nullable = false)
+    // Atributo itemDevolucion: propiedad que se guarda o utiliza en esta entidad.
     private ItemDevolucion itemDevolucion;
 
     @NotNull
     @Positive
     @Column(nullable = false)
+    // Cantidad utilizada por la regla de negocio; sus límites se comprueban antes de guardar; validación: valor obligatorio (no nulo), número mayor que cero.
     private Integer cantidadRecibida;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    // Dato condicion del registro; validación: valor obligatorio (no nulo); enum persistido con las opciones permitidas.
     private CondicionProducto condicion;
 
     @OneToOne(cascade = CascadeType.ALL)
+    // Dato reposicion del registro; relación JPA entre entidades del mismo microservicio.
     private OperacionReposicion reposicion;
 
     /** Para JPA. */
+    // Ejecuta item recepcion devolucion como parte de las responsabilidades de esta clase.
     protected ItemRecepcionDevolucion() {
     }
 
@@ -71,10 +79,12 @@ public class ItemRecepcionDevolucion {
         this.condicion = condicion;
     }
 
+    // Ejecuta tiene cantidad valida como parte de las responsabilidades de esta clase.
     public boolean tieneCantidadValida() {
         return cantidadRecibida != null && cantidadRecibida > 0;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método esAptaParaReposicion (es apta para reposicion).
     public boolean esAptaParaReposicion() {
         return condicion == CondicionProducto.BUENA;
     }

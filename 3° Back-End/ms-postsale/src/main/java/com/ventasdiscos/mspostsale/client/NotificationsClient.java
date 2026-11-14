@@ -23,11 +23,15 @@ import java.util.Map;
 public class NotificationsClient {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationsClient.class);
+    // Constante ORIGEN: valor compartido que no cambia durante la ejecución.
     private static final String ORIGEN = "POSTSALE";
     static final int MAX_INTENTOS = 2;                    // 1 envío + 1 reintento (ERS 12.7: número limitado)
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 500;
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
     public NotificationsClient(RestTemplate restTemplate,
@@ -79,6 +83,7 @@ public class NotificationsClient {
         }
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperarAntesDeReintentar (esperar antes de reintentar).
     private static void esperarAntesDeReintentar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

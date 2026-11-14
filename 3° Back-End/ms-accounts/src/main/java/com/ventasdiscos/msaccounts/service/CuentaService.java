@@ -40,12 +40,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CuentaService {
 
+    // Dependencia inyectada para acceder a usuario repository sin crearla manualmente.
     private final UsuarioRepository usuarioRepository;
+    // Atributo passwordEncoder: dato o dependencia utilizada por esta clase.
     private final PasswordEncoder passwordEncoder;
+    // Dependencia inyectada para acceder a jwt service sin crearla manualmente.
     private final JwtService jwtService;
 
     /** HU-01: registro público. Siempre crea CLIENTE (RN-01). */
     @Transactional
+    // Procesa registrar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PerfilResponse registrar(RegistroRequest req) {
         String rut = validarRut(req.rut());
         String correo = normalizarCorreo(req.correo());
@@ -92,12 +96,14 @@ public class CuentaService {
 
     /** HU-04: solo la propia cuenta (el id viene del token). Lote 5: solo si la cuenta está ACTIVA (RN-44). */
     @Transactional(readOnly = true)
+    // Procesa obtener perfil aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PerfilResponse obtenerPerfil(Long userId) {
         return PerfilResponse.from(buscarOperativa(userId));
     }
 
     /** HU-05: modifica solo campos permitidos; el correo nuevo no puede ser de otra cuenta. */
     @Transactional
+    // Procesa actualizar perfil aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PerfilResponse actualizarPerfil(Long userId, ActualizarPerfilRequest req) {
         if (req.nombres() == null && req.apellidos() == null && req.correo() == null) {
             throw new ValidacionNegocioException("Debes indicar al menos un dato a modificar");
@@ -121,6 +127,7 @@ public class CuentaService {
 
     /** HU-06: la contraseña actual debe ser correcta; si algo falla no se cambia nada. */
     @Transactional
+    // Procesa cambiar password aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public void cambiarPassword(Long userId, CambioPasswordRequest req) {
         Usuario usuario = buscarOperativa(userId);
         if (!passwordEncoder.matches(req.passwordActual(), usuario.getPasswordHash())) {
@@ -133,6 +140,7 @@ public class CuentaService {
 
     /** HU-07 (contraseña): identifica la cuenta con correo + RUT (simulado, sin correo real). */
     @Transactional
+    // Procesa recuperar password aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public void recuperarPassword(RecuperarPasswordRequest req) {
         String rut = validarRut(req.rut());
         Usuario usuario = usuarioRepository.findByCorreo(normalizarCorreo(req.correo()))
@@ -147,6 +155,7 @@ public class CuentaService {
 
     /** HU-07 (correo): identifica por RUT, valida confirmación y que el correo no esté en uso. */
     @Transactional
+    // Procesa recuperar correo aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public void recuperarCorreo(RecuperarCorreoRequest req) {
         String rut = validarRut(req.rut());
         Usuario usuario = usuarioRepository.findByRut(rut)
@@ -184,6 +193,7 @@ public class CuentaService {
     }
 
     /** Cierre (RF-PED-01/02, RF-SOP-05): máximo de ids por consulta agrupada. */
+    // Constante MAX_IDS_ADMIN: valor compartido que no cambia durante la ejecución.
     static final int MAX_IDS_ADMIN = 100;
 
     /**
@@ -224,6 +234,7 @@ public class CuentaService {
     }
 
     /** Lote 5 (RN-44): un token todavía vigente no basta; la cuenta debe estar ACTIVA. */
+    // Procesa buscar operativa aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Usuario buscarOperativa(Long userId) {
         Usuario usuario = buscar(userId);
         exigirOperativa(usuario);
@@ -231,6 +242,7 @@ public class CuentaService {
     }
 
     /** 403 con un mensaje según el estado. Un estado desconocido se trata como NO habilitado (restrictivo). */
+    // Procesa exigir operativa aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static void exigirOperativa(Usuario usuario) {
         if (usuario.puedeOperar()) {
             return;
@@ -245,6 +257,7 @@ public class CuentaService {
         throw new AccesoDenegadoException("La cuenta no está habilitada para operar");
     }
 
+    // Procesa validar rut aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private String validarRut(String rut) {
         if (!RutValidator.esValido(rut)) {
             throw new ValidacionNegocioException("El RUT no es válido o su dígito verificador es incorrecto");
@@ -252,12 +265,14 @@ public class CuentaService {
         return RutValidator.normalizar(rut);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método validarConfirmacionPassword (validar confirmacion password).
     private void validarConfirmacionPassword(String password, String confirmacion) {
         if (!password.equals(confirmacion)) {
             throw new ValidacionNegocioException("La contraseña y su confirmación no coinciden");
         }
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método normalizarCorreo (normalizar correo).
     private String normalizarCorreo(String correo) {
         return correo.trim().toLowerCase(Locale.ROOT);
     }

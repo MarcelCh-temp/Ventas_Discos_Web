@@ -49,6 +49,7 @@ import java.util.function.LongPredicate;
 @Service
 public class EliminacionCuentaService {
 
+    // Constante LOTE_REINTENTO: valor compartido que no cambia durante la ejecución.
     static final int LOTE_REINTENTO = 50;
 
     private enum Inicio { NUEVA, CONTINUACION, YA_ELIMINADA }
@@ -57,15 +58,20 @@ public class EliminacionCuentaService {
     record Resultado(EliminacionCuentaResponse respuesta, ApiException error) {
     }
 
+    // Procesa verificacion aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private record Verificacion(Map<String, String> bloqueos, Map<String, String> fallas) {
         boolean libre() {
             return bloqueos.isEmpty() && fallas.isEmpty();
         }
     }
 
+    // Atributo usuarios: dato o dependencia utilizada por esta clase.
     private final UsuarioRepository usuarios;
+    // Atributo passwordEncoder: dato o dependencia utilizada por esta clase.
     private final PasswordEncoder passwordEncoder;
+    // Atributo dependencias: dato o dependencia utilizada por esta clase.
     private final DependenciasCuentaClient dependencias;
+    // Atributo transaccion: dato o dependencia utilizada por esta clase.
     private final TransactionTemplate transaccion;
 
     public EliminacionCuentaService(UsuarioRepository usuarios, PasswordEncoder passwordEncoder,
@@ -188,6 +194,7 @@ public class EliminacionCuentaService {
     }
 
     /** RF-CTA-08 / RN-36: las tres consultas deben responder; ninguna falla se interpreta como "sin pendientes". */
+    // Procesa verificar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Verificacion verificar(Long userId) {
         Map<String, String> bloqueos = new LinkedHashMap<>();
         Map<String, String> fallas = new LinkedHashMap<>();
@@ -200,6 +207,7 @@ public class EliminacionCuentaService {
         return new Verificacion(bloqueos, fallas);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método consultar (consultar).
     private static void consultar(String campo, LongPredicate consulta, Long userId, String motivo,
                                   Map<String, String> bloqueos, Map<String, String> fallas) {
         try {
@@ -212,6 +220,7 @@ public class EliminacionCuentaService {
     }
 
     /** RN-43: depuraciones idempotentes. Devuelve las que no se pudieron confirmar (vacío = todo depurado). */
+    // Procesa depurar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Map<String, String> depurar(Long userId) {
         Map<String, String> fallas = new LinkedHashMap<>();
         try {
@@ -229,6 +238,7 @@ public class EliminacionCuentaService {
         return fallas;
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método error (error).
     private static ApiException error(Verificacion v, boolean primerIntento) {
         Map<String, String> errores = new LinkedHashMap<>(v.bloqueos());
         v.fallas().forEach(errores::putIfAbsent);
@@ -242,10 +252,12 @@ public class EliminacionCuentaService {
                 + estado + " Intenta nuevamente más tarde", errores);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método buscar (buscar).
     private Usuario buscar(Long userId) {
         return usuarios.findById(userId).orElseThrow(() -> new RecursoNoEncontradoException("La cuenta no existe"));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método buscarBloqueada (buscar bloqueada).
     private Usuario buscarBloqueada(Long userId) {
         return usuarios.bloquear(userId).orElseThrow(() -> new RecursoNoEncontradoException("La cuenta no existe"));
     }

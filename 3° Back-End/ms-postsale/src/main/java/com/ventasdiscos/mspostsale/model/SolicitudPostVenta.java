@@ -49,49 +49,61 @@ import java.util.Optional;
 @Getter
 public class SolicitudPostVenta {
 
+    // Constante MAX_TEXTO: valor compartido que no cambia durante la ejecución.
     public static final int MAX_TEXTO = 255;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @NotNull
     @Positive
     @Column(name = "pedido_id", nullable = false)
+    // Atributo pedidoId: propiedad que se guarda o utiliza en esta entidad.
     private Long pedidoId;
 
     @NotNull
     @Positive
     @Column(name = "usuario_id", nullable = false)
+    // Dato usuario id del registro; validación: valor obligatorio (no nulo), número mayor que cero.
     private Long usuarioId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", length = 20)
+    // Dato tipo del registro; enum persistido con las opciones permitidas.
     private TipoSolicitud tipo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", length = 20)
+    // Dato estado del registro; validación: valor obligatorio (no nulo); enum persistido con las opciones permitidas.
     private EstadoSolicitud estado;
 
     @Column(name = "motivo_solicitud", length = MAX_TEXTO)
+    // Dato motivo solicitud del registro.
     private String motivoSolicitud;
 
     @Column(name = "motivo_resolucion", length = MAX_TEXTO)
+    // Dato motivo resolucion del registro.
     private String motivoResolucion;
 
     @NotNull
     @Column(name = "fecha_solicitud", nullable = false, updatable = false)
+    // Fecha u hora utilizada para registrar o controlar el proceso; validación: valor obligatorio (no nulo).
     private LocalDateTime fechaSolicitud;
 
     @Column(name = "fecha_resolucion")
+    // Fecha u hora utilizada para registrar o controlar el proceso.
     private LocalDateTime fechaResolucion;
 
     /** Solo REEMBOLSO: la cancelación o devolución aprobada de la que nace (auto-relación origenDeReembolso). */
     @Column(name = "solicitud_origen_id")
+    // Atributo solicitudOrigenId: propiedad que se guarda o utiliza en esta entidad.
     private Long solicitudOrigenId;
 
     /** DOC-09: Administrador que resolvió (del JWT). null mientras está PENDIENTE, en REEMBOLSO y en datos antiguos. */
     @Column(name = "usuario_resolucion_id")
+    // Atributo usuarioResolucionId: propiedad que se guarda o utiliza en esta entidad.
     private Long usuarioResolucionId;
 
     /** Solo DEVOLUCION (al menos uno, RN-41). */
@@ -105,6 +117,7 @@ public class SolicitudPostVenta {
     private List<RecepcionDevolucion> recepciones = new ArrayList<>();
 
     /** Para JPA. */
+    // Ejecuta solicitud post venta como parte de las responsabilidades de esta clase.
     protected SolicitudPostVenta() {
     }
 
@@ -121,6 +134,7 @@ public class SolicitudPostVenta {
     // ===================== Creación (HU-68, HU-69, HU-77) =====================
 
     /** RF-POS-01: queda PENDIENTE. El estado del pedido lo valida el Service con Orders antes de llamar aquí. */
+    // Ejecuta cancelacion como parte de las responsabilidades de esta clase.
     public static SolicitudPostVenta cancelacion(Long pedidoId, Long usuarioId, String motivo) {
         return new SolicitudPostVenta(pedidoId, usuarioId, TipoSolicitud.CANCELACION, EstadoSolicitud.PENDIENTE,
                 motivoObligatorio(motivo, "motivoSolicitud"), null);
@@ -172,6 +186,7 @@ public class SolicitudPostVenta {
     }
 
     @PrePersist
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crear (crear).
     protected void crear() {
         if (fechaSolicitud == null) {
             fechaSolicitud = LocalDateTime.now();
@@ -184,23 +199,28 @@ public class SolicitudPostVenta {
         return usuarioId != null && usuarioId.equals(idUsuario);
     }
 
+    // Ejecuta esta pendiente como parte de las responsabilidades de esta clase.
     public boolean estaPendiente() {
         return estado == EstadoSolicitud.PENDIENTE;
     }
 
+    // Ejecuta esta aprobada como parte de las responsabilidades de esta clase.
     public boolean estaAprobada() {
         return estado == EstadoSolicitud.APROBADA;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método estaRegistrada (esta registrada).
     public boolean estaRegistrada() {
         return estado == EstadoSolicitud.REGISTRADA;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método esDeTipo (es de tipo).
     public boolean esDeTipo(TipoSolicitud t) {
         return tipo == t;
     }
 
     /** false = fila antigua de la herencia todavía sin migrar (tipo o estado vacíos): no se muestra ni se gestiona. */
+    // Ejecuta esta migrada como parte de las responsabilidades de esta clase.
     public boolean estaMigrada() {
         return tipo != null && estado != null;
     }
@@ -215,11 +235,13 @@ public class SolicitudPostVenta {
         resolver(EstadoSolicitud.APROBADA, motivo, usuarioResolucionId);
     }
 
+    // Ejecuta rechazar como parte de las responsabilidades de esta clase.
     public void rechazar(String motivo, Long usuarioResolucionId) {
         resolver(EstadoSolicitud.RECHAZADA, motivo, usuarioResolucionId);
     }
 
     /** Una sola transición PENDIENTE -> APROBADA/RECHAZADA; el responsable no se sobrescribe después (DOC-09). */
+    // Ejecuta resolver como parte de las responsabilidades de esta clase.
     private void resolver(EstadoSolicitud nuevo, String motivo, Long responsable) {
         if (tipo == TipoSolicitud.REEMBOLSO) {
             throw new OperacionNoPermitidaException("Un reembolso queda REGISTRADO: no se aprueba ni se rechaza");
@@ -244,16 +266,19 @@ public class SolicitudPostVenta {
     }
 
     /** Unidades de ese producto incluidas en esta solicitud. */
+    // Ejecuta cantidad solicitada como parte de las responsabilidades de esta clase.
     public int cantidadSolicitada(Long productoId) {
         return items.stream().filter(i -> i.getProductoId().equals(productoId))
                 .mapToInt(ItemDevolucion::getCantidadSolicitada).sum();
     }
 
+    // Ejecuta incluye producto como parte de las responsabilidades de esta clase.
     public boolean incluyeProducto(Long productoId) {
         return items.stream().anyMatch(i -> i.getProductoId().equals(productoId));
     }
 
     /** Unidades ya recibidas de ese ítem, sumando todas las recepciones registradas. */
+    // Ejecuta cantidad recibida como parte de las responsabilidades de esta clase.
     public int cantidadRecibida(ItemDevolucion item) {
         return recepciones.stream().flatMap(r -> r.getItems().stream())
                 .filter(i -> mismo(i.getItemDevolucion(), item))
@@ -261,11 +286,13 @@ public class SolicitudPostVenta {
     }
 
     /** Lo que todavía se puede recibir de ese ítem (RF-POS-09: no superar lo autorizado). */
+    // Ejecuta pendiente de recibir como parte de las responsabilidades de esta clase.
     public int pendienteDeRecibir(ItemDevolucion item) {
         return item.getCantidadSolicitada() - cantidadRecibida(item);
     }
 
     /** RF-POS-09: solo una devolución APROBADA admite recepción. DOC-09: guarda al Administrador que la registra. */
+    // Ejecuta registrar recepcion como parte de las responsabilidades de esta clase.
     public RecepcionDevolucion registrarRecepcion(String observaciones, Long usuarioRecepcionId) {
         if (tipo != TipoSolicitud.DEVOLUCION) {
             throw new OperacionNoPermitidaException("Solo una devolución admite el registro de recepción");
@@ -282,6 +309,7 @@ public class SolicitudPostVenta {
     // ===================== Apoyo =====================
 
     /** Compara por id (sirve aunque Hibernate entregue un proxy); sin id, por identidad. */
+    // Ejecuta mismo como parte de las responsabilidades de esta clase.
     private static boolean mismo(ItemDevolucion a, ItemDevolucion b) {
         if (a == b) {
             return true;
@@ -289,6 +317,7 @@ public class SolicitudPostVenta {
         return a != null && b != null && a.getId() != null && a.getId().equals(b.getId());
     }
 
+    // Ejecuta motivo obligatorio como parte de las responsabilidades de esta clase.
     private static String motivoObligatorio(String motivo, String campo) {
         if (motivo == null || motivo.isBlank()) {
             throw new ValidacionNegocioException("El motivo es obligatorio", Map.of(campo, "Indica el motivo"));
@@ -302,6 +331,7 @@ public class SolicitudPostVenta {
     }
 
     /** Nombre legible para los mensajes al Cliente. */
+    // Ejecuta nombre como parte de las responsabilidades de esta clase.
     public static String nombre(TipoSolicitud t) {
         if (t == null) {
             return "solicitud";

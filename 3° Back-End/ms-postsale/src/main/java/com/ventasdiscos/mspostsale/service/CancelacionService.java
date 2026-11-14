@@ -37,10 +37,15 @@ import java.util.List;
 @Service
 public class CancelacionService {
 
+    // Atributo solicitudes: dato o dependencia utilizada por esta clase.
     private final SolicitudPostVentaRepository solicitudes;
+    // Atributo orders: dato o dependencia utilizada por esta clase.
     private final OrdersClient orders;
+    // Atributo accounts: dato o dependencia utilizada por esta clase.
     private final AccountsClient accounts;
+    // Atributo support: dato o dependencia utilizada por esta clase.
     private final PostSaleSupport support;
+    // Atributo transaccion: dato o dependencia utilizada por esta clase.
     private final TransactionTemplate transaccion;
 
     public CancelacionService(SolicitudPostVentaRepository solicitudes, OrdersClient orders, AccountsClient accounts,
@@ -53,6 +58,7 @@ public class CancelacionService {
     }
 
     /** HU-68. 201 con la solicitud PENDIENTE. */
+    // Procesa solicitar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse solicitar(Long usuarioId, Cancelar req) {
         PedidoOrders p = support.pedidoDelCliente(req.pedidoId(), usuarioId);
         if (!OrdersDtos.CANCELABLES.contains(p.estado())) {
@@ -83,6 +89,7 @@ public class CancelacionService {
     }
 
     /** HU-74. adminId sale del token del Administrador (DOC-09). */
+    // Procesa resolver aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CancelacionResueltaResponse resolver(Long id, Resolver req, Long adminId) {
         boolean aprobar = Boolean.TRUE.equals(req.aprobar());
         return transaccion.execute(st -> {

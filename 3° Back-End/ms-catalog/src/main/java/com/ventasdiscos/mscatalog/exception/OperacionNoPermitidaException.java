@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 /** 409: la operación choca con el estado actual del recurso. */
 public class OperacionNoPermitidaException extends ApiException {
+    // Ejecuta operacion no permitida exception como parte de las responsabilidades de esta clase.
     public OperacionNoPermitidaException(String mensaje) {
         super(HttpStatus.CONFLICT, mensaje);
     }

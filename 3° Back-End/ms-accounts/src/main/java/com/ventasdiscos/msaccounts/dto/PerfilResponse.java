@@ -12,6 +12,7 @@ public record PerfilResponse(
         String correo,
         Role rol
 ) {
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PerfilResponse from(Usuario u) {
         return new PerfilResponse(u.getId(), u.getRut(), u.getNombres(), u.getApellidos(), u.getCorreo(), u.getRol());
     }

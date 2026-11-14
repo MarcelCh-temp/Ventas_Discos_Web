@@ -30,15 +30,19 @@ public class ServicioInternoInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(ServicioInternoInterceptor.class);
     public static final String ATRIBUTO_EMISOR = ServicioInternoInterceptor.class.getName() + ".emisor";
+    // Constante SIN_TOKEN: valor compartido que no cambia durante la ejecución.
     static final String SIN_TOKEN = "Esta operación interna requiere autenticación de servicio";
 
+    // Atributo servicioJwt: dato o dependencia utilizada por esta clase.
     private final ObjectProvider<ServicioJwtService> servicioJwt;
 
+    // Ejecuta servicio interno interceptor como parte de las responsabilidades de esta clase.
     public ServicioInternoInterceptor(ObjectProvider<ServicioJwtService> servicioJwt) {
         this.servicioJwt = servicioJwt;
     }
 
     @Override
+    // Ejecuta pre handle como parte de las responsabilidades de esta clase.
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod metodo)) {
             return true;
@@ -76,6 +80,7 @@ public class ServicioInternoInterceptor implements HandlerInterceptor {
         }
     }
 
+    // Ejecuta es ruta interna como parte de las responsabilidades de esta clase.
     static boolean esRutaInterna(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String contexto = request.getContextPath();
@@ -83,6 +88,7 @@ public class ServicioInternoInterceptor implements HandlerInterceptor {
         return path.startsWith(Servicios.PREFIJO_INTERNO) || path.equals("/api/v1/internal");
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método esControladorInterno (es controlador interno).
     private static boolean esControladorInterno(HandlerMethod metodo) {
         RequestMapping mapping = metodo.getBeanType().getAnnotation(RequestMapping.class);
         if (mapping == null) {

@@ -10,6 +10,7 @@ public record OpcionesPagoResponse(boolean simulacionAcademica, String aviso, Li
                                    List<ResultadoPagoSimulado> resultadosSimulados,
                                    ResultadoPagoSimulado resultadoPorDefecto) {
 
+    // Ejecuta metodo pago response como parte de las responsabilidades de esta clase.
     public record MetodoPagoResponse(MetodoPago codigo, String nombre) {
     }
 }

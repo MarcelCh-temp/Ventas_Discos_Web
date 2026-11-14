@@ -65,6 +65,7 @@ class ProductoServiceTest {
         when(promoRepo.findActivas(any())).thenReturn(List.of());
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método request (request).
     private ProductoRequest request(Categoria categoria, String plataforma) {
         return new ProductoRequest("Disco", "desc", new BigDecimal("9990"), categoria, "Rock", "CD", plataforma, null);
     }

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class PasswordConfig {
     @Bean
+    // Ejecuta password encoder como parte de las responsabilidades de esta clase.
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

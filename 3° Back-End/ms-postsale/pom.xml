@@ -43,13 +43,13 @@
 
         <!-- MariaDB -->
         <dependency>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Lote 4: JWT, la misma librería y versión que ms-accounts, ms-catalog, ms-soporte y ms-ordenes.
-             Aquí solo se VALIDA el token que emite MS-Accounts (no es una tecnología nueva). -->
+        <!-- Lote 4: JWT, la misma librerÃ­a y versiÃ³n que ms-accounts, ms-catalog, ms-soporte y ms-ordenes.
+             AquÃ­ solo se VALIDA el token que emite MS-Accounts (no es una tecnologÃ­a nueva). -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
@@ -76,19 +76,23 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Lote 4 (igual que ms-ordenes, Lote 1): MockMvc en Boot 4 vive en este módulo -->
+        <!-- Lote 4 (igual que ms-ordenes, Lote 1): MockMvc en Boot 4 vive en este mÃ³dulo -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Lote 4: BD en memoria SOLO para las pruebas (mvnw test sin XAMPP). La aplicación sigue con MariaDB -->
+        <!-- Lote 4: BD en memoria SOLO para las pruebas (mvnw test sin XAMPP). La aplicaciÃ³n sigue con MariaDB -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
 
+            <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

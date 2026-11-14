@@ -71,19 +71,29 @@ import java.util.Set;
 public class OrdenService {
 
     private static final Logger log = LoggerFactory.getLogger(OrdenService.class);
+    // Constante OP_VENTA: valor compartido que no cambia durante la ejecución.
     static final String OP_VENTA = "ORDERS-PEDIDO-%d-VENTA";
+    // Constante OP_CANCELACION: valor compartido que no cambia durante la ejecución.
     static final String OP_CANCELACION = "ORDERS-PEDIDO-%d-CANCELACION";
+    // Constante TAMANO_MAXIMO: valor compartido que no cambia durante la ejecución.
     static final int TAMANO_MAXIMO = 100;
     private static final List<EstadoOrden> FLUJO = List.of(EstadoOrden.PENDIENTE, EstadoOrden.CONFIRMADO,
             EstadoOrden.PREPARANDO, EstadoOrden.DESPACHADO, EstadoOrden.ENTREGADO);
 
+    // Dependencia inyectada para acceder a orden repository sin crearla manualmente.
     private final OrdenRepository ordenRepository;
+    // Dependencia inyectada para acceder a carrito repository sin crearla manualmente.
     private final CarritoRepository carritoRepository;
+    // Dependencia inyectada para acceder a catalog client sin crearla manualmente.
     private final CatalogClient catalogClient;
+    // Dependencia inyectada para acceder a notificaciones client sin crearla manualmente.
     private final NotificacionesClient notificacionesClient;
+    // Dato accounts client del registro.
     private final AccountsClient accountsClient;
+    // Dato transaccion del registro.
     private final TransactionTemplate transaccion;
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método OrdenService (orden service).
     public OrdenService(OrdenRepository ordenRepository, CarritoRepository carritoRepository,
                         CatalogClient catalogClient, NotificacionesClient notificacionesClient,
                         AccountsClient accountsClient, PlatformTransactionManager transactionManager) {
@@ -99,6 +109,7 @@ public class OrdenService {
 
     /** RN-36: pedidos activos = PENDIENTE, CONFIRMADO, PREPARANDO o DESPACHADO. Solo lectura: no modifica pedidos. */
     @Transactional(readOnly = true)
+    // Procesa tiene pedidos activos aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ExisteResponse tienePedidosActivos(Long userId) {
         return new ExisteResponse(userId, ordenRepository.existsByIdUsuarioAndEstadoIn(userId,
                 List.of(EstadoOrden.PENDIENTE, EstadoOrden.CONFIRMADO, EstadoOrden.PREPARANDO, EstadoOrden.DESPACHADO)));
@@ -192,6 +203,7 @@ public class OrdenService {
         });
     }
 
+    // Servicio: concentra reglas de negocio y coordina operaciones entre repositorios y otros servicios. Clase DatosVenta.
     private record DatosVenta(List<ItemSolicitado> items, String numeroPedido) {
     }
 
@@ -206,12 +218,14 @@ public class OrdenService {
 
     /** HU-35: un pedido ajeno se responde como inexistente (no revela que existe, T-09). */
     @Transactional(readOnly = true)
+    // Procesa detalle mio aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PedidoDetalleResponse detalleMio(Long userId, Long id) {
         return PedidoDetalleResponse.from(propio(userId, ordenRepository.findById(id).orElse(null)), false);
     }
 
     /** HU-36 / RN-40: por id ("15") o por número ("PED-000015"), siempre comprobando que sea del Cliente. */
     @Transactional(readOnly = true)
+    // Procesa seguimiento aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SeguimientoResponse seguimiento(Long userId, String referencia) {
         String ref = referencia == null ? "" : referencia.trim();
         Orden o = ref.matches("\\d{1,18}")
@@ -243,6 +257,7 @@ public class OrdenService {
     }
 
     @Transactional(readOnly = true)
+    // Procesa detalle admin aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PedidoDetalleResponse detalleAdmin(Long id) {
         return PedidoDetalleResponse.from(buscar(id), true);
     }
@@ -276,6 +291,7 @@ public class OrdenService {
 
     /** HU-30 / RF-PED-05: solo datos de entrega permitidos, antes de DESPACHADO; cada corrección queda en el historial. */
     @Transactional
+    // Procesa corregir entrega aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PedidoDetalleResponse corregirEntrega(Long id, CorreccionEntregaRequest req, Long adminId) {
         Orden o = bloquear(id);
         List<String> cambios = o.corregirDatosEntrega(req.nombreReceptor(), req.telefono(), req.direccion(), req.comuna(),
@@ -288,6 +304,7 @@ public class OrdenService {
 
     /** HU-33 / RF-PED-08: PREPARANDO -> registra y pasa a DESPACHADO; DESPACHADO -> actualiza. */
     @Transactional
+    // Procesa registrar despacho aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PedidoDetalleResponse registrarDespacho(Long id, DespachoRequest req, Long adminId) {
         Orden o = bloquear(id);
         boolean eraPreparando = o.getEstado() == EstadoOrden.PREPARANDO;
@@ -434,10 +451,12 @@ public class OrdenService {
     }
 
     /** Mensaje de Catalog para una operacionId ya usada con otro contenido (InventarioService del Lote 2). */
+    // Procesa es operacion repetida aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static boolean esOperacionRepetida(RespuestaOperacion r) {
         return r.mensaje() != null && r.mensaje().contains("ya fue registrada");
     }
 
+    // Procesa falta stock confirmada aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private boolean faltaStockConfirmada(List<ItemSolicitado> items) {
         try {
             return catalogClient.disponibilidad(items).stream().anyMatch(d -> !d.haySuficiente());
@@ -447,6 +466,7 @@ public class OrdenService {
         }
     }
 
+    // Procesa exigir aplicada aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static void exigirAplicada(RespuestaOperacion r, String accion) {
         switch (r.resultado()) {
             case APLICADA -> {
@@ -461,6 +481,7 @@ public class OrdenService {
     }
 
     /** Si la compra no se completó por falta de stock, el Cliente recupera su carrito. */
+    // Procesa restaurar carrito aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void restaurarCarrito(Orden o) {
         Carrito carrito = carritoRepository.findByUserIdForUpdate(o.getIdUsuario())
                 .orElseGet(() -> carritoRepository.save(new Carrito(o.getIdUsuario())));
@@ -471,6 +492,7 @@ public class OrdenService {
         }
     }
 
+    // Procesa avisar cambio de estado aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void avisarCambioDeEstado(Orden o, String motivo) {
         String mensaje = switch (o.getEstado()) {
             case CONFIRMADO -> "Tu pedido " + o.getNumeroPedido() + " fue confirmado";
@@ -485,6 +507,7 @@ public class OrdenService {
     }
 
     /** RN-17: "Tu pedido va en camino" en DESPACHADO; un cancelado no se muestra avanzando. */
+    // Procesa mensaje seguimiento aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static String mensajeSeguimiento(Orden o) {
         String sinDespacho = o.getDespacho() == null ? ". Aún no tiene información de despacho" : "";
         return switch (o.getEstado()) {
@@ -540,16 +563,19 @@ public class OrdenService {
         return PageResponse.of(pagina, pagina.getContent().stream().map(PedidoResumenResponse::from).toList());
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método buscar (buscar).
     private Orden buscar(Long id) {
         return ordenRepository.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado"));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método bloquear (bloquear).
     private Orden bloquear(Long id) {
         Orden o = ordenRepository.findForUpdate(id).orElseThrow(() -> new RecursoNoEncontradoException("Pedido no encontrado"));
         o.asignarNumeroPedido(); // pedidos antiguos: reciben su número la primera vez que se gestionan
         return o;
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método propio (propio).
     private static Orden propio(Long userId, Orden o) {
         if (o == null || !o.perteneceA(userId)) {
             throw new RecursoNoEncontradoException("Pedido no encontrado");
@@ -557,10 +583,12 @@ public class OrdenService {
         return o;
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método items (items).
     private static List<ItemSolicitado> items(Orden o) {
         return o.getItems().stream().map(i -> new ItemSolicitado(i.getProductId(), i.getCantidad())).toList();
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método evento (evento).
     private static String evento(Orden o, String accion) {
         return "ORDERS-PEDIDO-" + o.getId() + "-" + accion;
     }
@@ -580,6 +608,7 @@ public class OrdenService {
         });
     }
 
+    // Procesa enviar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void enviar(String eventoId, Long usuarioId, String tipo, String titulo, String mensaje, Long pedidoId) {
         try {
             notificacionesClient.notificar(eventoId, usuarioId, tipo, titulo, mensaje, pedidoId);

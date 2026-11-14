@@ -39,6 +39,7 @@ class ServicioJwtServiceTest {
         return jwt.serialize();
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método base (base).
     private static JWTClaimsSet.Builder base(String emisor, String audiencia) {
         return new JWTClaimsSet.Builder().issuer(emisor).subject(emisor).audience(audiencia)
                 .issueTime(Date.from(AHORA)).expirationTime(Date.from(AHORA.plusSeconds(300)));

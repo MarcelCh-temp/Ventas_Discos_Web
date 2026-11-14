@@ -8,13 +8,20 @@ package ms_ordenes.ms_ordenes.model;
  * CONFIRMADO = pago aprobado y stock descontado en Catalog.
  */
 public enum EstadoOrden {
+    // Opción PENDIENTE: representa el estado o tipo «pendiente» permitido en este dominio.
     PENDIENTE,
+    // Opción CONFIRMADO: representa el estado o tipo «confirmado» permitido en este dominio.
     CONFIRMADO,
+    // Opción PREPARANDO: representa el estado o tipo «preparando» permitido en este dominio.
     PREPARANDO,
+    // Opción DESPACHADO: representa el estado o tipo «despachado» permitido en este dominio.
     DESPACHADO,
+    // Opción ENTREGADO: representa el estado o tipo «entregado» permitido en este dominio.
     ENTREGADO,
+    // Opción CANCELADO: representa el estado o tipo «cancelado» permitido en este dominio.
     CANCELADO;
 
+    // Ejecuta es transicion valida como parte de las responsabilidades de esta clase.
     public boolean esTransicionValida(EstadoOrden nuevoEstado) {
         if (this == CANCELADO || this == ENTREGADO) {
             return false; // Estados terminales

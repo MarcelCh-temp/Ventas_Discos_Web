@@ -32,6 +32,7 @@ public class ApiExceptionHandler {
 
     /** Lote 3: errores de negocio (400, 401, 402, 403, 404, 409, 503) con su código y el detalle por campo. */
     @ExceptionHandler(ApiException.class)
+    // Ejecuta handle api como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest req) {
         return build(ex.getStatus(), ex.getMessage(), req, ex.getErrores());
     }
@@ -49,6 +50,7 @@ public class ApiExceptionHandler {
 
     /** Lote 4: dos solicitudes simultáneas para el mismo pedido; la base canceló una (bloqueo o deadlock) -> 409. */
     @ExceptionHandler(ConcurrencyFailureException.class)
+    // Ejecuta handle concurrencia como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleConcurrencia(ConcurrencyFailureException ex, HttpServletRequest req) {
         log.warn("Operación simultánea en {}: {}", req.getRequestURI(), ex.getMessage());
         return build(HttpStatus.CONFLICT, "Otra operación sobre la misma solicitud o pedido estaba en curso. Intenta nuevamente",
@@ -56,6 +58,7 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    // Ejecuta handle validacion como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errores = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
@@ -65,12 +68,14 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método handleJson (handle json).
     public ResponseEntity<ApiError> handleJson(HttpMessageNotReadableException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El cuerpo de la solicitud no es válido: revisa el formato y el tipo de cada dato", req, null);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método handleTipo (handle tipo).
     public ResponseEntity<ApiError> handleTipo(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El parámetro '" + ex.getName() + "' tiene un valor inválido", req, null);
@@ -78,12 +83,14 @@ public class ApiExceptionHandler {
 
     /** Estado que no permite la acción -> 409. */
     @ExceptionHandler(IllegalStateException.class)
+    // Ejecuta handle estado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleEstado(IllegalStateException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), req, null);
     }
 
     /** Errores de Spring MVC (404 de ruta, 405 método, parámetro faltante) y cualquier error no previsto (500). */
     @ExceptionHandler(Exception.class)
+    // Ejecuta handle general como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
         if (ex instanceof ErrorResponse er) {
             HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());
@@ -95,6 +102,7 @@ public class ApiExceptionHandler {
                 "Ocurrió un error inesperado. Intenta nuevamente", req, null);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método build (build).
     private ResponseEntity<ApiError> build(HttpStatus status, String mensaje, HttpServletRequest req,
                                            Map<String, String> errores) {
         ApiError body = new ApiError(LocalDateTime.now(), status.value(), status.getReasonPhrase(),

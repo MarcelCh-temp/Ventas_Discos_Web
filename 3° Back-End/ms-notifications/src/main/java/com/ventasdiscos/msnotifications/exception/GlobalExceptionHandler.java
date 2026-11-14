@@ -36,12 +36,14 @@ public class GlobalExceptionHandler {
 
     /** Notificación inexistente o de otro usuario (HU-54: no se revela que existe). */
     @ExceptionHandler(NotificacionNoEncontradaException.class)
+    // Ejecuta handle no encontrada como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoEncontrada(NotificacionNoEncontradaException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
     }
 
     /** @Valid falló en el DTO (evento interno): campo -> mensaje (RNF-04). */
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    // Ejecuta handle validacion como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest req) {
         Map<String, String> errores = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
@@ -62,6 +64,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método handleRestricciones (handle restricciones).
     public ResponseEntity<ApiError> handleRestricciones(ConstraintViolationException ex, HttpServletRequest req) {
         Map<String, String> errores = new LinkedHashMap<>();
         for (ConstraintViolation<?> v : ex.getConstraintViolations()) {
@@ -73,6 +76,7 @@ public class GlobalExceptionHandler {
 
     /** Parámetro con tipo o valor incorrecto (ej. ?type=INVENTADO o una fecha mal escrita). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    // Ejecuta handle tipo como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleTipo(MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El parámetro '" + ex.getName() + "' tiene un valor inválido", req, null);
@@ -80,12 +84,14 @@ public class GlobalExceptionHandler {
 
     /** JSON mal formado o tipo de notificación inexistente en el evento. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
+    // Ejecuta handle json como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleJson(HttpMessageNotReadableException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST,
                 "El cuerpo de la solicitud no es válido: revisa el formato y el tipo de cada dato", req, null);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
+    // Ejecuta handle response status como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleResponseStatus(ResponseStatusException ex, HttpServletRequest req) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
         return build(status, ex.getReason() != null ? ex.getReason() : status.getReasonPhrase(), req, null);
@@ -93,23 +99,27 @@ public class GlobalExceptionHandler {
 
     /** Dato inválido detectado en el Service (ej. fecha inicial mayor que la final, HU-55). */
     @ExceptionHandler(IllegalArgumentException.class)
+    // Ejecuta handle argumento como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleArgumento(IllegalArgumentException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
     }
 
     @ExceptionHandler(NoAutenticadoException.class)
+    // Ejecuta handle no autenticado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoAutenticado(NoAutenticadoException ex, HttpServletRequest req) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
     }
 
     /** Cierre (RN-44): MS-Accounts no confirmó el estado de la cuenta; nunca se asume ACTIVA. */
     @ExceptionHandler(ServicioNoDisponibleException.class)
+    // Ejecuta handle no disponible como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleNoDisponible(ServicioNoDisponibleException ex, HttpServletRequest req) {
         return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req, null);
     }
 
     /** Lote 6 (DOC-05): token de servicio válido, pero el servicio emisor no está autorizado para la ruta. */
     @ExceptionHandler(AccesoDenegadoException.class)
+    // Ejecuta handle acceso denegado como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleAccesoDenegado(AccesoDenegadoException ex, HttpServletRequest req) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), req, null);
     }
@@ -126,6 +136,7 @@ public class GlobalExceptionHandler {
 
     /** Errores de Spring MVC (404 de ruta, 405 método, parámetro faltante) y cualquier error no previsto (500). */
     @ExceptionHandler(Exception.class)
+    // Ejecuta handle general como parte de las responsabilidades de esta clase.
     public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest req) {
         if (ex instanceof ErrorResponse er) {
             HttpStatus status = HttpStatus.valueOf(er.getStatusCode().value());
@@ -137,6 +148,7 @@ public class GlobalExceptionHandler {
                 "Ocurrió un error inesperado. Intenta nuevamente", req, null);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método build (build).
     private ResponseEntity<ApiError> build(HttpStatus status, String mensaje, HttpServletRequest req,
                                            Map<String, String> errores) {
         ApiError body = new ApiError(LocalDateTime.now(), status.value(), status.getReasonPhrase(),

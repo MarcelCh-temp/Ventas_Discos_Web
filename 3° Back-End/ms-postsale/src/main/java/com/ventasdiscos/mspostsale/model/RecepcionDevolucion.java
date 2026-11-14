@@ -30,25 +30,31 @@ import java.util.List;
 @Getter
 public class RecepcionDevolucion {
 
+    // Constante MAX_OBSERVACIONES: valor compartido que no cambia durante la ejecución.
     public static final int MAX_OBSERVACIONES = 255;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "solicitud_id", nullable = false)
+    // Atributo solicitud: propiedad que se guarda o utiliza en esta entidad.
     private SolicitudPostVenta solicitud;
 
     @NotNull
     @Column(nullable = false, updatable = false)
+    // Fecha u hora utilizada para registrar o controlar el proceso; validación: valor obligatorio (no nulo).
     private LocalDateTime fechaRecepcion;
 
+    // Dato observaciones del registro.
     private String observaciones;
 
     /** DOC-09. Columna nueva sin NOT NULL: las recepciones anteriores al Lote 4 no tienen ese dato (quedan null). */
     @Column(name = "usuario_recepcion_id", updatable = false)
+    // Atributo usuarioRecepcionId: propiedad que se guarda o utiliza en esta entidad.
     private Long usuarioRecepcionId;
 
     @OneToMany(mappedBy = "recepcion", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -56,6 +62,7 @@ public class RecepcionDevolucion {
     private List<ItemRecepcionDevolucion> items = new ArrayList<>();
 
     /** Para JPA. */
+    // Ejecuta recepcion devolucion como parte de las responsabilidades de esta clase.
     protected RecepcionDevolucion() {
     }
 
@@ -87,6 +94,7 @@ public class RecepcionDevolucion {
     }
 
     @PrePersist
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método asignarFechaRecepcion (asignar fecha recepcion).
     protected void asignarFechaRecepcion() {
         if (fechaRecepcion == null) {
             fechaRecepcion = LocalDateTime.now();

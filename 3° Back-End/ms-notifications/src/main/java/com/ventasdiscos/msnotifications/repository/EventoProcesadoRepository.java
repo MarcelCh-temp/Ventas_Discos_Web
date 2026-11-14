@@ -4,6 +4,7 @@ package com.ventasdiscos.msnotifications.repository;
 import com.ventasdiscos.msnotifications.model.EventoProcesado;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase EventoProcesadoRepository.
 public interface EventoProcesadoRepository
         extends JpaRepository<EventoProcesado, Long> {
 

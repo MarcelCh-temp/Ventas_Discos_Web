@@ -25,13 +25,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class FavoritoService {
 
+    // Dependencia inyectada para acceder a favorito repository sin crearla manualmente.
     private final FavoritoRepository favoritoRepository;
+    // Dependencia inyectada para acceder a producto service sin crearla manualmente.
     private final ProductoService productoService;
     /** Lote 5 (integración de HU-78): confirma con Accounts que la cuenta está ACTIVA antes de agregar. */
+    // Dependencia inyectada para acceder a accounts client sin crearla manualmente.
     private final AccountsClient accountsClient;
 
     /** HU-56: sin duplicados; se permite aunque esté agotado, no si ya fue retirado. */
     @Transactional
+    // Procesa agregar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public FavoritoResponse agregar(Long userId, Long productId) {
         Producto producto = productoService.buscar(productId);
         if (!producto.estaActivo()) {
@@ -60,6 +64,7 @@ public class FavoritoService {
 
     /** HU-57: solo un favorito propio. */
     @Transactional
+    // Procesa eliminar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public void eliminar(Long userId, Long productId) {
         Favorito favorito = favoritoRepository.findByUserIdAndProductoId(userId, productId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El producto no está en tus favoritos"));
@@ -68,6 +73,7 @@ public class FavoritoService {
 
     /** HU-58: estado actual de cada producto (RN-29). */
     @Transactional(readOnly = true)
+    // Procesa listar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<FavoritoResponse> listar(Long userId) {
         List<Favorito> favoritos = favoritoRepository.findByUserIdOrderByIdDesc(userId);
         // Lote 2: existencias locales (antes HTTP a Inventory)
@@ -76,6 +82,7 @@ public class FavoritoService {
         return favoritos.stream().map(f -> toResponse(f.getProducto(), inv)).toList();
     }
 
+    // Procesa to response aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private FavoritoResponse toResponse(Producto p, Map<Long, InventarioResponse> inv) {
         DisponibilidadCatalogo disp = ProductoService.disponibilidad(inv, p.getId());
         String mensaje = null;

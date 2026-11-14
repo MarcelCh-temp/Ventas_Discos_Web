@@ -31,11 +31,13 @@ public class CalculadoraPromociones {
     }
 
     /** Mayor descuento primero; en empate gana el id menor (para max: id mayor = menos prioridad). */
+    // Procesa prioridad aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static Comparator<Promocion> prioridad(Producto producto) {
         return Comparator.<Promocion, BigDecimal>comparing(p -> p.descuentoUnitario(producto.getPrecioBase()))
                 .thenComparing(Promocion::getId, Comparator.reverseOrder());
     }
 
+    // Procesa precio final aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public BigDecimal precioFinal(Producto producto, Promocion promocion) {
         return producto.getPrecioBase().subtract(promocion.descuentoUnitario(producto.getPrecioBase()));
     }

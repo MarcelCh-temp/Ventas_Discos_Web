@@ -7,7 +7,10 @@ package com.ventasdiscos.mscatalog.model;
  * Lote 2: trasladado desde ms-inventory sin cambios (ERS 11.4).
  */
 public enum TipoMovimiento {
+    // Opción ENTRADA: representa el estado o tipo «entrada» permitido en este dominio.
     ENTRADA,
+    // Opción SALIDA: representa el estado o tipo «salida» permitido en este dominio.
     SALIDA,
+    // Opción AJUSTE: representa el estado o tipo «ajuste» permitido en este dominio.
     AJUSTE
 }

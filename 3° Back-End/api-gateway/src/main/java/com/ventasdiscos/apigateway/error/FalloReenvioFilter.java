@@ -35,8 +35,11 @@ import java.net.http.HttpTimeoutException;
 public class FalloReenvioFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(FalloReenvioFilter.class);
+    // Constante NO_DISPONIBLE: valor compartido que no cambia durante la ejecución.
     static final String NO_DISPONIBLE = "El servicio solicitado no está disponible en este momento. Intenta nuevamente en unos minutos";
+    // Constante SIN_RESPUESTA: valor compartido que no cambia durante la ejecución.
     static final String SIN_RESPUESTA = "El servicio solicitado tardó demasiado en responder. Intenta nuevamente en unos minutos";
+    // Constante FALLA: valor compartido que no cambia durante la ejecución.
     static final String FALLA = "No fue posible completar la solicitud. Intenta nuevamente en unos minutos";
 
     @Override
@@ -56,6 +59,7 @@ public class FalloReenvioFilter extends OncePerRequestFilter {
         }
     }
 
+    // Ejecuta clasificar como parte de las responsabilidades de esta clase.
     static HttpStatus clasificar(Throwable e) {
         for (Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause()) {
             if (t instanceof ConnectException || t instanceof UnknownHostException || t instanceof NoRouteToHostException
@@ -69,6 +73,7 @@ public class FalloReenvioFilter extends OncePerRequestFilter {
         return HttpStatus.BAD_GATEWAY;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método mensaje (mensaje).
     private static String mensaje(HttpStatus status) {
         return switch (status) {
             case SERVICE_UNAVAILABLE -> NO_DISPONIBLE;
@@ -77,6 +82,7 @@ public class FalloReenvioFilter extends OncePerRequestFilter {
         };
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método causaRaiz (causa raiz).
     private static Throwable causaRaiz(Throwable e) {
         Throwable t = e;
         while (t.getCause() != null && t.getCause() != t) {

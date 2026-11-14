@@ -60,6 +60,7 @@ class InventarioConcurrenciaITTest {
         return id;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método venta (venta).
     private static OperacionInternaRequest venta(String operacionId, long productId, int cantidad) {
         return new OperacionInternaRequest(operacionId, "Venta",
                 List.of(new OperacionInternaItem(productId, TipoMovimiento.SALIDA, cantidad)));

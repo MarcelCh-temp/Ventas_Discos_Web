@@ -64,10 +64,12 @@ class CuentaActivaInterceptorTest {
         return new HandlerMethod(new Rutas(), Rutas.class.getMethod("delCliente", AuthUser.class));
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método publica (publica).
     private static HandlerMethod publica() throws Exception {
         return new HandlerMethod(new Rutas(), Rutas.class.getMethod("publica"));
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método peticion (peticion).
     private static MockHttpServletRequest peticion(String metodo, String token) {
         MockHttpServletRequest r = new MockHttpServletRequest(metodo, "/api/v1/recurso");
         if (token != null) {
@@ -76,10 +78,12 @@ class CuentaActivaInterceptorTest {
         return r;
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método pasar (pasar).
     private boolean pasar(MockHttpServletRequest r, HandlerMethod h) throws Exception {
         return interceptor.preHandle(r, new MockHttpServletResponse(), h);
     }
 
+    // Comprobación de seguridad o identidad necesaria para permitir la operación. Método estado (estado).
     private void estado(String estado, Boolean puedeOperar) {
         when(restTemplate.getForObject(URL, EstadoOperacion.class, 7L)).thenReturn(new EstadoOperacion(7L, estado, puedeOperar));
     }
@@ -131,7 +135,7 @@ class CuentaActivaInterceptorTest {
     void accountsNoDisponibleOSinRespuestaClara_503NuncaActiva() throws Exception {
         when(restTemplate.getForObject(URL, EstadoOperacion.class, 7L)).thenThrow(new ResourceAccessException("Connection refused"));
         assertThrows(ServicioExternoNoDisponibleException.class, () -> pasar(peticion("GET", "cliente"), delCliente()));
-        when(restTemplate.getForObject(URL, EstadoOperacion.class, 7L)).thenReturn(new EstadoOperacion(7L, "ACTIVA", null));
+        org.mockito.Mockito.doReturn(new EstadoOperacion(7L, "ACTIVA", null)).when(restTemplate).getForObject(URL, EstadoOperacion.class, 7L);
         assertThrows(ServicioExternoNoDisponibleException.class, () -> pasar(peticion("GET", "cliente"), delCliente()));
         CuentaActivaInterceptor sinCliente = new CuentaActivaInterceptor(proveedor(jwt), proveedor(null));
         assertThrows(ServicioExternoNoDisponibleException.class, () -> sinCliente.preHandle(peticion("GET", "cliente"),

@@ -24,7 +24,9 @@ import java.util.Map;
 @RequestMapping("/api/v1/internal/notifications")
 public class EventoNotificacionController {
 
+    // Dependencia inyectada para acceder a evento notificacion service sin crearla manualmente.
     private final EventoNotificacionService eventoNotificacionService;
+    // Dependencia inyectada para acceder a notificacion service sin crearla manualmente.
     private final NotificacionService notificacionService;
 
     public EventoNotificacionController(

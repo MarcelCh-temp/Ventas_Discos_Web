@@ -20,7 +20,9 @@ class PostSaleSupport {
 
     private static final Logger log = LoggerFactory.getLogger(PostSaleSupport.class);
 
+    // Atributo orders: dato o dependencia utilizada por esta clase.
     private final OrdersClient orders;
+    // Atributo notifications: dato o dependencia utilizada por esta clase.
     private final NotificationsClient notifications;
 
     PostSaleSupport(OrdersClient orders, NotificationsClient notifications) {

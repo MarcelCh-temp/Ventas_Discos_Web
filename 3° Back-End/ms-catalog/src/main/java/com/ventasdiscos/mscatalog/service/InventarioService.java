@@ -78,13 +78,19 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class InventarioService {
 
+    // Dependencia inyectada para acceder a inventario repository sin crearla manualmente.
     private final InventarioRepository inventarioRepository;
+    // Dependencia inyectada para acceder a movimiento repository sin crearla manualmente.
     private final MovimientoStockRepository movimientoRepository;
+    // Dependencia inyectada para acceder a producto repository sin crearla manualmente.
     private final ProductoRepository productoRepository;
+    // Atributo umbralPorDefecto: dato o dependencia utilizada por esta clase.
     private final int umbralPorDefecto;
     /** Transacción NUEVA y corta, solo para crear la fila de inventario que falta (misma técnica que el Lote 1). */
+    // Atributo transaccionNueva: dato o dependencia utilizada por esta clase.
     private final TransactionTemplate transaccionNueva;
 
     public InventarioService(InventarioRepository inventarioRepository,
@@ -160,6 +166,7 @@ public class InventarioService {
 
     /** HU-38 detalle. Un producto existente sin registro aún se informa con stock 0 (= Agotado, RN-09). */
     @Transactional(readOnly = true)
+    // Procesa obtener aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public InventarioResponse obtener(Long productId) {
         Producto producto = buscarProducto(productId);
         return InventarioResponse.from(inventarioRepository.findByProductId(productId)
@@ -219,6 +226,7 @@ public class InventarioService {
 
     /** Ids con cierta disponibilidad, para el filtro del catálogo (HU-12, HU-16). */
     @Transactional(readOnly = true)
+    // Procesa product ids por disponibilidad aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<Long> productIdsPorDisponibilidad(Disponibilidad disponibilidad) {
         return switch (disponibilidad) {
             case DISPONIBLE -> inventarioRepository.findProductIdsDisponibles();
@@ -275,6 +283,7 @@ public class InventarioService {
 
     /** HU-41: entrada o salida. Una salida mayor al stock se rechaza (RN-10). */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    // Procesa registrar movimiento aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public MovimientoResponse registrarMovimiento(Long productId, MovimientoRequest req, Long usuarioId) {
         if (req.tipo() == TipoMovimiento.AJUSTE) {
             throw new ValidacionNegocioException("Para ajustar por diferencia de inventario usa /adjustments");
@@ -285,6 +294,7 @@ public class InventarioService {
 
     /** HU-40: ajuste al valor físico, con motivo; queda valor anterior y nuevo en historial. */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    // Procesa ajustar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public MovimientoResponse ajustar(Long productId, AjusteRequest req, Long usuarioId) {
         Operacion op = new Operacion(productId, TipoMovimiento.AJUSTE, entero(req.nuevoStock()), req.motivo());
         return MovimientoResponse.from(aplicarLote(List.of(op), null, usuarioId).get(0));
@@ -292,6 +302,7 @@ public class InventarioService {
 
     /** HU-42: el Admin define el umbral; la disponibilidad se recalcula sola. */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    // Procesa configurar umbral aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public InventarioResponse configurarUmbral(Long productId, UmbralRequest req) {
         Inventario inv = bloquearOCrear(Set.of(productId)).get(productId);
         inv.configurarUmbral(entero(req.umbralCritico()));
@@ -300,6 +311,7 @@ public class InventarioService {
 
     /** HU-44: valida el lote completo; si UNA fila falla no se aplica ninguna. */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    // Procesa aplicar masivo aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<MovimientoResponse> aplicarMasivo(OperacionMasivaRequest req, Long usuarioId) {
         Map<String, String> errores = new LinkedHashMap<>();
         List<Operacion> ops = new ArrayList<>();
@@ -356,6 +368,7 @@ public class InventarioService {
         return aplicarOperacionInterna(req);
     }
 
+    // Procesa aplicar operacion interna aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public OperacionInternaResponse aplicarOperacionInterna(OperacionInternaRequest req) {
         validarPrefijo(req.operacionId());
         Set<Long> vistos = new TreeSet<>();
@@ -387,12 +400,14 @@ public class InventarioService {
     }
 
     /** Contenido normalizado (sin importar el orden de los ítems) para comparar reintentos. */
+    // Procesa huella aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Set<String> huella(List<Operacion> ops) {
         return ops.stream()
                 .map(o -> o.productId() + "|" + o.tipo() + "|" + o.cantidad() + "|" + o.motivo())
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
+    // Procesa huella movimientos aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Set<String> huellaMovimientos(List<MovimientoStock> movimientos) {
         return movimientos.stream()
                 .<String>map(m -> m.getInventario().getProductId() + "|" + m.getTipo() + "|" + m.getCantidad() + "|" + m.getMotivo())
@@ -499,6 +514,7 @@ public class InventarioService {
         return completo;
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método bloquear (bloquear).
     private Map<Long, Inventario> bloquear(Set<Long> productIds) {
         Map<Long, Inventario> mapa = new HashMap<>();
         for (Inventario inv : inventarioRepository.findForUpdate(productIds)) {
@@ -508,6 +524,7 @@ public class InventarioService {
     }
 
     /** Crea la fila (stock 0) en su propia transacción. Si otra operación la creó al mismo tiempo, no es error. */
+    // Procesa crear fila si falta aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void crearFilaSiFalta(Producto producto) {
         try {
             transaccionNueva.executeWithoutResult(estado -> {
@@ -523,6 +540,7 @@ public class InventarioService {
     }
 
     /** DOC-08: 400 (ApiError con errores.operacionId) si no empieza con ORDERS- o POSTSALE- seguido de algo. */
+    // Procesa validar prefijo aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static void validarPrefijo(String operacionId) {
         boolean valido = operacionId != null && PREFIJOS_PERMITIDOS.stream()
                 .anyMatch(p -> operacionId.startsWith(p) && operacionId.length() > p.length());
@@ -533,6 +551,7 @@ public class InventarioService {
     }
 
     /** DOC-08 (Lote 6): el prefijo identifica al responsable y debe coincidir con el servicio del token → 403. */
+    // Procesa validar origen aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static void validarOrigen(String servicioEmisor, String operacionId) {
         String esperado = operacionId.startsWith("ORDERS-") ? Servicios.ORDERS
                 : operacionId.startsWith("POSTSALE-") ? Servicios.POSTSALE : null;
@@ -541,12 +560,14 @@ public class InventarioService {
         }
     }
 
+    // Procesa buscar producto aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Producto buscarProducto(Long productId) {
         return productoRepository.findById(productId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
     }
 
     /** Resultado simulado; null si una entrada supera el máximo de int (revisión Lote 2). */
+    // Procesa calcular aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Integer calcular(int actual, TipoMovimiento tipo, int cantidad) {
         return switch (tipo) {
             case ENTRADA -> {
@@ -559,6 +580,7 @@ public class InventarioService {
     }
 
     /** BigDecimal ya validado con @Digits(fraction=0) -> int. */
+    // Procesa entero aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static int entero(BigDecimal valor) {
         try {
             return valor.intValueExact();

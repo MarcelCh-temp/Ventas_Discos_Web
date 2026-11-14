@@ -12,6 +12,7 @@ public record PedidoResumenResponse(Long id, String numeroPedido, Long userId, L
                                     BigDecimal total, EstadoOrden estado, MetodoEntrega metodoEntrega,
                                     String nombreReceptor, int cantidadProductos) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PedidoResumenResponse from(Orden o) {
         return new PedidoResumenResponse(o.getId(), o.getNumeroPedido(), o.getIdUsuario(), o.getFechaCreacion(),
                 o.getTotal(), o.getEstado(),

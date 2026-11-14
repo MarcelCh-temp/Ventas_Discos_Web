@@ -27,18 +27,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = {
         "security.jwt.secret=" + TokensPrueba.SECRETO_USUARIOS,
         "gateway.cors.allowed-origins=http://localhost:5500,http://127.0.0.1:5500",
-        "spring.cloud.gateway.server.webmvc.routes[0].uri=http://127.0.0.1:1",
-        "spring.cloud.gateway.server.webmvc.routes[1].uri=http://127.0.0.1:1",
-        "spring.cloud.gateway.server.webmvc.routes[2].uri=http://127.0.0.1:1",
-        "spring.cloud.gateway.server.webmvc.routes[3].uri=http://127.0.0.1:1",
-        "spring.cloud.gateway.server.webmvc.routes[4].uri=http://127.0.0.1:1",
-        "spring.cloud.gateway.server.webmvc.routes[5].uri=http://127.0.0.1:1"})
+        "ACCOUNTS_URL=http://127.0.0.1:1",
+        "CATALOG_URL=http://127.0.0.1:1",
+        "ORDERS_URL=http://127.0.0.1:1",
+        "POSTSALE_URL=http://127.0.0.1:1",
+        "NOTIFICATIONS_URL=http://127.0.0.1:1",
+        "SUPPORT_URL=http://127.0.0.1:1"})
 @AutoConfigureMockMvc
+// Componente del sistema: sus responsabilidades se explican en los métodos y campos. Clase GatewayITTest.
 class GatewayITTest {
 
+    // Dato front del registro.
     private static final String FRONT = "http://localhost:5500";
 
     @Autowired
+    // Dato mock mvc del registro.
     private MockMvc mockMvc;
 
     // ===================== Rutas internas: nunca se exponen =====================
@@ -157,7 +160,7 @@ class GatewayITTest {
                         .header("Access-Control-Request-Method", "GET")
                         .header("Access-Control-Request-Headers", "Authorization, X-Correlation-Id"))
                 .andExpect(status().isOk())
-                .andExpect(header().stringValues("Access-Control-Allow-Origin", hasSize(1)))
+                .andExpect(header().stringValues("Access-Control-Allow-Origin", FRONT))
                 .andExpect(header().string("Access-Control-Allow-Origin", FRONT))
                 .andExpect(header().string("Access-Control-Allow-Headers", containsString("Authorization")))
                 .andExpect(header().string("Access-Control-Allow-Headers", containsString("X-Correlation-Id")));
@@ -182,7 +185,7 @@ class GatewayITTest {
     void erroresDelGatewayLlevanCorsParaQueElFrontendLeaElApiError() throws Exception {
         mockMvc.perform(get("/api/v1/orders/me").header("Origin", FRONT))
                 .andExpect(status().isUnauthorized())
-                .andExpect(header().stringValues("Access-Control-Allow-Origin", hasSize(1)))
+                .andExpect(header().stringValues("Access-Control-Allow-Origin", FRONT))
                 .andExpect(header().string("Access-Control-Allow-Origin", FRONT))
                 .andExpect(header().string("Access-Control-Expose-Headers", containsString("X-Correlation-Id")));
     }

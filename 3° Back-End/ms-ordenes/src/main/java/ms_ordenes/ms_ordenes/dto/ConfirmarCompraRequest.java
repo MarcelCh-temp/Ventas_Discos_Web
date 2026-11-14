@@ -23,6 +23,7 @@ public record ConfirmarCompraRequest(
         @PositiveOrZero(message = "El total no puede ser negativo")
         @Digits(integer = 10, fraction = 2, message = "El total no es válido") BigDecimal totalEsperado) {
 
+    // Ejecuta resultado efectivo como parte de las responsabilidades de esta clase.
     public ResultadoPagoSimulado resultadoEfectivo() {
         return resultadoSimulado == null ? ResultadoPagoSimulado.APROBADO : resultadoSimulado;
     }

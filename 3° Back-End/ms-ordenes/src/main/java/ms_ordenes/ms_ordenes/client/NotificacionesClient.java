@@ -24,11 +24,15 @@ import java.util.Map;
 public class NotificacionesClient {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacionesClient.class);
+    // Constante ORIGEN: valor compartido que no cambia durante la ejecución.
     private static final String ORIGEN = "ORDERS";
     static final int MAX_INTENTOS = 2;                    // 1 envío + 1 reintento (ERS 12.7: número limitado)
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 500;
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
     public NotificacionesClient(RestTemplate restTemplate,
@@ -38,6 +42,7 @@ public class NotificacionesClient {
     }
 
     /** tipo: PEDIDO_CREADO o PEDIDO_ACTUALIZADO (enum TipoNotificacion de ms-notifications). */
+    // Cliente de integración: realiza notificar con otro microservicio y trata su respuesta.
     public void notificar(String eventoId, Long usuarioId, String tipo, String titulo, String mensaje, Long pedidoId) {
         Map<String, Object> evento = new HashMap<>();
         evento.put("eventoId", eventoId);
@@ -77,6 +82,7 @@ public class NotificacionesClient {
         }
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperarAntesDeReintentar (esperar antes de reintentar).
     private static void esperarAntesDeReintentar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

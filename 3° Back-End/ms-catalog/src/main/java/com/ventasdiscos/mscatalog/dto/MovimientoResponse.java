@@ -19,6 +19,7 @@ public record MovimientoResponse(
         Long usuarioId,
         String operacionId
 ) {
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static MovimientoResponse from(MovimientoStock m) {
         return new MovimientoResponse(m.getId(), m.getInventario().getProductId(), m.getTipo(), m.getCantidad(),
                 m.getStockAnterior(), m.getStockResultante(), m.getFechaHora(), m.getMotivo(),

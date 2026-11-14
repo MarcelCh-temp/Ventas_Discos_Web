@@ -31,8 +31,11 @@ import java.util.List;
 public class OrdersClient {
 
     private static final Logger log = LoggerFactory.getLogger(OrdersClient.class);
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
+    // Constante NO_ENCONTRADO: valor compartido que no cambia durante la ejecución.
     static final String NO_ENCONTRADO = "El pedido indicado no existe o no corresponde a tu cuenta";
     static final String NO_DISPONIBLE = "No fue posible verificar el pedido asociado. No se creó la solicitud;"
             + " intenta nuevamente en unos minutos";
@@ -42,18 +45,23 @@ public class OrdersClient {
                                BigDecimal total, List<ItemPedido> items) {
     }
 
+    // Cliente de integración: realiza item pedido con otro microservicio y trata su respuesta.
     public record ItemPedido(Long productId, String nombreProducto, int cantidad) {
     }
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
+    // Cliente de integración: realiza orders client con otro microservicio y trata su respuesta.
     public OrdersClient(RestTemplate restTemplate, @Value("${services.orders.url}") String baseUrl) {
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
 
     /** 404 si el pedido no existe o es de otro cliente; 503 si no se pudo confirmar. */
+    // Cliente de integración: realiza exigir pedido propio con otro microservicio y trata su respuesta.
     public void exigirPedidoPropio(Long orderId, Long userId) {
         for (int intento = 1; intento <= MAX_INTENTOS; intento++) {
             try {
@@ -85,6 +93,7 @@ public class OrdersClient {
         throw new ServicioNoDisponibleException(NO_DISPONIBLE);
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperar (esperar).
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

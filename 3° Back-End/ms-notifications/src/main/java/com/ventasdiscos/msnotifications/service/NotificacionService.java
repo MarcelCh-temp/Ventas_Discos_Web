@@ -16,10 +16,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+// Servicio: concentra reglas de negocio y coordina operaciones entre repositorios y otros servicios. Clase NotificacionService.
 public class NotificacionService {
 
+    // Dato repository del registro.
     private final NotificacionRepository repository;
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método NotificacionService (notificacion service).
     public NotificacionService(NotificacionRepository repository) {
         this.repository = repository;
     }
@@ -151,6 +154,7 @@ public class NotificacionService {
         return buscarNotificaciones(usuarioId, null, desde, hasta);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método validarIdentificador (validar identificador).
     private void validarIdentificador(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(

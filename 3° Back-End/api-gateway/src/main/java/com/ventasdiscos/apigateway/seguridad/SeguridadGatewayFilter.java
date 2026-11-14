@@ -35,18 +35,25 @@ import java.io.IOException;
 public class SeguridadGatewayFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(SeguridadGatewayFilter.class);
+    // Constante RUTA_INVALIDA: valor compartido que no cambia durante la ejecución.
     static final String RUTA_INVALIDA = "La ruta solicitada no es válida";
+    // Constante NO_ENCONTRADO: valor compartido que no cambia durante la ejecución.
     static final String NO_ENCONTRADO = "El recurso solicitado no existe";
+    // Constante SIN_SESION: valor compartido que no cambia durante la ejecución.
     static final String SIN_SESION = "Debes iniciar sesión para acceder a este recurso";
+    // Constante SIN_PERMISO: valor compartido que no cambia durante la ejecución.
     static final String SIN_PERMISO = "No tienes permisos para acceder a este recurso";
 
+    // Atributo validator: dato o dependencia utilizada por esta clase.
     private final JwtUsuarioValidator validator;
 
+    // Ejecuta seguridad gateway filter como parte de las responsabilidades de esta clase.
     public SeguridadGatewayFilter(JwtUsuarioValidator validator) {
         this.validator = validator;
     }
 
     @Override
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método doFilterInternal (do filter internal).
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String uri = request.getRequestURI();
@@ -86,6 +93,7 @@ public class SeguridadGatewayFilter extends OncePerRequestFilter {
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método token (token).
     private static String token(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ") || header.substring(7).isBlank()) {

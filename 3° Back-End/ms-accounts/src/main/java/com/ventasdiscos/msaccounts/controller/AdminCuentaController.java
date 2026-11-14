@@ -28,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminCuentaController {
 
+    // Dependencia inyectada para acceder a cuenta service sin crearla manualmente.
     private final CuentaService cuentaService;
 
     @Operation(summary = "RF-PED-01/02, RF-SOP-05: datos para identificar a varios clientes por su id (máx. 100)",

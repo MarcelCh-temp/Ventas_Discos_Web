@@ -83,6 +83,7 @@ class OrdenServiceFallosTest {
         });
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método cancelar (cancelar).
     private PedidoDetalleResponse cancelar() {
         return service.cambiarEstadoAdmin(15L, new CambioEstadoRequest(EstadoOrden.CANCELADO, "Cliente desistió"), 1L);
     }

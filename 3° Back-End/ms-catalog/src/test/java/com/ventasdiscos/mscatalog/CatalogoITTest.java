@@ -65,6 +65,7 @@ class CatalogoITTest {
         return ((Number) JsonPath.read(resp, "$.id")).longValue();
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crearProducto (crear producto).
     private long crearProducto(String nombre) throws Exception {
         return crearProducto(nombre, "MUSICA", null);
     }

@@ -26,11 +26,13 @@ import ms_soporte.ms_soporte.security.ServiciosPermitidos;
 public class InternalSoporteController {
 
     @Autowired
+    // Dependencia inyectada para acceder a ticket service sin crearla manualmente.
     private TicketService ticketService;
 
     @Operation(summary = "Accounts: ¿el usuario tiene tickets ABIERTA o EN_PROCESO?")
     @ServiciosPermitidos(Servicios.ACCOUNTS)
     @GetMapping("/users/{userId}/open-exists")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<ExisteResponse> ticketsAbiertos(@PathVariable Long userId) {
         return ResponseEntity.ok(ticketService.tieneTicketsAbiertos(userId));
     }

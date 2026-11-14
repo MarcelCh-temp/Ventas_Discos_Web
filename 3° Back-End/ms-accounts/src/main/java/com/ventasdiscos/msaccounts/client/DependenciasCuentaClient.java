@@ -29,38 +29,52 @@ import java.util.function.Supplier;
 @Component
 public class DependenciasCuentaClient {
 
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
 
     /** Respuesta de las tres consultas "¿existe algo pendiente?". */
+    // Cliente de integración: realiza existe response con otro microservicio y trata su respuesta.
     public record ExisteResponse(Long userId, Boolean existe) {
     }
 
     /** Respuesta de las dos depuraciones (cuántas filas se borraron en esta llamada; 0 si ya estaba hecho). */
+    // Cliente de integración: realiza depuracion response con otro microservicio y trata su respuesta.
     public record DepuracionResponse(Long userId, Integer eliminados) {
     }
 
     /** Un MS no confirmó la consulta o la depuración. {@code servicio} identifica cuál (para el motivo). */
     public static class DependenciaNoConfirmadaException extends RuntimeException {
+        // Atributo servicio: dato o dependencia utilizada por esta clase.
         private final String servicio;
 
+        // Cliente de integración: realiza dependencia no confirmada exception con otro microservicio y trata su respuesta.
         public DependenciaNoConfirmadaException(String servicio, String detalle) {
             super(servicio + ": " + detalle);
             this.servicio = servicio;
         }
 
+        // Cliente de integración: realiza get servicio con otro microservicio y trata su respuesta.
         public String getServicio() {
             return servicio;
         }
     }
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo ordersUrl: dato o dependencia utilizada por esta clase.
     private final String ordersUrl;
+    // Atributo supportUrl: dato o dependencia utilizada por esta clase.
     private final String supportUrl;
+    // Atributo postSaleUrl: dato o dependencia utilizada por esta clase.
     private final String postSaleUrl;
+    // Atributo catalogUrl: dato o dependencia utilizada por esta clase.
     private final String catalogUrl;
+    // Dato notifications url del registro.
     private final String notificationsUrl;
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método DependenciasCuentaClient (dependencias cuenta client).
     public DependenciasCuentaClient(RestTemplate restTemplate,
                                     @Value("${services.orders.url}") String ordersUrl,
                                     @Value("${services.support.url}") String supportUrl,
@@ -76,30 +90,36 @@ public class DependenciasCuentaClient {
     }
 
     /** RN-36: pedidos PENDIENTE, CONFIRMADO, PREPARANDO o DESPACHADO. */
+    // Cliente de integración: realiza tiene pedidos activos con otro microservicio y trata su respuesta.
     public boolean tienePedidosActivos(Long userId) {
         return existe("Orders", ordersUrl + "/api/v1/internal/orders/users/{userId}/active-exists", userId);
     }
 
     /** RN-36: tickets ABIERTA o EN_PROCESO. */
+    // Cliente de integración: realiza tiene tickets abiertos con otro microservicio y trata su respuesta.
     public boolean tieneTicketsAbiertos(Long userId) {
         return existe("Support", supportUrl + "/api/v1/internal/support/users/{userId}/open-exists", userId);
     }
 
     /** RN-36: solicitudes de postventa PENDIENTE. */
+    // Cliente de integración: realiza tiene solicitudes pendientes con otro microservicio y trata su respuesta.
     public boolean tieneSolicitudesPendientes(Long userId) {
         return existe("PostSale", postSaleUrl + "/api/v1/internal/post-sale/users/{userId}/pending-exists", userId);
     }
 
     /** RN-43: depuración idempotente de favoritos en Catalog. Devuelve cuántos borró en esta llamada. */
+    // Cliente de integración: realiza depurar favoritos con otro microservicio y trata su respuesta.
     public int depurarFavoritos(Long userId) {
         return depurar("Catalog", catalogUrl + "/api/v1/internal/catalog/users/{userId}/favorites/purge", userId);
     }
 
     /** RN-43: depuración idempotente de notificaciones personales en Notifications. */
+    // Cliente de integración: realiza depurar notificaciones con otro microservicio y trata su respuesta.
     public int depurarNotificaciones(Long userId) {
         return depurar("Notifications", notificationsUrl + "/api/v1/internal/notifications/users/{userId}/purge", userId);
     }
 
+    // Cliente de integración: realiza existe con otro microservicio y trata su respuesta.
     private boolean existe(String servicio, String url, Long userId) {
         ExisteResponse r = llamar(servicio, () -> restTemplate.getForObject(url, ExisteResponse.class, userId));
         if (r.existe() == null) {
@@ -108,11 +128,13 @@ public class DependenciasCuentaClient {
         return r.existe();
     }
 
+    // Cliente de integración: realiza depurar con otro microservicio y trata su respuesta.
     private int depurar(String servicio, String url, Long userId) {
         DepuracionResponse r = llamar(servicio, () -> restTemplate.postForObject(url, null, DepuracionResponse.class, userId));
         return r.eliminados() == null ? 0 : r.eliminados();
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método llamar (llamar).
     private <T> T llamar(String servicio, Supplier<T> llamada) {
         for (int intento = 1; intento <= MAX_INTENTOS; intento++) {
             try {
@@ -136,6 +158,7 @@ public class DependenciasCuentaClient {
         throw new DependenciaNoConfirmadaException(servicio, "no respondió");
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperar (esperar).
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

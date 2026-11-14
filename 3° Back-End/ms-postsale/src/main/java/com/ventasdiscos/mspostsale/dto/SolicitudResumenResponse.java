@@ -14,6 +14,7 @@ public record SolicitudResumenResponse(Long id, TipoSolicitud tipo, EstadoSolici
                                        Long solicitudOrigenId, LocalDateTime fechaSolicitud,
                                        LocalDateTime fechaResolucion) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static SolicitudResumenResponse from(SolicitudPostVenta s) {
         return new SolicitudResumenResponse(s.getId(), s.getTipo(), s.getEstado(), s.getPedidoId(),
                 s.getSolicitudOrigenId(), s.getFechaSolicitud(), s.getFechaResolucion());

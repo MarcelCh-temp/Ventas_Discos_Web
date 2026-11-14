@@ -53,6 +53,7 @@ public final class TokensServicioPrueba {
         return firmar(claims, secreto);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método firmar (firmar).
     private static String firmar(JWTClaimsSet claims, String secreto) {
         try {
             SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);

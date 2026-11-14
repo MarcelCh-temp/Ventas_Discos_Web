@@ -1,0 +1,90 @@
+package com.ventasdiscos.msaccounts.model;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** Lote 5 · Ciclo de eliminación del UML 01 y compatibilidad con cuentas anteriores (sin base de datos). */
+class UsuarioTest {
+
+    private static Usuario cliente(Long id, String estado) {
+        Usuario u = new Usuario();
+        ReflectionTestUtils.setField(u, "id", id);
+        u.setRut("12345678-5");
+        u.setNombres("Ana");
+        u.setApellidos("Pérez");
+        u.setCorreo("ana@mail.com");
+        u.setPasswordHash("$2a$10$hash");
+        u.setRol(Role.CLIENTE);
+        ReflectionTestUtils.setField(u, "estado", estado);
+        return u;
+    }
+
+    @Test
+    void estadoNullEsActivaYUnValorDesconocidoNoOpera() {
+        Usuario historica = cliente(1L, null);
+        assertEquals(EstadoCuenta.ACTIVA, historica.getEstado());
+        assertTrue(historica.puedeOperar());
+        Usuario rara = cliente(2L, "BLOQUEADA");
+        assertNull(rara.getEstado());
+        assertFalse(rara.estadoReconocido());
+        assertFalse(rara.puedeOperar());
+        assertThrows(IllegalStateException.class, rara::iniciarEliminacion);
+    }
+
+    @Test
+    void cicloAprobadoActivaEnEliminacionEliminada() {
+        Usuario u = cliente(7L, "ACTIVA");
+        u.iniciarEliminacion();
+        assertEquals(EstadoCuenta.EN_ELIMINACION, u.getEstado());
+        assertNotNull(u.getFechaSolicitudEliminacion());
+        assertFalse(u.puedeOperar());
+        assertThrows(IllegalStateException.class, u::iniciarEliminacion);
+        u.completarEliminacion();
+        assertEquals(EstadoCuenta.ELIMINADA, u.getEstado());
+        assertNotNull(u.getFechaEliminacion());
+        assertThrows(IllegalStateException.class, u::completarEliminacion);
+        assertThrows(IllegalStateException.class, u::rechazarEliminacion);
+    }
+
+    @Test
+    void rechazarVuelveAActivaYConservaLaFechaDeLaSolicitud() {
+        Usuario u = cliente(7L, null);
+        u.iniciarEliminacion();
+        u.rechazarEliminacion();
+        assertEquals(EstadoCuenta.ACTIVA, u.getEstado());
+        assertNotNull(u.getFechaSolicitudEliminacion());   // RNF-09: queda registro del intento
+        assertThrows(IllegalStateException.class, u::rechazarEliminacion);
+        assertThrows(IllegalStateException.class, u::completarEliminacion);
+    }
+
+    @Test
+    void completarAnonimizaConValoresUnicosQueNoSonDatosReales() {
+        Usuario u = cliente(42L, "ACTIVA");
+        u.iniciarEliminacion();
+        u.completarEliminacion();
+        assertEquals(42L, u.getId());                       // la fila y su id se conservan
+        assertEquals("ELIM-42", u.getRut());
+        assertTrue(u.getRut().length() <= 12);
+        assertEquals("cuenta-eliminada-42", u.getCorreo());
+        assertFalse(u.getCorreo().contains("@"));          // nunca coincide con un correo real
+        assertEquals("Cuenta", u.getNombres());
+        assertEquals("eliminada", u.getApellidos());
+        assertEquals(Usuario.PASSWORD_INUTILIZABLE, u.getPasswordHash());
+        assertEquals(Role.CLIENTE, u.getRol());
+    }
+
+    @Test
+    void conUnIdLargoElRutAnonimoSigueCabiendoEnLaColumna() {
+        Usuario u = cliente(123_456_789L, "ACTIVA");
+        u.iniciarEliminacion();
+        u.completarEliminacion();
+        assertTrue(u.getRut().length() <= 12, u.getRut());
+    }
+}

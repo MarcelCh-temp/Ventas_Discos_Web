@@ -26,7 +26,9 @@ public record TicketDetalleResponse(
         List<Mensaje> mensajes,
         List<CambioEstado> historial
 ) {
+    // Ejecuta mensaje como parte de las responsabilidades de esta clase.
     public record Mensaje(Long id, RolAutor autor, Long autorId, String contenido, LocalDateTime fechaEnvio) {
+        // Ejecuta desde como parte de las responsabilidades de esta clase.
         static Mensaje desde(MensajeSoporte m) {
             return new Mensaje(m.getId(), m.getAutor(), m.getAutorId(), m.getContenido(), m.getFechaEnvio());
         }
@@ -35,12 +37,14 @@ public record TicketDetalleResponse(
     // Lote 1.1 (DOC-01, RNF-09): usuarioResponsableId = quién hizo el cambio (null en registros antiguos)
     public record CambioEstado(EstadoTicket estadoAnterior, EstadoTicket estadoNuevo, LocalDateTime fechaHora,
                                Long usuarioResponsableId) {
+        // Ejecuta desde como parte de las responsabilidades de esta clase.
         static CambioEstado desde(HistorialEstadoSoporte h) {
             return new CambioEstado(h.getEstadoAnterior(), h.getEstadoNuevo(), h.getFechaHora(),
                     h.getUsuarioResponsableId());
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método desde (desde).
     public static TicketDetalleResponse desde(Ticket t) {
         return new TicketDetalleResponse(t.getId(), t.getNumeroTicket(), t.getIdUsuario(), t.getOrderId(),
                 t.getAsunto(), t.getCategoria(), t.getEstado(), t.getFechaCreacion(), t.getFechaCierre(),

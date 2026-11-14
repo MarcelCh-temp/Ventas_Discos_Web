@@ -44,10 +44,14 @@ public class CheckoutService {
     static final String AVISO_SIMULACION = "Simulación académica de pago: no se usa una pasarela real ni se piden "
             + "datos de tarjeta. El resultado lo indica el campo resultadoSimulado (por defecto APROBADO).";
 
+    // Dependencia inyectada para acceder a carrito service sin crearla manualmente.
     private final CarritoService carritoService;
+    // Dependencia inyectada para acceder a orden service sin crearla manualmente.
     private final OrdenService ordenService;
+    // Dependencia inyectada para acceder a carrito repository sin crearla manualmente.
     private final CarritoRepository carritoRepository;
 
+    // Procesa checkout service aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CheckoutService(CarritoService carritoService, OrdenService ordenService, CarritoRepository carritoRepository) {
         this.carritoService = carritoService;
         this.ordenService = ordenService;
@@ -55,11 +59,13 @@ public class CheckoutService {
     }
 
     /** RF-COM-05: métodos de entrega disponibles y sus campos obligatorios. */
+    // Procesa metodos entrega aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<MetodoEntregaResponse> metodosEntrega() {
         return Arrays.stream(MetodoEntrega.values()).map(MetodoEntregaResponse::from).toList();
     }
 
     /** RF-COM-08: métodos de pago permitidos de la simulación. */
+    // Procesa opciones pago aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public OpcionesPagoResponse opcionesPago() {
         return new OpcionesPagoResponse(true, AVISO_SIMULACION,
                 Arrays.stream(MetodoPago.values()).map(m -> new OpcionesPagoResponse.MetodoPagoResponse(m, m.getNombre()))
@@ -69,6 +75,7 @@ public class CheckoutService {
 
     /** HU-24 / RF-COM-07: resumen recalculado (productos, cantidades, precios, descuentos, entrega y total). */
     @Transactional
+    // Procesa validar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ResumenCompraResponse validar(Long userId, ValidarCheckoutRequest req) {
         DatosEntrega datos = datosEntrega(req.datosEntrega());
         Carrito carrito = carritoRepository.findByUserId(userId).orElse(null);
@@ -115,6 +122,7 @@ public class CheckoutService {
     }
 
     /** Errores con la misma clave que la validación del DTO ("datosEntrega.campo"), para marcar el campo exacto. */
+    // Procesa datos entrega aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static DatosEntrega datosEntrega(DatosEntregaRequest d) {
         try {
             return DatosEntrega.crear(d.metodoEntrega(), d.nombreReceptor(), d.telefono(), d.direccion(), d.comuna(),
@@ -128,6 +136,7 @@ public class CheckoutService {
         }
     }
 
+    // Procesa problemas aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Map<String, String> problemas(CarritoResponse r) {
         Map<String, String> problemas = new LinkedHashMap<>();
         for (ItemCarritoResponse i : r.items()) {

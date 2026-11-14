@@ -25,10 +25,12 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class FavoritoController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final FavoritoService service;
 
     @Operation(summary = "HU-58 Mis favoritos")
     @GetMapping
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<List<FavoritoResponse>> listar(@Parameter(hidden = true) AuthUser user) {
         return ResponseEntity.ok(service.listar(user.userId()));
     }
@@ -42,6 +44,7 @@ public class FavoritoController {
 
     @Operation(summary = "HU-57 Quitar de favoritos")
     @DeleteMapping("/{productId}")
+    // DELETE: solicita la eliminación o desactivación de un recurso. Método eliminar (eliminar).
     public ResponseEntity<Void> eliminar(@Parameter(hidden = true) AuthUser user, @PathVariable Long productId) {
         service.eliminar(user.userId(), productId);
         return ResponseEntity.noContent().build();

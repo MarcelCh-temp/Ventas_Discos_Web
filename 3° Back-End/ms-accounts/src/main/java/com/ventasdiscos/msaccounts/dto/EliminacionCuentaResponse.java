@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public record EliminacionCuentaResponse(Long userId, EstadoCuenta estado, LocalDateTime fechaSolicitudEliminacion,
                                         LocalDateTime fechaEliminacion, String mensaje) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static EliminacionCuentaResponse from(Usuario u, String mensaje) {
         return new EliminacionCuentaResponse(u.getId(), u.getEstado(), u.getFechaSolicitudEliminacion(),
                 u.getFechaEliminacion(), mensaje);

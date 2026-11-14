@@ -33,6 +33,7 @@ import java.time.LocalDate;
 @SecurityRequirement(name = "bearerAuth")
 public class PromocionAdminController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final PromocionService service;
 
     @Operation(summary = "HU-48/49 Listar y filtrar promociones")
@@ -52,6 +53,7 @@ public class PromocionAdminController {
 
     @Operation(summary = "HU-48 Detalle de promoción")
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<PromocionResponse> detalle(@Parameter(hidden = true) AuthUser user, @PathVariable Long id) {
         user.requireAdmin();
         return ResponseEntity.ok(service.obtener(id));
@@ -59,6 +61,7 @@ public class PromocionAdminController {
 
     @Operation(summary = "HU-47 Crear promoción")
     @PostMapping
+    // POST: recibe una solicitud y ejecuta una operación. Método crear (crear).
     public ResponseEntity<PromocionResponse> crear(@Parameter(hidden = true) AuthUser user,
                                                    @Valid @RequestBody PromocionRequest req) {
         user.requireAdmin();
@@ -67,6 +70,7 @@ public class PromocionAdminController {
 
     @Operation(summary = "HU-50 Editar promoción (solo Programada/Activa)")
     @PutMapping("/{id}")
+    // PUT: actualiza un recurso de acuerdo con las reglas del servicio. Método editar (editar).
     public ResponseEntity<PromocionResponse> editar(@Parameter(hidden = true) AuthUser user,
                                                     @PathVariable Long id,
                                                     @Valid @RequestBody PromocionRequest req) {
@@ -76,6 +80,7 @@ public class PromocionAdminController {
 
     @Operation(summary = "HU-51 Desactivar anticipadamente")
     @PatchMapping("/{id}/deactivate")
+    // PATCH: modifica parcialmente un recurso. Método desactivar (desactivar).
     public ResponseEntity<PromocionResponse> desactivar(@Parameter(hidden = true) AuthUser user,
                                                         @PathVariable Long id) {
         user.requireAdmin();

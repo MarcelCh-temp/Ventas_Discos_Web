@@ -6,7 +6,10 @@ package com.ventasdiscos.msaccounts.model;
  * ELIMINADA = proceso completo; datos personales anonimizados (final).
  */
 public enum EstadoCuenta {
+    // Opción ACTIVA: representa el estado o tipo «activa» permitido en este dominio.
     ACTIVA,
+    // Opción EN_ELIMINACION: representa el estado o tipo «en eliminacion» permitido en este dominio.
     EN_ELIMINACION,
+    // Opción ELIMINADA: representa el estado o tipo «eliminada» permitido en este dominio.
     ELIMINADA
 }

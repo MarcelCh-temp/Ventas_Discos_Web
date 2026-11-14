@@ -12,6 +12,7 @@ import java.util.List;
 public record PricingRequest(
         @NotEmpty @Size(max = 100) List<@Valid Item> items
 ) {
+    // Ejecuta item como parte de las responsabilidades de esta clase.
     public record Item(@NotNull Long productId, @NotNull @Positive Integer cantidad) {
     }
 }

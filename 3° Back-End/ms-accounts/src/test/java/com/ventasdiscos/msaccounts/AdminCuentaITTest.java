@@ -47,6 +47,7 @@ class AdminCuentaITTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método rutValido (rut valido).
     private static String rutValido(long cuerpo) {
         String c = String.valueOf(cuerpo);
         int suma = 0;
@@ -60,6 +61,7 @@ class AdminCuentaITTest {
         return c + "-" + dv;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crear (crear).
     private Usuario crear(Role rol, String nombres) {
         long n = SECUENCIA.incrementAndGet();
         Usuario u = new Usuario();
@@ -72,6 +74,7 @@ class AdminCuentaITTest {
         return usuarios.save(u);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método token (token).
     private String token(Usuario u) {
         return "Bearer " + jwtService.generar(u);
     }
@@ -102,6 +105,7 @@ class AdminCuentaITTest {
         Usuario enEliminacion = crear(Role.CLIENTE, "Carla");
         jdbc.update("update usuario set estado = 'EN_ELIMINACION' where id = ?", enEliminacion.getId());
         Usuario eliminada = crear(Role.CLIENTE, "Diego");
+        eliminada.iniciarEliminacion();
         eliminada.completarEliminacion();
         usuarios.save(eliminada);
         mockMvc.perform(get(RUTA).param("ids", enEliminacion.getId() + "," + eliminada.getId())

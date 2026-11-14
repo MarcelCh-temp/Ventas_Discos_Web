@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Modelo de dominio: representa los datos y las reglas básicas de integridad de una entidad. Clase TicketTest.
 class TicketTest {
 
     @Test

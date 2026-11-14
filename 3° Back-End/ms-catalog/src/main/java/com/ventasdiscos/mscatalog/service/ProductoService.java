@@ -50,11 +50,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ProductoService {
 
+    // Constante MSG_RETIRADO: valor compartido que no cambia durante la ejecución.
     public static final String MSG_RETIRADO = "Este producto ya no se encuentra disponible.";
 
+    // Dependencia inyectada para acceder a producto repository sin crearla manualmente.
     private final ProductoRepository productoRepository;
+    // Dependencia inyectada para acceder a promocion repository sin crearla manualmente.
     private final PromocionRepository promocionRepository;
+    // Dependencia inyectada para acceder a inventario service sin crearla manualmente.
     private final InventarioService inventarioService;
+    // Atributo calculadora: dato o dependencia utilizada por esta clase.
     private final CalculadoraPromociones calculadora;
 
     // ===================== ADMIN (EP-02) =====================
@@ -76,6 +81,7 @@ public class ProductoService {
 
     /** HU-09: id inmutable; solo campos comerciales. Pedidos ya hechos no cambian (snapshot en Orders). */
     @Transactional
+    // Procesa actualizar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ProductoAdminResponse actualizar(Long id, ProductoRequest req) {
         Producto p = buscar(id);
         validarCoherencia(req);
@@ -85,6 +91,7 @@ public class ProductoService {
 
     /** HU-10: retira uno o varios; informa los que ya estaban retirados y no repite la operación. */
     @Transactional
+    // Procesa retirar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public RetiroResponse retirar(RetiroRequest req) {
         Set<Long> ids = new LinkedHashSet<>(req.ids());
         Map<Long, Producto> encontrados = new java.util.HashMap<>();
@@ -115,6 +122,7 @@ public class ProductoService {
 
     /** HU-11/HU-12: activos, agotados y retirados; filtros combinables; paginado (RNF-11). */
     @Transactional(readOnly = true)
+    // Procesa listar admin aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PageResponse<ProductoAdminResponse> listarAdmin(FiltroProducto filtro, int pagina, int tamano) {
         Page<Producto> page = buscarPagina(filtro, filtro.estado(), pagina, tamano);
         if (page == null) {
@@ -125,6 +133,7 @@ public class ProductoService {
     }
 
     @Transactional(readOnly = true)
+    // Procesa obtener admin aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ProductoAdminResponse obtenerAdmin(Long id) {
         Producto p = buscar(id);
         return toAdmin(p, existencias(List.of(p)));
@@ -134,6 +143,7 @@ public class ProductoService {
 
     /** HU-13..16: solo ACTIVO (RN-07). Agotados se muestran identificados (RN-08). */
     @Transactional(readOnly = true)
+    // Procesa listar publico aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PageResponse<ProductoPublicoResponse> listarPublico(FiltroProducto filtro, int pagina, int tamano) {
         Page<Producto> page = buscarPagina(filtro, EstadoComercial.ACTIVO, pagina, tamano);
         if (page == null) {
@@ -146,6 +156,7 @@ public class ProductoService {
 
     /** HU-17: detalle. Retirado por URL antigua -> 410 con el mensaje exigido (RN-07). */
     @Transactional(readOnly = true)
+    // Procesa obtener publico aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public ProductoPublicoResponse obtenerPublico(Long id) {
         Producto p = buscar(id);
         if (!p.estaActivo()) {
@@ -162,6 +173,7 @@ public class ProductoService {
     }
 
     /** Devuelve null si el filtro de disponibilidad no tiene ningún producto posible. */
+    // Procesa buscar pagina aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private Page<Producto> buscarPagina(FiltroProducto f, EstadoComercial estado, int pagina, int tamano) {
         validarRangoPrecio(f);
         Collection<Long> incluir = null;
@@ -188,6 +200,7 @@ public class ProductoService {
                 Paginacion.of(pagina, tamano, Sort.by("nombre", "id")));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método spec (spec).
     private Specification<Producto> spec(FiltroProducto f, EstadoComercial estado,
                                          Collection<Long> incluir, Collection<Long> excluir) {
         return (root, query, cb) -> {
@@ -224,6 +237,7 @@ public class ProductoService {
         };
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método agregarIgualTexto (agregar igual texto).
     private void agregarIgualTexto(List<Predicate> ps, jakarta.persistence.criteria.CriteriaBuilder cb,
                                    jakarta.persistence.criteria.Path<Object> campo, String valor) {
         if (tieneTexto(valor)) {
@@ -232,6 +246,7 @@ public class ProductoService {
     }
 
     /** HU-16: un rango incoherente no se aplica. */
+    // Procesa validar rango precio aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void validarRangoPrecio(FiltroProducto f) {
         if ((f.precioMin() != null && f.precioMin().signum() < 0)
                 || (f.precioMax() != null && f.precioMax().signum() < 0)) {
@@ -243,6 +258,7 @@ public class ProductoService {
     }
 
     /** HU-08: clasificación coherente. DECISIÓN TOMADA: plataforma solo (y siempre) para Videojuegos. */
+    // Procesa validar coherencia aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void validarCoherencia(ProductoRequest req) {
         boolean tienePlataforma = tieneTexto(req.plataforma());
         if (req.categoria() == Categoria.VIDEOJUEGOS && !tienePlataforma) {
@@ -255,6 +271,7 @@ public class ProductoService {
         }
     }
 
+    // Procesa copiar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void copiar(ProductoRequest req, Producto p) {
         p.setNombre(req.nombre().trim());
         p.setDescripcion(req.descripcion());
@@ -272,6 +289,7 @@ public class ProductoService {
     }
 
     /** NO_CONFIRMADA queda solo por compatibilidad del contrato: con el stock local ya no se produce. */
+    // Procesa disponibilidad aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     static DisponibilidadCatalogo disponibilidad(Map<Long, InventarioResponse> inv, Long id) {
         if (inv == null || !inv.containsKey(id)) {
             return DisponibilidadCatalogo.NO_CONFIRMADA;
@@ -279,6 +297,7 @@ public class ProductoService {
         return DisponibilidadCatalogo.valueOf(inv.get(id).disponibilidad().name());
     }
 
+    // Procesa to admin aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private ProductoAdminResponse toAdmin(Producto p, Map<Long, InventarioResponse> inv) {
         Integer stock = inv != null && inv.containsKey(p.getId()) ? inv.get(p.getId()).stockActual() : null;
         return new ProductoAdminResponse(p.getId(), p.getNombre(), p.getDescripcion(), p.getPrecioBase(),
@@ -286,6 +305,7 @@ public class ProductoService {
                 p.getEstado(), stock, disponibilidad(inv, p.getId()));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método toPublico (to publico).
     private ProductoPublicoResponse toPublico(Producto p, Map<Long, InventarioResponse> inv, List<Promocion> activas) {
         DisponibilidadCatalogo disp = disponibilidad(inv, p.getId());
         Optional<Promocion> promo = calculadora.mejorPromocion(p, activas, null);
@@ -296,11 +316,13 @@ public class ProductoService {
                 disp, p.estaActivo() && disp.permiteCompra());
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método vacia (vacia).
     private static <T> PageResponse<T> vacia(int pagina, int tamano) {
         Paginacion.of(pagina, tamano, Sort.unsorted());
         return new PageResponse<>(List.of(), pagina, tamano, 0, 0);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método tieneTexto (tiene texto).
     private static boolean tieneTexto(String s) {
         return s != null && !s.isBlank();
     }

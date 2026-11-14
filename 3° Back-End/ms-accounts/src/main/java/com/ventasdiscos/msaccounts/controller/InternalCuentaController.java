@@ -28,6 +28,7 @@ import com.ventasdiscos.msaccounts.security.ServiciosPermitidos;
 @RequiredArgsConstructor
 public class InternalCuentaController {
 
+    // Dependencia inyectada para acceder a cuenta service sin crearla manualmente.
     private final CuentaService cuentaService;
 
     @Operation(summary = "Estado de la cuenta: puedeOperar = true solo si está ACTIVA")
@@ -35,6 +36,7 @@ public class InternalCuentaController {
     @ServiciosPermitidos({Servicios.ORDERS, Servicios.SUPPORT, Servicios.POSTSALE, Servicios.CATALOG,
             Servicios.NOTIFICATIONS})
     @GetMapping("/{userId}/operation-status")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<EstadoOperacionResponse> estado(@PathVariable Long userId) {
         return ResponseEntity.ok(cuentaService.estadoOperacion(userId));
     }

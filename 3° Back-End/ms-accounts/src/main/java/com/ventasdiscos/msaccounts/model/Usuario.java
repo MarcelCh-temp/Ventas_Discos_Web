@@ -1,5 +1,6 @@
 package com.ventasdiscos.msaccounts.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,33 +41,48 @@ import java.time.LocalDateTime;
 public class Usuario {
 
     /** Lote 5: no es un hash BCrypt válido; BCrypt nunca lo da por correcto. */
+    // Constante PASSWORD_INUTILIZABLE: valor compartido que no cambia durante la ejecución.
     public static final String PASSWORD_INUTILIZABLE = "!CUENTA-ELIMINADA";
 
     /** userId que los demás MS guardan como ID externo (ADR-09). */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     /** Normalizado "12345678-K". HU-01 (DV válido) y HU-07 (recuperar correo por RUT). */
     @Column(nullable = false, length = 12)
+    @NotBlank
+    // Atributo rut: propiedad que se guarda o utiliza en esta entidad.
     private String rut;
 
     @Column(nullable = false, length = 80)
+    @NotBlank
+    // Atributo nombres: propiedad que se guarda o utiliza en esta entidad.
     private String nombres;
 
     @Column(nullable = false, length = 80)
+    @NotBlank
+    // Atributo apellidos: propiedad que se guarda o utiliza en esta entidad.
     private String apellidos;
 
     /** Credencial de login, guardado en minúsculas para que la unicidad no dependa de mayúsculas. */
     @Column(nullable = false, length = 120)
+    @Email
+    @NotBlank
+    // Atributo correo: propiedad que se guarda o utiliza en esta entidad.
     private String correo;
 
     /** Hash BCrypt; la contraseña en texto plano nunca se guarda (RNF-15). */
     @Column(nullable = false, length = 100)
+    @NotBlank
+    // Atributo passwordHash: propiedad que se guarda o utiliza en esta entidad.
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @NotNull
+    // Atributo rol: propiedad que se guarda o utiliza en esta entidad.
     private Role rol;
 
     /**
@@ -80,25 +96,30 @@ public class Usuario {
 
     /** Fecha de la última confirmación de eliminación (RNF-09). Se conserva aunque la solicitud sea rechazada. */
     @Setter(AccessLevel.NONE)
+    // Atributo fechaSolicitudEliminacion: propiedad que se guarda o utiliza en esta entidad.
     private LocalDateTime fechaSolicitudEliminacion;
 
     /** Fecha en que la eliminación terminó (estado ELIMINADA). */
     @Setter(AccessLevel.NONE)
+    // Atributo fechaEliminacion: propiedad que se guarda o utiliza en esta entidad.
     private LocalDateTime fechaEliminacion;
 
     /** Las cuentas nuevas se guardan explícitamente ACTIVA (no se toca ninguna fila existente). */
     @PrePersist
+    // Ejecuta estado inicial como parte de las responsabilidades de esta clase.
     protected void estadoInicial() {
         if (estado == null) {
             estado = EstadoCuenta.ACTIVA.name();
         }
     }
 
+    // Ejecuta es administrador como parte de las responsabilidades de esta clase.
     public boolean esAdministrador() {
         return rol == Role.ADMINISTRADOR;
     }
 
     /** Estado efectivo: NULL (cuenta anterior al Lote 5) = ACTIVA; un valor desconocido = null (no reconocido). */
+    // Ejecuta get estado como parte de las responsabilidades de esta clase.
     public EstadoCuenta getEstado() {
         if (estado == null) {
             return EstadoCuenta.ACTIVA;
@@ -111,24 +132,29 @@ public class Usuario {
         return null;
     }
 
+    // Ejecuta estado reconocido como parte de las responsabilidades de esta clase.
     public boolean estadoReconocido() {
         return getEstado() != null;
     }
 
     /** UML 01 / RN-44: solo una cuenta ACTIVA puede iniciar sesión y hacer nuevas operaciones. */
+    // Ejecuta puede operar como parte de las responsabilidades de esta clase.
     public boolean puedeOperar() {
         return getEstado() == EstadoCuenta.ACTIVA;
     }
 
+    // Ejecuta esta en eliminacion como parte de las responsabilidades de esta clase.
     public boolean estaEnEliminacion() {
         return getEstado() == EstadoCuenta.EN_ELIMINACION;
     }
 
+    // Ejecuta esta eliminada como parte de las responsabilidades de esta clase.
     public boolean estaEliminada() {
         return getEstado() == EstadoCuenta.ELIMINADA;
     }
 
     /** UML 01: el Cliente confirmó con su contraseña. Desde aquí no puede operar (RN-37). */
+    // Ejecuta iniciar eliminacion como parte de las responsabilidades de esta clase.
     public void iniciarEliminacion() {
         if (!puedeOperar()) {
             throw new IllegalStateException("Solo una cuenta ACTIVA puede iniciar su eliminación");
@@ -138,6 +164,7 @@ public class Usuario {
     }
 
     /** UML 01: hay impedimentos (pedidos activos, tickets abiertos o postventa pendiente): vuelve a ACTIVA. */
+    // Ejecuta rechazar eliminacion como parte de las responsabilidades de esta clase.
     public void rechazarEliminacion() {
         if (!estaEnEliminacion()) {
             throw new IllegalStateException("Solo una cuenta EN_ELIMINACION puede volver a ACTIVA");
@@ -161,7 +188,9 @@ public class Usuario {
         rut = rutAnonimo.length() <= 12 ? rutAnonimo : "E" + id;
         nombres = "Cuenta";
         apellidos = "eliminada";
-        correo = "cuenta-eliminada-" + id;
+        // Correo anonimizado con formato válido.
+        // El identificador evita duplicados entre cuentas eliminadas.
+        correo = "cuenta-eliminada-" + id + "@example.invalid";
         passwordHash = PASSWORD_INUTILIZABLE;
         estado = EstadoCuenta.ELIMINADA.name();
         fechaEliminacion = LocalDateTime.now();

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase OrdenRepository.
 public interface OrdenRepository extends JpaRepository<Orden, Long>, JpaSpecificationExecutor<Orden> {
 
     /** Original. Se conserva: consulta válida por dueño (la usará el Lote 5, verificación de pedidos activos). */

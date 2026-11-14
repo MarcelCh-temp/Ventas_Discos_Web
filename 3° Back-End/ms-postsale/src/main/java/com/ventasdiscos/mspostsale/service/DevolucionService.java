@@ -52,17 +52,28 @@ import java.util.Set;
  */
 @Service
 public class DevolucionService {
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
 
     private static final Logger log = LoggerFactory.getLogger(DevolucionService.class);
+    // Constante LOTE_REINTENTO: valor compartido que no cambia durante la ejecución.
     static final int LOTE_REINTENTO = 50;
 
+    // Atributo solicitudes: dato o dependencia utilizada por esta clase.
     private final SolicitudPostVentaRepository solicitudes;
+    // Atributo operaciones: dato o dependencia utilizada por esta clase.
     private final OperacionReposicionRepository operaciones;
+    // Atributo itemsRecibidos: dato o dependencia utilizada por esta clase.
     private final ItemRecepcionDevolucionRepository itemsRecibidos;
+    // Atributo orders: dato o dependencia utilizada por esta clase.
     private final OrdersClient orders;
+    // Atributo inventory: dato o dependencia utilizada por esta clase.
     private final InventoryClient inventory;
+    // Atributo accounts: dato o dependencia utilizada por esta clase.
     private final AccountsClient accounts;
+    // Atributo support: dato o dependencia utilizada por esta clase.
     private final PostSaleSupport support;
+    // Atributo transaccion: dato o dependencia utilizada por esta clase.
     private final TransactionTemplate transaccion;
 
     public DevolucionService(SolicitudPostVentaRepository solicitudes, OperacionReposicionRepository operaciones,
@@ -107,6 +118,7 @@ public class DevolucionService {
     // ===================== HU-75: resolver =====================
 
     /** adminId sale del token del Administrador (DOC-09). */
+    // Procesa resolver aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse resolver(Long id, Resolver req, Long adminId) {
         boolean aprobar = Boolean.TRUE.equals(req.aprobar());
         return transaccion.execute(st -> {
@@ -153,6 +165,7 @@ public class DevolucionService {
     // ===================== HU-76: recepción =====================
 
     /** adminId sale del token del Administrador (DOC-09: usuarioRecepcionId). */
+    // Procesa recibir aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public SolicitudDetalleResponse recibir(Long id, Recibir req, Long adminId) {
         List<Reposicion> reposiciones = transaccion.execute(st -> {
             SolicitudPostVenta s = bloquearDevolucion(id);
@@ -185,7 +198,8 @@ public class DevolucionService {
             if (!errores.isEmpty()) {
                 throw new ValidacionNegocioException("Hay productos o cantidades inválidos en la recepción", errores);
             }
-            solicitudes.saveAndFlush(s);
+            entityManager.persist(r);
+            entityManager.flush();
             List<Reposicion> pendientes = new ArrayList<>();
             for (ItemRecepcionDevolucion item : r.getItems()) {
                 OperacionReposicion op = item.prepararReposicion();
@@ -223,6 +237,7 @@ public class DevolucionService {
     }
 
     /** Llama a Catalog FUERA de la transacción y registra el resultado en una transacción corta. */
+    // Procesa aplicar reposicion aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void aplicarReposicion(Reposicion rep) {
         try {
             InventoryClient.Respuesta r = inventory.reponer(rep.operacionId(),
@@ -246,6 +261,7 @@ public class DevolucionService {
         }
     }
 
+    // Procesa bloquear devolucion aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private SolicitudPostVenta bloquearDevolucion(Long id) {
         return solicitudes.bloquear(id)
                 .filter(x -> x.esDeTipo(TipoSolicitud.DEVOLUCION))
@@ -253,6 +269,7 @@ public class DevolucionService {
     }
 
     /** Productos sin repetir y cantidades enteras (RF-POS-02). Devuelve productoId -> cantidad. */
+    // Procesa cantidades solicitadas aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static Map<Long, Integer> cantidadesSolicitadas(List<ItemSolicitud> items) {
         Map<Long, Integer> productos = new LinkedHashMap<>();
         Map<String, String> errores = new LinkedHashMap<>();
@@ -271,6 +288,7 @@ public class DevolucionService {
     }
 
     /** RN-22: solo productos realmente comprados y sin superar la cantidad comprada (datos reales de Orders). */
+    // Procesa validar contra pedido aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private static void validarContraPedido(PedidoOrders p, Map<Long, Integer> productos) {
         Map<String, String> errores = new LinkedHashMap<>();
         int i = 0;
@@ -313,10 +331,12 @@ public class DevolucionService {
         }
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método idDe (id de).
     private static Long idDe(SolicitudPostVenta s) {
         return s == null ? null : s.getId();
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método entero (entero).
     private static int entero(BigDecimal valor) {
         return valor.intValueExact();
     }

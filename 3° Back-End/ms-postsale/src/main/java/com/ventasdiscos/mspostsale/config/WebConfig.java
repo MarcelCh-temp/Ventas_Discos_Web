@@ -19,9 +19,13 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // Atributo authUserArgumentResolver: dato o dependencia utilizada por esta clase.
     private final AuthUserArgumentResolver authUserArgumentResolver;
+    // Atributo servicioJwt: dato o dependencia utilizada por esta clase.
     private final ObjectProvider<ServicioJwtService> servicioJwt;
+    // Dependencia inyectada para acceder a jwt service sin crearla manualmente.
     private final ObjectProvider<JwtService> jwtService;
+    // Dependencia inyectada para acceder a accounts client sin crearla manualmente.
     private final ObjectProvider<AccountsClient> accountsClient;
 
     public WebConfig(AuthUserArgumentResolver authUserArgumentResolver,
@@ -35,6 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
+    // Configuración reutilizable del framework o de la aplicación. Método addArgumentResolvers (add argument resolvers).
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(authUserArgumentResolver);
     }

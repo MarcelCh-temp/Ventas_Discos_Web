@@ -58,11 +58,13 @@ class PromocionServiceTest {
         when(productoRepo.findAllById(anyIterable())).thenReturn(List.of(disco));
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método req (req).
     private PromocionRequest req(TipoDescuento tipo, String valor, LocalDate inicio, LocalDate fin,
                                  List<Long> productIds, Categoria categoria) {
         return new PromocionRequest("Promo", tipo, new BigDecimal(valor), inicio, fin, null, productIds, categoria);
     }
 
+    // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método existente (existente).
     private Promocion existente(LocalDate inicio, LocalDate fin, boolean desactivada) {
         Promocion p = Fixtures.promo(7L, TipoDescuento.PORCENTAJE, "10", null, disco);
         p.setFechaInicio(inicio);

@@ -19,6 +19,7 @@ import java.time.Duration;
 public class RestTemplateConfig {
 
     @Bean
+    // Ejecuta rest template como parte de las responsabilidades de esta clase.
     public RestTemplate restTemplate(ServicioJwtService servicioJwt) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(2));

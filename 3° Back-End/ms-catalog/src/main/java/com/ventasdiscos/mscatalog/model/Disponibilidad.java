@@ -5,7 +5,10 @@ package com.ventasdiscos.mscatalog.model;
  * Lote 2: trasladado desde ms-inventory. Catalog lo traduce a DisponibilidadCatalogo para las vistas.
  */
 public enum Disponibilidad {
+    // Opción DISPONIBLE: representa el estado o tipo «disponible» permitido en este dominio.
     DISPONIBLE,
+    // Opción STOCK_CRITICO: representa el estado o tipo «stock critico» permitido en este dominio.
     STOCK_CRITICO,
+    // Opción AGOTADO: representa el estado o tipo «agotado» permitido en este dominio.
     AGOTADO
 }

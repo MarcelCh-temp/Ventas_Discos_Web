@@ -115,6 +115,7 @@ class OrdenesITTest {
         return new Cotizacion(lineas, subtotal, descuento, subtotal.subtract(descuento), todos);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método disponibilidad (disponibilidad).
     private static List<Disponibilidad> disponibilidad(List<ItemSolicitado> items) {
         return items.stream().map(i -> {
             Prod p = CATALOGO.get(i.productId());
@@ -150,11 +151,13 @@ class OrdenesITTest {
         return como(token, req.contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método agregar (agregar).
     private ResultActions agregar(long uid, long productId, int cantidad) throws Exception {
         return json(TestTokens.cliente(uid), post("/api/v1/cart/items"),
                 "{\"productId\":" + productId + ",\"cantidad\":" + cantidad + "}");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método entrega (entrega).
     private static String entrega(String metodo) {
         return metodo.equals("RETIRO_TIENDA")
                 ? "{\"metodoEntrega\":\"RETIRO_TIENDA\",\"nombreReceptor\":\"Ana Pérez\",\"telefono\":\"+56912345678\"}"
@@ -162,6 +165,7 @@ class OrdenesITTest {
                 + "\"direccion\":\"Av. Siempre Viva 123\",\"comuna\":\"Santiago\",\"referencia\":\"\"}";
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método confirmar (confirmar).
     private ResultActions confirmar(long uid, String total, String resultado, String metodo) throws Exception {
         String res = resultado == null ? "" : ",\"resultadoSimulado\":\"" + resultado + "\"";
         return json(TestTokens.cliente(uid), post("/api/v1/checkout/confirm"),

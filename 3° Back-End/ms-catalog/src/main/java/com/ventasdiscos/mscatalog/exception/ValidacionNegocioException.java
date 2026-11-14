@@ -6,11 +6,13 @@ import java.util.Map;
 
 /** 400: regla que necesita comparar/consultar datos (no se puede con anotaciones del DTO). */
 public class ValidacionNegocioException extends ApiException {
+    // Ejecuta validacion negocio exception como parte de las responsabilidades de esta clase.
     public ValidacionNegocioException(String mensaje) {
         super(HttpStatus.BAD_REQUEST, mensaje);
     }
 
     /** Permite indicar varios campos a corregir a la vez (RNF-04). */
+    // Ejecuta validacion negocio exception como parte de las responsabilidades de esta clase.
     public ValidacionNegocioException(String mensaje, Map<String, String> errores) {
         super(HttpStatus.BAD_REQUEST, mensaje, errores);
     }

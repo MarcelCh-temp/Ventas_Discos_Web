@@ -149,6 +149,7 @@ class PostSaleITTest {
         return mockMvc.perform(req);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método consultar (consultar).
     private ResultActions consultar(String url, String token) throws Exception {
         var req = get(url);
         if (token != null) {
@@ -157,28 +158,33 @@ class PostSaleITTest {
         return mockMvc.perform(req);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método id (id).
     private static long id(ResultActions r, String ruta) throws Exception {
         Number n = JsonPath.read(r.andReturn().getResponse().getContentAsString(), ruta);
         return n.longValue();
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crearCancelacion (crear cancelacion).
     private long crearCancelacion(long userId, long pedidoId) throws Exception {
         return id(enviar("/api/v1/post-sale/cancellations", TestTokens.cliente(userId),
                 "{\"pedidoId\":" + pedidoId + ",\"motivoSolicitud\":\"Me equivoqué de disco\"}")
                 .andExpect(status().isCreated()), "$.id");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crearDevolucion (crear devolucion).
     private long crearDevolucion(long userId, long pedidoId, String items) throws Exception {
         return id(enviar("/api/v1/post-sale/returns", TestTokens.cliente(userId),
                 "{\"pedidoId\":" + pedidoId + ",\"motivoSolicitud\":\"Llegó rayado\",\"items\":" + items + "}")
                 .andExpect(status().isCreated()), "$.id");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método resolver (resolver).
     private ResultActions resolver(String tipo, long id, String token, boolean aprobar) throws Exception {
         return enviar("/api/v1/admin/post-sale/" + tipo + "/" + id + "/resolve", token,
                 "{\"aprobar\":" + aprobar + ",\"motivo\":\"Revisado por el equipo\"}");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método devolucionAprobada (devolucion aprobada).
     private long devolucionAprobada(long userId, long pedidoId) throws Exception {
         long id = crearDevolucion(userId, pedidoId,
                 "[{\"productoId\":2,\"cantidadSolicitada\":2},{\"productoId\":5,\"cantidadSolicitada\":1}]");

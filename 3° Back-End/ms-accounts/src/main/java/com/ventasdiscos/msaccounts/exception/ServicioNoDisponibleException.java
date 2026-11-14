@@ -9,6 +9,7 @@ import java.util.Map;
  * concluyente, no se finaliza") -> 503.
  */
 public class ServicioNoDisponibleException extends ApiException {
+    // Ejecuta servicio no disponible exception como parte de las responsabilidades de esta clase.
     public ServicioNoDisponibleException(String mensaje, Map<String, String> errores) {
         super(HttpStatus.SERVICE_UNAVAILABLE, mensaje, errores);
     }

@@ -30,8 +30,10 @@ import ms_ordenes.ms_ordenes.security.ServiciosPermitidos;
 @RequestMapping("/api/v1/internal/orders")
 public class InternalOrdenController {
 
+    // Dependencia inyectada para acceder a orden service sin crearla manualmente.
     private final OrdenService ordenService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public InternalOrdenController(OrdenService ordenService) {
         this.ordenService = ordenService;
     }
@@ -48,6 +50,7 @@ public class InternalOrdenController {
     @Operation(summary = "Accounts: ¿el usuario tiene pedidos PENDIENTE, CONFIRMADO, PREPARANDO o DESPACHADO?")
     @ServiciosPermitidos(Servicios.ACCOUNTS)
     @GetMapping("/users/{userId}/active-exists")
+    // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<ExisteResponse> pedidosActivos(@PathVariable Long userId) {
         return ResponseEntity.ok(ordenService.tienePedidosActivos(userId));
     }

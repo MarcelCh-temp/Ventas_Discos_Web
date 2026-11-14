@@ -22,8 +22,10 @@ import java.io.IOException;
  */
 public class LlamadaInternaInterceptor implements ClientHttpRequestInterceptor {
 
+    // Atributo servicioJwt: dato o dependencia utilizada por esta clase.
     private final ServicioJwtService servicioJwt;
 
+    // Ejecuta llamada interna interceptor como parte de las responsabilidades de esta clase.
     public LlamadaInternaInterceptor(ServicioJwtService servicioJwt) {
         this.servicioJwt = servicioJwt;
     }

@@ -1,5 +1,6 @@
 package ms_ordenes.ms_ordenes.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,27 +27,37 @@ public class DatosEntrega {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "metodo_entrega", nullable = false, length = 30)
+    @NotNull
+    // Atributo metodoEntrega: propiedad que se guarda o utiliza en esta entidad.
     private MetodoEntrega metodoEntrega;
 
     @Column(name = "nombre_receptor", nullable = false, length = 100)
+    @NotBlank
+    // Atributo nombreReceptor: propiedad que se guarda o utiliza en esta entidad.
     private String nombreReceptor;
 
     @Column(nullable = false, length = 20)
+    // Dato telefono del registro.
     private String telefono;
 
     @Column(length = 150)
+    // Dato direccion del registro.
     private String direccion;
 
     @Column(length = 80)
+    // Dato comuna del registro.
     private String comuna;
 
     @Column(length = 200)
+    // Dato referencia del registro.
     private String referencia;
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método DatosEntrega (datos entrega).
     protected DatosEntrega() {
     }
 
@@ -100,6 +111,7 @@ public class DatosEntrega {
         return cambios;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método validarObligatorios (validar obligatorios).
     private void validarObligatorios() {
         Map<String, String> errores = new LinkedHashMap<>();
         Map<String, String> valores = Map.of(
@@ -115,6 +127,7 @@ public class DatosEntrega {
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método cambiar (cambiar).
     private static String cambiar(String campo, String actual, String nuevo, List<String> cambios) {
         if (nuevo == null) {
             return actual;
@@ -126,6 +139,7 @@ public class DatosEntrega {
         return limpio;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método limpiar (limpiar).
     private static String limpiar(String valor) {
         if (valor == null) {
             return null;
@@ -134,15 +148,23 @@ public class DatosEntrega {
         return t.isEmpty() ? null : t;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método nvl (nvl).
     private static String nvl(String valor) {
         return valor == null ? "" : valor;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getId (consultar id).
     public Long getId() { return id; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getMetodoEntrega (consultar metodo entrega).
     public MetodoEntrega getMetodoEntrega() { return metodoEntrega; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getNombreReceptor (consultar nombre receptor).
     public String getNombreReceptor() { return nombreReceptor; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getTelefono (consultar telefono).
     public String getTelefono() { return telefono; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getDireccion (consultar direccion).
     public String getDireccion() { return direccion; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getComuna (consultar comuna).
     public String getComuna() { return comuna; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getReferencia (consultar referencia).
     public String getReferencia() { return referencia; }
 }

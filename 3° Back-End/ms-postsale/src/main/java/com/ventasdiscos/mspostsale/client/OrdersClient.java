@@ -28,18 +28,23 @@ import java.util.regex.Pattern;
  *                                              stock UNA vez (idempotente: repetirla responde yaCancelado: true)
  * Reintentos limitados ante conexión o 5xx (mismo patrón aprobado de los Lotes 1 y 3). Repetir es seguro: la
  * consulta no cambia nada y la cancelación es idempotente en Orders. Ante 4xx no se reintenta.
- * Lote 6 · DOC-05: el RestTemplate agrega un JWT de servicio nuevo en cada llamada. Sin X-Internal-Key.
+ * Lote 6 · DOC-05: el RestTemplate agrega un JWT de servicio nuevo en cada llamada. Sin mecanismo de autenticacion anterior.
  */
 @Component
 public class OrdersClient {
 
     private static final Logger log = LoggerFactory.getLogger(OrdersClient.class);
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
     private static final Pattern MENSAJE = Pattern.compile("\"mensaje\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
+    // Constante NO_DISPONIBLE: valor compartido que no cambia durante la ejecución.
     static final String NO_DISPONIBLE = "No fue posible comunicarse con el servicio de pedidos. Intenta nuevamente en unos minutos";
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
     public OrdersClient(@Qualifier("ordersRestTemplate") RestTemplate restTemplate,
@@ -49,6 +54,7 @@ public class OrdersClient {
     }
 
     /** 404 si el pedido no existe; 503 si Orders no responde. */
+    // Cliente de integración: realiza obtener con otro microservicio y trata su respuesta.
     public PedidoOrders obtener(Long pedidoId) {
         return llamar(() -> restTemplate.getForObject(baseUrl + "/api/v1/internal/orders/{id}", PedidoOrders.class,
                 pedidoId), "consulta del pedido " + pedidoId);
@@ -64,6 +70,7 @@ public class OrdersClient {
                 CancelacionOrders.class, pedidoId), "cancelación del pedido " + pedidoId);
     }
 
+    // Cliente de integración: realiza llamar con otro microservicio y trata su respuesta.
     private <T> T llamar(Supplier<T> llamada, String que) {
         for (int intento = 1; intento <= MAX_INTENTOS; intento++) {
             try {
@@ -95,12 +102,14 @@ public class OrdersClient {
     }
 
     /** Toma "mensaje" del ApiError de Orders; si no viene, un texto genérico. */
+    // Cliente de integración: realiza mensaje con otro microservicio y trata su respuesta.
     static String mensaje(HttpClientErrorException e) {
         Matcher m = MENSAJE.matcher(e.getResponseBodyAsString());
         return m.find() ? m.group(1).replace("\\\"", "\"")
                 : "El servicio de pedidos rechazó la solicitud (" + e.getStatusCode().value() + ")";
     }
 
+    // Cliente de integración: realiza esperar con otro microservicio y trata su respuesta.
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);

@@ -41,12 +41,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PromocionService {
 
+    // Dependencia inyectada para acceder a promocion repository sin crearla manualmente.
     private final PromocionRepository promocionRepository;
+    // Dependencia inyectada para acceder a producto repository sin crearla manualmente.
     private final ProductoRepository productoRepository;
+    // Atributo calculadora: dato o dependencia utilizada por esta clase.
     private final CalculadoraPromociones calculadora;
 
     /** HU-47 */
     @Transactional
+    // Procesa crear aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PromocionResponse crear(PromocionRequest req) {
         LocalDate hoy = LocalDate.now();
         if (req.fechaFin().isBefore(hoy)) {
@@ -59,6 +63,7 @@ public class PromocionService {
 
     /** HU-50: solo Programada o Activa; en Activa no se mueve la fecha de inicio. */
     @Transactional
+    // Procesa actualizar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PromocionResponse actualizar(Long id, PromocionRequest req) {
         LocalDate hoy = LocalDate.now();
         Promocion p = buscar(id);
@@ -78,6 +83,7 @@ public class PromocionService {
 
     /** HU-51: término manual anticipado; deja de aplicarse de inmediato y conserva su historial. */
     @Transactional
+    // Procesa desactivar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PromocionResponse desactivar(Long id) {
         LocalDate hoy = LocalDate.now();
         Promocion p = buscar(id);
@@ -93,6 +99,7 @@ public class PromocionService {
     }
 
     @Transactional(readOnly = true)
+    // Procesa obtener aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PromocionResponse obtener(Long id) {
         return PromocionResponse.from(buscar(id), LocalDate.now());
     }
@@ -146,6 +153,7 @@ public class PromocionService {
 
     /** HU-52: solo promociones vigentes, con productos ACTIVOS y su precio promocional. */
     @Transactional(readOnly = true)
+    // Procesa ofertas vigentes aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<OfertaResponse> ofertasVigentes() {
         List<OfertaResponse> ofertas = new ArrayList<>();
         for (Promocion promo : promocionRepository.findActivas(LocalDate.now())) {
@@ -177,6 +185,7 @@ public class PromocionService {
     }
 
     /** Valida (HU-47/HU-50) y copia los datos al entity. */
+    // Procesa aplicar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     private void aplicar(PromocionRequest req, Promocion p) {
         if (req.fechaInicio().isAfter(req.fechaFin())) {
             throw new ValidacionNegocioException("La fecha de inicio no puede ser posterior a la de término");

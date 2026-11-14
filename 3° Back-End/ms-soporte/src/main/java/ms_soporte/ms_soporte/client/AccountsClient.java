@@ -28,7 +28,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 public class AccountsClient {
 
     private static final Logger log = LoggerFactory.getLogger(AccountsClient.class);
+    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
     static final int MAX_INTENTOS = 2;
+    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
     private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
     static final String NO_OPERA = "Tu cuenta no puede realizar nuevas operaciones (está en proceso de eliminación,"
             + " fue eliminada o no está habilitada)";
@@ -36,21 +38,26 @@ public class AccountsClient {
             + " intenta nuevamente en unos minutos";
 
     /** Respuesta de Accounts. estado puede ser null si el valor guardado no es reconocido. */
+    // Cliente de integración: realiza estado operacion con otro microservicio y trata su respuesta.
     public record EstadoOperacion(Long userId, String estado, Boolean puedeOperar) {
     }
 
     /** Cierre (RN-44): cuenta ya confirmada ACTIVA en ESTA petición; evita repetir la consulta a Accounts. */
     static final String VERIFICADA = AccountsClient.class.getName() + ".verificada.";
 
+    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
+    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
+    // Cliente de integración: realiza accounts client con otro microservicio y trata su respuesta.
     public AccountsClient(RestTemplate restTemplate, @Value("${services.accounts.url}") String baseUrl) {
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
 
     /** 403 si la cuenta no puede operar o no existe; 503 si no se pudo confirmar. */
+    // Cliente de integración: realiza exigir cuenta activa con otro microservicio y trata su respuesta.
     public void exigirCuentaActiva(Long userId) {
         if (yaVerificada(userId)) {
             return;
@@ -86,6 +93,7 @@ public class AccountsClient {
         throw new ServicioNoDisponibleException(NO_DISPONIBLE);
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperar (esperar).
     private static void esperar() {
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);
@@ -94,12 +102,14 @@ public class AccountsClient {
         }
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método yaVerificada (ya verificada).
     private static boolean yaVerificada(Long userId) {
         RequestAttributes peticion = RequestContextHolder.getRequestAttributes();
         return peticion != null
                 && Boolean.TRUE.equals(peticion.getAttribute(VERIFICADA + userId, RequestAttributes.SCOPE_REQUEST));
     }
 
+    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método marcarVerificada (marcar verificada).
     private static void marcarVerificada(Long userId) {
         RequestAttributes peticion = RequestContextHolder.getRequestAttributes();
         if (peticion != null) {

@@ -32,10 +32,12 @@ public final class TokensPrueba {
         return firmar(b.build(), secreto);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método cliente (cliente).
     public static String cliente(long userId) {
         return "Bearer " + usuario(userId, "CLIENTE", "ms-accounts", 600, SECRETO_USUARIOS);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método admin (admin).
     public static String admin() {
         return "Bearer " + usuario(1L, "ADMINISTRADOR", "ms-accounts", 600, SECRETO_USUARIOS);
     }

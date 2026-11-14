@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase PromocionRepository.
 public interface PromocionRepository extends JpaRepository<Promocion, Long>, JpaSpecificationExecutor<Promocion> {
 
     /** Promociones vigentes hoy (no desactivadas y dentro de fechas), con sus productos cargados. */

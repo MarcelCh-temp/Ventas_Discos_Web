@@ -1,5 +1,6 @@
 package com.ventasdiscos.mscatalog.model;
 
+import jakarta.validation.constraints.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,34 +38,51 @@ public class MovimientoStock {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Atributo id: propiedad que se guarda o utiliza en esta entidad.
     private Long id;
 
     /** UML 03: Inventario "1" *-- "0..*" MovimientoStock. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "inventario_id", nullable = false)
+    @NotNull
+    // Atributo inventario: propiedad que se guarda o utiliza en esta entidad.
     private Inventario inventario;
 
     @Column(name = "operacion_id", length = 100)
+    // Atributo operacionId: propiedad que se guarda o utiliza en esta entidad.
     private String operacionId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @NotNull
+    // Atributo tipo: propiedad que se guarda o utiliza en esta entidad.
     private TipoMovimiento tipo;
 
     /** Para ENTRADA/SALIDA: unidades movidas. Para AJUSTE: nuevo valor contado. */
     @Column(nullable = false)
+    @Positive
+    @NotNull
+    // Atributo cantidad: propiedad que se guarda o utiliza en esta entidad.
     private Integer cantidad;
 
     @Column(nullable = false)
+    @PositiveOrZero
+    @NotNull
+    // Atributo stockAnterior: propiedad que se guarda o utiliza en esta entidad.
     private Integer stockAnterior;
 
     @Column(nullable = false)
+    @NotNull
+    // Atributo stockResultante: propiedad que se guarda o utiliza en esta entidad.
     private Integer stockResultante;
 
     @Column(name = "fecha_hora", nullable = false)
+    @NotNull
+    // Atributo fechaHora: propiedad que se guarda o utiliza en esta entidad.
     private LocalDateTime fechaHora;
 
     @Column(length = 255)
+    // Dato motivo del registro.
     private String motivo;
 
     /**

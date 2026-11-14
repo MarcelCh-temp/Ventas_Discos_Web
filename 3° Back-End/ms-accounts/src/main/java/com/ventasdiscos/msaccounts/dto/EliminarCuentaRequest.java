@@ -13,6 +13,7 @@ public record EliminarCuentaRequest(
 ) {
     /** Evita que la contraseña aparezca si alguien imprime el objeto en un log. */
     @Override
+    // Ejecuta to string como parte de las responsabilidades de esta clase.
     public String toString() {
         return "EliminarCuentaRequest[password=***]";
     }

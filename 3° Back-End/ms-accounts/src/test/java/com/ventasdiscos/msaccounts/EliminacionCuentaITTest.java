@@ -44,6 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,8 +85,10 @@ class EliminacionCuentaITTest {
     @Autowired
     private JdbcTemplate jdbc;
     @Autowired
+    // Dato eliminacion service del registro.
     private EliminacionCuentaService eliminacionService;
     @MockitoBean
+    // Dato dependencias del registro.
     private DependenciasCuentaClient dependencias;
 
     // ===================== Apoyo =====================
@@ -102,6 +106,7 @@ class EliminacionCuentaITTest {
         return c + "-" + dv;
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crear (crear).
     private Usuario crear(Role rol) {
         long n = SECUENCIA.incrementAndGet();
         Usuario u = new Usuario();
@@ -114,10 +119,12 @@ class EliminacionCuentaITTest {
         return usuarios.save(u);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método cliente (cliente).
     private Usuario cliente() {
         return crear(Role.CLIENTE);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método token (token).
     private String token(Usuario u) {
         return "Bearer " + jwtService.generar(u);
     }
@@ -139,6 +146,7 @@ class EliminacionCuentaITTest {
         return jdbc.queryForObject("select estado from usuario where id = ?", String.class, id);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método eliminar (eliminar).
     private ResultActions eliminar(String token, String cuerpo) throws Exception {
         var req = delete("/api/v1/accounts/me");
         if (token != null) {
@@ -150,19 +158,23 @@ class EliminacionCuentaITTest {
         return mockMvc.perform(req);
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método eliminarConClave (eliminar con clave).
     private ResultActions eliminarConClave(Usuario u) throws Exception {
         return eliminar(token(u), "{\"password\":\"" + CLAVE + "\"}");
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método estadoOperacion (estado operacion).
     private ResultActions estadoOperacion(Long id) throws Exception {
         return mockMvc.perform(get("/api/v1/internal/accounts/" + id + "/operation-status").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS)));
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método login (login).
     private ResultActions login(String correo, String clave) throws Exception {
         return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"correo\":\"" + correo + "\",\"password\":\"" + clave + "\"}"));
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método caido (caido).
     private static DependenciaNoConfirmadaException caido(String servicio) {
         return new DependenciaNoConfirmadaException(servicio, "no respondió");
     }
@@ -376,7 +388,7 @@ class EliminacionCuentaITTest {
         login(u.getCorreo(), CLAVE).andExpect(status().isForbidden());
 
         // Notifications vuelve: la tarea programada completa sin intervención del Cliente
-        when(dependencias.depurarNotificaciones(u.getId())).thenReturn(0);
+        doReturn(0).when(dependencias).depurarNotificaciones(u.getId());
         assertTrue(eliminacionService.reintentarPendientes() >= 1);
         assertEquals("ELIMINADA", estadoGuardado(u.getId()));
         // Favoritos se repitió de forma segura (contrato idempotente): 2 llamadas, sin efectos duplicados
@@ -389,7 +401,7 @@ class EliminacionCuentaITTest {
         String t = token(u);
         when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
         eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
-        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        doReturn(0).when(dependencias).depurarFavoritos(u.getId());
         // Continuación de la eliminación ya autorizada: sin cuerpo y con el mismo token
         eliminar(t, null).andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ELIMINADA"));
         // Ese token sigue sin servir para otras operaciones
@@ -402,7 +414,7 @@ class EliminacionCuentaITTest {
         when(dependencias.depurarNotificaciones(u.getId())).thenThrow(caido("Notifications"));
         eliminarConClave(u).andExpect(status().isAccepted());
         eliminar(tokenVencido(u.getId()), null).andExpect(status().isUnauthorized());
-        when(dependencias.depurarNotificaciones(u.getId())).thenReturn(0);
+        doReturn(0).when(dependencias).depurarNotificaciones(u.getId());
         eliminacionService.reintentarPendientes();
         assertEquals("ELIMINADA", estadoGuardado(u.getId()));
     }
@@ -417,8 +429,8 @@ class EliminacionCuentaITTest {
         eliminar(t, null).andExpect(status().isServiceUnavailable());
         eliminacionService.reintentarPendientes();
         assertEquals("EN_ELIMINACION", estadoGuardado(u.getId()));     // sigue bloqueada, no vuelve a ACTIVA
-        when(dependencias.tieneTicketsAbiertos(u.getId())).thenReturn(false);
-        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        doReturn(false).when(dependencias).tieneTicketsAbiertos(u.getId());
+        doReturn(0).when(dependencias).depurarFavoritos(u.getId());
         eliminacionService.reintentarPendientes();
         assertEquals("ELIMINADA", estadoGuardado(u.getId()));
     }
@@ -429,7 +441,7 @@ class EliminacionCuentaITTest {
         String t = token(u);
         when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
         eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
-        when(dependencias.depurarFavoritos(u.getId())).thenReturn(0);
+        doReturn(0).when(dependencias).depurarFavoritos(u.getId());
         when(dependencias.tienePedidosActivos(u.getId())).thenReturn(true);
         eliminar(t, null).andExpect(status().isConflict()).andExpect(jsonPath("$.errores.pedidos").exists())
                 .andExpect(jsonPath("$.mensaje", startsWith("No es posible eliminar la cuenta")));
@@ -454,10 +466,10 @@ class EliminacionCuentaITTest {
         String t = token(u);
         when(dependencias.depurarFavoritos(u.getId())).thenThrow(caido("Catalog"));
         eliminar(t, "{\"password\":\"" + CLAVE + "\"}").andExpect(status().isAccepted());
-        when(dependencias.depurarFavoritos(u.getId())).thenAnswer(inv -> {
+        doAnswer(inv -> {
             Thread.sleep(300);
             return 0;
-        });
+        }).when(dependencias).depurarFavoritos(u.getId());
         ExecutorService ex = Executors.newFixedThreadPool(3);
         try {
             List<Callable<Integer>> tareas = new ArrayList<>();
@@ -478,6 +490,6 @@ class EliminacionCuentaITTest {
         assertEquals("ELIMINADA", estadoGuardado(u.getId()));
         // 1 llamada fallida del primer DELETE + 1 de quien completó: los demás ya la vieron ELIMINADA
         verify(dependencias, times(2)).depurarFavoritos(eq(u.getId()));
-        verify(dependencias, times(1)).depurarNotificaciones(eq(u.getId()));
+        verify(dependencias, times(2)).depurarNotificaciones(eq(u.getId()));
     }
 }

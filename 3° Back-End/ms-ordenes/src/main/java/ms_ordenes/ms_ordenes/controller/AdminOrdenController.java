@@ -34,8 +34,10 @@ import java.time.LocalDate;
 @RequestMapping("/api/v1/admin/orders")
 public class AdminOrdenController {
 
+    // Dependencia inyectada para acceder a orden service sin crearla manualmente.
     private final OrdenService ordenService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public AdminOrdenController(OrdenService ordenService) {
         this.ordenService = ordenService;
     }
@@ -57,6 +59,7 @@ public class AdminOrdenController {
 
     @Operation(summary = "HU-28 / HU-32: detalle completo con historial")
     @GetMapping("/{id}")
+    // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<PedidoDetalleResponse> detalle(@Parameter(hidden = true) AuthUser user, @PathVariable Long id) {
         user.requireAdmin();
         return ResponseEntity.ok(ordenService.detalleAdmin(id));
@@ -64,6 +67,7 @@ public class AdminOrdenController {
 
     @Operation(summary = "HU-29 / HU-31: cambiar estado (CANCELADO exige motivo y repone stock una vez)")
     @PatchMapping("/{id}/status")
+    // PATCH: modifica parcialmente un recurso. Método cambiarEstado (cambiar estado).
     public ResponseEntity<PedidoDetalleResponse> cambiarEstado(@Parameter(hidden = true) AuthUser user,
                                                                @PathVariable Long id,
                                                                @Valid @RequestBody CambioEstadoRequest req) {
@@ -73,6 +77,7 @@ public class AdminOrdenController {
 
     @Operation(summary = "HU-30: corregir datos de entrega permitidos (antes de DESPACHADO)")
     @PatchMapping("/{id}/delivery-data")
+    // PATCH: modifica parcialmente un recurso. Método corregirEntrega (corregir entrega).
     public ResponseEntity<PedidoDetalleResponse> corregirEntrega(@Parameter(hidden = true) AuthUser user,
                                                                  @PathVariable Long id,
                                                                  @Valid @RequestBody CorreccionEntregaRequest req) {
@@ -82,6 +87,7 @@ public class AdminOrdenController {
 
     @Operation(summary = "HU-33: registrar o actualizar el despacho (PREPARANDO pasa a DESPACHADO)")
     @PostMapping("/{id}/dispatch")
+    // POST: recibe una solicitud y ejecuta una operación. Método despacho (despacho).
     public ResponseEntity<PedidoDetalleResponse> despacho(@Parameter(hidden = true) AuthUser user,
                                                           @PathVariable Long id,
                                                           @Valid @RequestBody DespachoRequest req) {

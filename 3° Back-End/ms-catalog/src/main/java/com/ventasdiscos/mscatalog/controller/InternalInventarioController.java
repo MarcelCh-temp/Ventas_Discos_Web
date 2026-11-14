@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class InternalInventarioController {
 
+    // Dependencia inyectada para acceder a service sin crearla manualmente.
     private final InventarioService service;
 
     @Operation(summary = "Orders/PostSale: descontar o reponer stock (idempotente por operacionId)")

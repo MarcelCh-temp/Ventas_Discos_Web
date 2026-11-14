@@ -27,8 +27,10 @@ import java.util.Map;
 @Validated
 public class NotificacionController {
 
+    // Dependencia inyectada para acceder a notificacion service sin crearla manualmente.
     private final NotificacionService notificacionService;
 
+    // Endpoint HTTP; el controlador delega la operación y devuelve la respuesta correspondiente.
     public NotificacionController(NotificacionService notificacionService) {
         this.notificacionService = notificacionService;
     }

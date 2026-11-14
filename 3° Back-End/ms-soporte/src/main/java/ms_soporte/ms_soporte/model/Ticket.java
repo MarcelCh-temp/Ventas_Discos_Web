@@ -1,8 +1,7 @@
 package ms_soporte.ms_soporte.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,20 +10,24 @@ import java.util.List;
 
 @Entity
 @Table(name = "tickets")
+// Modelo de dominio: representa los datos y las reglas básicas de integridad de una entidad. Clase Ticket.
 public class Ticket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Identificador para identificar el registro.
     private Long id;
 
     // Lote 1 (HU-59): número visible del ticket (ej. SOP-000012). Se asigna una sola vez con asignarNumeroTicket().
     // Columna nueva y nullable: los tickets antiguos de bd_soporte siguen funcionando.
     @Column(name = "numero_ticket", unique = true, length = 20)
+
     private String numeroTicket;
 
     // Lote 1: lo pone el Service con el usuario del token, nunca el cliente.
     @NotNull(message = "El idUsuario es obligatorio")
     @Column(name = "id_usuario", nullable = false)
+    @Positive
     private Long idUsuario;
 
     @Column(name = "order_id")
@@ -32,23 +35,30 @@ public class Ticket {
 
     @NotBlank(message = "El asunto no puede estar vacío")
     @Column(nullable = false)
+    // Dato asunto del registro; validación: texto obligatorio y no vacío.
     private String asunto;
 
     @NotBlank(message = "La descripción no puede estar vacía")
     @Column(columnDefinition = "TEXT", nullable = false)
+    // Dato descripcion del registro; validación: texto obligatorio y no vacío.
     private String descripcion;
 
     @Column(nullable = false)
+    // Dato categoria del registro.
     private String categoria = "GENERAL";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @NotNull
+    // Dato estado del registro; validación: valor obligatorio (no nulo); enum persistido con las opciones permitidas.
     private EstadoTicket estado;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    // Fecha u hora utilizada para registrar o controlar el proceso.
     private LocalDateTime fechaCreacion;
 
     @Column(name = "fecha_cierre")
+    // Fecha u hora utilizada para registrar o controlar el proceso.
     private LocalDateTime fechaCierre;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -61,6 +71,7 @@ public class Ticket {
     private List<HistorialEstadoSoporte> historial = new ArrayList<>();
 
     @PrePersist
+    // Ejecuta on create como parte de las responsabilidades de esta clase.
     protected void onCreate() {
         if (this.fechaCreacion == null) {
             this.fechaCreacion = LocalDateTime.now();
@@ -70,8 +81,10 @@ public class Ticket {
         }
     }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método Ticket (ticket).
     public Ticket() {}
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método agregarMensaje (agregar mensaje).
     public void agregarMensaje(MensajeSoporte mensaje) {
         mensajes.add(mensaje);
         mensaje.setTicket(this);
@@ -80,6 +93,7 @@ public class Ticket {
     // ---- Lote 1: reglas propias del ticket (UML: estaCerrada, iniciarAtencion, cerrar) ----
 
     /** RN-30: una solicitud CERRADA no acepta respuestas ni más cambios. */
+    // Ejecuta esta cerrada como parte de las responsabilidades de esta clase.
     public boolean estaCerrada() {
         return this.estado == EstadoTicket.CERRADA;
     }
@@ -108,6 +122,7 @@ public class Ticket {
     }
 
     /** Cambia el estado y deja registro en el historial (HU-66: cada cambio queda registrado). */
+    // Ejecuta cambiar estado como parte de las responsabilidades de esta clase.
     private void cambiarEstado(EstadoTicket nuevo, Long usuarioResponsableId) {
         HistorialEstadoSoporte registro = new HistorialEstadoSoporte(this.estado, nuevo, usuarioResponsableId);
         registro.setTicket(this);
@@ -144,6 +159,7 @@ public class Ticket {
         }
     }
 
+    // Ejecuta pertenece a como parte de las responsabilidades de esta clase.
     public boolean perteneceA(Long usuarioId) {
         return this.idUsuario != null && this.idUsuario.equals(usuarioId);
     }
@@ -165,12 +181,17 @@ public class Ticket {
     public void setOrderId(Long orderId) { this.orderId = orderId; }
 
     public String getAsunto() { return asunto; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método setAsunto (actualizar asunto).
     public void setAsunto(String asunto) { this.asunto = asunto; }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getDescripcion (consultar descripcion).
     public String getDescripcion() { return descripcion; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método setDescripcion (actualizar descripcion).
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método getCategoria (consultar categoria).
     public String getCategoria() { return categoria; }
+    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método setCategoria (actualizar categoria).
     public void setCategoria(String categoria) { this.categoria = categoria; }
 
     // Lote 1.1: sin setEstado: el estado solo cambia con registrarEstadoInicial(), iniciarAtencion() y cerrar(),

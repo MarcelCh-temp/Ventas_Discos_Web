@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
+// Repositorio: acceso a datos con Spring Data JPA; no define reglas de negocio. Clase ProductoRepository.
 public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSpecificationExecutor<Producto> {
 
     List<Producto> findByCategoriaAndEstado(Categoria categoria, EstadoComercial estado);

@@ -8,6 +8,7 @@ import java.util.List;
 public record MetodoEntregaResponse(MetodoEntrega codigo, String nombre, List<String> camposObligatorios,
                                     List<String> camposOpcionales) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static MetodoEntregaResponse from(MetodoEntrega m) {
         return new MetodoEntregaResponse(m, m.getNombre(), m.camposObligatorios(), m.camposOpcionales());
     }

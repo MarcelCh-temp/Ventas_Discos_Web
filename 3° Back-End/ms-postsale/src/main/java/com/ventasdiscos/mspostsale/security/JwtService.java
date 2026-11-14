@@ -19,8 +19,10 @@ import java.util.Date;
 @Service
 public class JwtService {
 
+    // Atributo secret: dato o dependencia utilizada por esta clase.
     private final byte[] secret;
 
+    // Ejecuta jwt service como parte de las responsabilidades de esta clase.
     public JwtService(@Value("${security.jwt.secret}") String secret) {
         this.secret = secret.getBytes(StandardCharsets.UTF_8);
         if (this.secret.length < 32) {
@@ -28,6 +30,7 @@ public class JwtService {
         }
     }
 
+    // Ejecuta validar como parte de las responsabilidades de esta clase.
     public AuthUser validar(String token) {
         try {
             SignedJWT jwt = SignedJWT.parse(token);

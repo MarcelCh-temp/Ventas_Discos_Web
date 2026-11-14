@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record HistorialPedidoResponse(LocalDateTime fechaHora, EstadoOrden estadoAnterior, EstadoOrden estadoNuevo,
                                       String motivo, String descripcion, Long usuarioResponsableId) {
 
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static HistorialPedidoResponse from(HistorialPedido h, boolean incluirResponsable) {
         return new HistorialPedidoResponse(h.getFechaHora(), h.getEstadoAnterior(), h.getEstadoNuevo(), h.getMotivo(),
                 h.getDescripcion(), incluirResponsable ? h.getUsuarioResponsableId() : null);

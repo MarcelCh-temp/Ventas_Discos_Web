@@ -30,11 +30,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PricingService {
 
+    // Dependencia inyectada para acceder a producto repository sin crearla manualmente.
     private final ProductoRepository productoRepository;
+    // Dependencia inyectada para acceder a promocion repository sin crearla manualmente.
     private final PromocionRepository promocionRepository;
+    // Atributo calculadora: dato o dependencia utilizada por esta clase.
     private final CalculadoraPromociones calculadora;
 
     @Transactional(readOnly = true)
+    // Procesa cotizar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public PricingResponse cotizar(PricingRequest req) {
         Set<Long> vistos = new HashSet<>();
         for (PricingRequest.Item item : req.items()) {

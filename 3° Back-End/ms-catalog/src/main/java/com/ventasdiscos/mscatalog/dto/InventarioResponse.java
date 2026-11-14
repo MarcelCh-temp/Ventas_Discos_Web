@@ -17,6 +17,7 @@ public record InventarioResponse(
         int umbralCritico,
         Disponibilidad disponibilidad
 ) {
+    // Ejecuta from como parte de las responsabilidades de esta clase.
     public static InventarioResponse from(Inventario i) {
         return new InventarioResponse(i.getProductId(), i.getProducto().getNombre(), i.getProducto().getCategoria(),
                 i.getStockActual(), i.getUmbralCritico(), i.getDisponibilidad());
