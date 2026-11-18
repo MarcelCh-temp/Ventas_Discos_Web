@@ -1,0 +1,74 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ApiGatewayApplication<api-gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ventasdiscos.apigateway.ApiGatewayApplication",
+            "projectName": "api-gateway",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsAccountsApplication<ms-accounts>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ventasdiscos.msaccounts.MsAccountsApplication",
+            "projectName": "ms-accounts",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsCatalogApplication<ms-catalog>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ventasdiscos.mscatalog.MsCatalogApplication",
+            "projectName": "ms-catalog",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsNotificationsApplication<ms-notifications>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ventasdiscos.msnotifications.MsNotificationsApplication",
+            "projectName": "ms-notifications",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsOrdenesApplication<ms-ordenes>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ms_ordenes.ms_ordenes.MsOrdenesApplication",
+            "projectName": "ms-ordenes",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsPostSaleApplication<ms-postsale>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.ventasdiscos.mspostsale.MsPostSaleApplication",
+            "projectName": "ms-postsale",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MsSoporteApplication<ms-soporte>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "ms_soporte.ms_soporte.MsSoporteApplication",
+            "projectName": "ms-soporte",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

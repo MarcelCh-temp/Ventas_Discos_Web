@@ -1,4 +1,161 @@
+
 /* No sustituye el CSS original: solamente asegura la estructura raíz de la SPA. */
-html, body, #root { min-height: 100%; }
-.nackson-legacy-page { min-height: 100vh; display: flex; flex-direction: column; }
-.nackson-legacy-page > .flex-grow-1 { flex-grow: 1 !important; }
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+.nackson-legacy-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nackson-legacy-page > .flex-grow-1 {
+  flex-grow: 1 !important;
+}
+
+
+/* ============================================
+   CORRECCIÓN RESPONSIVE DEL HEADER
+   Botones INGRESAR y REGISTRO
+   ============================================ */
+
+@media (max-width: 991.98px) {
+
+  /* Buscador adaptado a pantallas pequeñas */
+  .navbar-futurista .navbar-collapse form[role="search"] {
+    width: 100%;
+    margin-right: 0 !important;
+  }
+
+  /* Contenedor de los botones de usuario */
+  .navbar-futurista .navbar-collapse #menuUsuario {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px !important;
+
+    width: 100%;
+    margin-top: 14px;
+    padding-bottom: 12px;
+  }
+
+  /* Botones alineados y del mismo tamaño */
+  .navbar-futurista .navbar-collapse #menuUsuario > .btn {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 130px;
+
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+
+/* ============================================
+   BARRA DECORATIVA ANIMADA PARA CATEGORÍAS
+   No modifica la página principal
+   ============================================ */
+
+.cintillo-categoria-decorativo {
+  width: 100%;
+  height: 38px;
+  flex-shrink: 0;
+
+  background: linear-gradient(
+    90deg,
+    #d63384 0%,
+    #7943cd 35%,
+    #0d6efd 65%,
+    #d63384 100%
+  );
+
+  background-size: 200% 100%;
+  animation: moverCintilloCategorias 9s ease-in-out infinite alternate;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+@keyframes moverCintilloCategorias {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cintillo-categoria-decorativo {
+    animation: none;
+  }
+}
+
+
+/* ============================================
+   FRANJA DE ACCESOS EN MI PERFIL
+   ============================================ */
+
+.shortcuts-perfil {
+  background: linear-gradient(
+    90deg,
+    #d63384 0%,
+    #7943cd 35%,
+    #0d6efd 65%,
+    #d63384 100%
+  );
+
+  background-size: 200% 100%;
+  animation: moverFondoShortcuts 9s ease-in-out infinite alternate;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.shortcuts-perfil > .container {
+  min-height: 42px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  row-gap: 6px !important;
+}
+
+.shortcuts-perfil a,
+.shortcuts-perfil a.text-info,
+.shortcuts-perfil a.text-warning {
+  color: #fff !important;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.shortcuts-perfil a:hover,
+.shortcuts-perfil a:focus-visible {
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff !important;
+}
+
+@keyframes moverFondoShortcuts {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shortcuts-perfil {
+    animation: none;
+  }
+}

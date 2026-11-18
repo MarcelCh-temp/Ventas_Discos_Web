@@ -71,6 +71,7 @@ public class ProductoService {
     @Transactional
     public ProductoAdminResponse crear(ProductoRequest req) {
         validarCoherencia(req);
+        validarDuplicado(req, null);
         Producto p = new Producto();
         copiar(req, p);
         p.setEstado(EstadoComercial.ACTIVO);
@@ -85,6 +86,7 @@ public class ProductoService {
     public ProductoAdminResponse actualizar(Long id, ProductoRequest req) {
         Producto p = buscar(id);
         validarCoherencia(req);
+        validarDuplicado(req, id);
         copiar(req, p);
         return toAdmin(p, existencias(List.of(p)));
     }
@@ -259,6 +261,33 @@ public class ProductoService {
 
     /** HU-08: clasificación coherente. DECISIÓN TOMADA: plataforma solo (y siempre) para Videojuegos. */
     // Procesa validar coherencia aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
+    private void validarDuplicado(ProductoRequest req, Long idActual) {
+        for (Producto existente : productoRepository.findByCategoria(req.categoria())) {
+            if (idActual != null && idActual.equals(existente.getId())) {
+                continue;
+            }
+
+            boolean mismoNombre = normalizarDuplicado(req.nombre())
+                    .equals(normalizarDuplicado(existente.getNombre()));
+            boolean mismoFormato = normalizarDuplicado(req.formato())
+                    .equals(normalizarDuplicado(existente.getFormato()));
+            boolean mismaPlataforma = normalizarDuplicado(req.plataforma())
+                    .equals(normalizarDuplicado(existente.getPlataforma()));
+
+            if (mismoNombre && mismoFormato && mismaPlataforma) {
+                throw new com.ventasdiscos.mscatalog.exception.RecursoDuplicadoException(
+                    "Ya existe este producto. ID: " + existente.getId()
+                );
+            }
+        }
+    }
+
+    private static String normalizarDuplicado(String texto) {
+        return texto == null
+                ? ""
+                : texto.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
     private void validarCoherencia(ProductoRequest req) {
         boolean tienePlataforma = tieneTexto(req.plataforma());
         if (req.categoria() == Categoria.VIDEOJUEGOS && !tienePlataforma) {
@@ -268,6 +297,17 @@ public class ProductoService {
         if (req.categoria() != Categoria.VIDEOJUEGOS && tienePlataforma) {
             throw new ValidacionNegocioException("Datos incoherentes",
                     Map.of("plataforma", "La plataforma solo aplica a videojuegos"));
+        }
+        // Accesorios y Merchandising tienen categoría propia. No se pueden catalogar
+        // mediante el campo genero en otra categoría.
+        String genero = req.genero().trim();
+        if (genero.equalsIgnoreCase("Accesorios") && req.categoria() != Categoria.ACCESORIOS) {
+            throw new ValidacionNegocioException("Datos incoherentes",
+                    Map.of("categoria", "Los accesorios deben pertenecer a ACCESORIOS"));
+        }
+        if (genero.equalsIgnoreCase("Merchandising") && req.categoria() != Categoria.MERCHANDISING) {
+            throw new ValidacionNegocioException("Datos incoherentes",
+                    Map.of("categoria", "El merchandising debe pertenecer a MERCHANDISING"));
         }
     }
 

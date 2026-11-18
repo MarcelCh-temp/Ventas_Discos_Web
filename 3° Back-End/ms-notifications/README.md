@@ -13,7 +13,7 @@ Permite recibir eventos de otros microservicios, registrar notificaciones, consu
 - Spring Boot 4.0.8
 - Spring Data JPA
 - Hibernate
-- MariaDB
+- MySQL
 - Maven
 - Lombok
 - Jakarta Bean Validation

@@ -12,4 +12,5 @@ import java.util.List;
 public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSpecificationExecutor<Producto> {
 
     List<Producto> findByCategoriaAndEstado(Categoria categoria, EstadoComercial estado);
+    List<Producto> findByCategoria(Categoria categoria);
 }

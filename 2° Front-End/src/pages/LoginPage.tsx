@@ -29,7 +29,7 @@ export default function LoginPage() {
       const user = await signIn(input);
       const from = previous?.from;
       const target = typeof from === 'string' && from.startsWith('/') && !from.startsWith('//')
-        ? from : user.rol === 'ADMINISTRADOR' ? '/admin.html' : '/perfil.html';
+        ? from : user.rol === 'ADMINISTRADOR' ? '/admin.html' : '/';
       navigate(target, { replace: true });
     } catch (err) {
       if (err instanceof HttpFailure) { setErrors(err.fields); setMessage(err.message); }

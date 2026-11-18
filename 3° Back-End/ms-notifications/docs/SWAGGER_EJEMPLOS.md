@@ -325,7 +325,7 @@ quedan marcadas como leídas.
 
 ---
 
-## Comprobación en MariaDB
+## Comprobación en MySQL
 
 Consultar las notificaciones:
 

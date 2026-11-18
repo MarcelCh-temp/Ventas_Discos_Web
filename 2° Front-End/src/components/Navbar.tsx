@@ -7,10 +7,25 @@ export type NavbarVariant = 'home' | 'category' | 'accessories' | 'admin' | 'car
 export type NavbarProps = { variant: 'category'; activeCategory: CategoryKey } | { variant: Exclude<NavbarVariant, 'category'> };
 
 export function Navbar(props: NavbarProps) {
-  if (props.variant === 'category') return <CategoryNavbar activeCategory={props.activeCategory} />;
+  // La página de Inicio mantiene su franja original sin cambios.
+  if (props.variant === 'category') {
+    return (
+      <>
+        <div className="cintillo-categoria-decorativo" aria-hidden="true" />
+        <CategoryNavbar activeCategory={props.activeCategory} />
+      </>
+    );
+  }
+
   switch (props.variant) {
     case 'home': return <HomeNavbar />;
-    case 'accessories': return <AccessoriesNavbar />;
+    case 'accessories':
+      return (
+        <>
+          <div className="cintillo-categoria-decorativo" aria-hidden="true" />
+          <AccessoriesNavbar />
+        </>
+      );
     case 'admin': return <AdminNavbar />;
     case 'cart': return <CartNavbar />;
     case 'checkout': return <CheckoutNavbar />;
@@ -58,7 +73,31 @@ function CheckoutNavbar() {
 
 function AccountNavbar() {
   return (
-<nav className="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top border-bottom border-secondary" style={{"zIndex": "10"}}>{"\n"}<div className="container">{"\n"}<Link className="navbar-brand text-danger d-flex align-items-center gap-2" to="/">{"\n"}<img src="/img/logo.gif" alt="Logo Ñackson Store" width="40" height="40" className="rounded-circle border border-danger object-fit-cover" />{"\n"}<span className="text-light">{"Ñackson "}<span className="text-primary">{"Store"}</span></span>{"\n"}</Link>{"\n"}<div className="ms-auto d-flex align-items-center gap-2"><AccountLinks /></div><Link to="/" className="btn btn-outline-light btn-sm rounded-pill px-3">{"\n"}<i className="bi bi-house-fill me-1"></i>{" Volver al Inicio\n            "}</Link>{"\n"}</div>{"\n"}</nav>
+    <nav
+      className="navbar navbar-expand-lg navbar-dark navbar-futurista sticky-top border-bottom border-secondary"
+      style={{ zIndex: 10 }}
+    >
+      <div className="container d-flex flex-wrap align-items-center gap-2">
+        {/* Logo de Ñackson Store */}
+        <Link className="navbar-brand text-danger d-flex align-items-center gap-2" to="/">
+          <img
+            src="/img/logo.gif"
+            alt="Logo Ñackson Store"
+            width="40"
+            height="40"
+            className="rounded-circle border border-danger object-fit-cover"
+          />
+          <span className="text-light">
+            Ñackson <span className="text-primary">Store</span>
+          </span>
+        </Link>
+        {/* Único botón de navegación */}
+        <Link to="/" className="btn btn-outline-light btn-sm rounded-pill px-3 ms-auto">
+          <i className="bi bi-house-fill me-1"></i>
+          Volver al Inicio
+        </Link>
+      </div>
+    </nav>
   );
 }
 

@@ -29,7 +29,7 @@ public interface SolicitudPostVentaRepository extends JpaRepository<SolicitudPos
     Optional<SolicitudPostVenta> bloquear(@Param("id") Long id);
 
     /**
-     * RN-23: lectura con bloqueo de las solicitudes del mismo pedido y tipo antes de crear una nueva. En MariaDB
+     * RN-23: lectura con bloqueo de las solicitudes del mismo pedido y tipo antes de crear una nueva. En el motor de base de datos anterior
      * (REPEATABLE READ) el bloqueo cubre también el hueco del índice idx_solicitud_pedido: si dos Clientes crean a la
      * vez, una de las dos operaciones espera o se cancela (409) y no quedan dos solicitudes activas.
      */

@@ -10,7 +10,7 @@
 > - **Base existente:** antes de usarla con datos antiguos, ver `seguimiento/REGISTRO_LOTE_4.md` §5 (scripts opcionales,
 >   sin ejecutar). Las secciones de abajo describen la versión ANTERIOR y quedan como historial.
 
-Microservicio de postventa en Java 25, Spring Boot 4.0.8, JPA y MariaDB. Puerto 8085.
+Microservicio de postventa en Java 25, Spring Boot 4.0.8, JPA y MySQL. Puerto 8085.
 
 ## Alcance y origen
 
@@ -29,7 +29,7 @@ mvn spring-boot:run
 
 Para Maven Wrapper, copiar los archivos `mvnw.cmd`, `mvnw` y `.mvn/` desde los otros microservicios del repositorio. Este ZIP incluye `pom.xml`, pero no el wrapper.
 
-Base de datos MariaDB requerida: `bd_ms_postsale`; Hibernate crea/actualiza las tablas con `ddl-auto=update` una vez creada la base.
+Base de datos MySQL requerida: `bd_ms_postsale`; Hibernate crea/actualiza las tablas con `ddl-auto=update` una vez creada la base.
 Swagger: http://localhost:8085/swagger-ui.html
 
 ## Dependencias reales
@@ -42,7 +42,7 @@ Swagger: http://localhost:8085/swagger-ui.html
 
 Incluye estructura de modelos, DTO, Controller, Repository, Service, client, excepciones y documentación de pruebas. Las recepciones parciales permiten más de un registro y validan cantidades acumuladas.
 
-**Reposición de stock:** después de guardar una recepción, se realiza la operación en Inventory usando `operacionId` idempotente. El estado se confirma en PostSale solo al recibir respuesta favorable; si hay error queda PENDIENTE y se registra un error para conciliación manual. No existe aún un reintento automático, por lo que no debe interpretarse una operación pendiente como stock repuesto. El proyecto no se ha compilado aquí con Java 25 ni probado contra MariaDB.
+**Reposición de stock:** después de guardar una recepción, se realiza la operación en Inventory usando `operacionId` idempotente. El estado se confirma en PostSale solo al recibir respuesta favorable; si hay error queda PENDIENTE y se registra un error para conciliación manual. No existe aún un reintento automático, por lo que no debe interpretarse una operación pendiente como stock repuesto. El proyecto compilo con Java 25; las pruebas funcionales contra MySQL siguen pendientes.
 
 
 ## Revision interna del 15-10-2026
@@ -68,4 +68,4 @@ No se incorporaron reembolsos a los listados de cancelacion/devolucion, porque e
 
 Las solicitudes se validan en DTO independientes dentro de `dto/`. La lógica de creación y resolución se distribuye entre `CancelacionService`, `DevolucionService` y `ReembolsoService`; `PostSaleService` conserva las consultas y coordina las llamadas de los Controllers. `PostSaleSupport` reúne únicamente operaciones compartidas ya existentes. Se conservan las rutas de la versión consolidada y el parámetro `tipo` del detalle.
 
-**Pendientes previos no resueltos por esta reorganización:** la aprobación de cancelaciones y la validación completa de productos dependen del contrato real de Orders; hace falta compilar y ejecutar pruebas con Java 25 y MariaDB.
+**Pendientes previos no resueltos por esta reorganización:** la aprobación de cancelaciones y la validación completa de productos dependen del contrato real de Orders; hace falta ejecutar y validar las pruebas funcionales contra MySQL.

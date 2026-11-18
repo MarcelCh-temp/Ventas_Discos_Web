@@ -17,6 +17,25 @@ const fields: { key: keyof RegistroRequest; label: string; type: string; placeho
   { key: 'password', label: 'Contraseña (8 a 72 caracteres)', type: 'password', placeholder: '••••••••', autoComplete: 'new-password' },
   { key: 'confirmacionPassword', label: 'Confirmar contraseña', type: 'password', placeholder: 'Repite tu contraseña', autoComplete: 'new-password' },
 ];
+// Agrega puntos y guion mientras se escribe. El último carácter es el DV (0-9 o K).
+function formatearRut(entrada: string): string {
+  const limpio = entrada.toUpperCase()
+    .replace(/[^0-9K]/g, '')
+    .replace(/K(?=.)/g, '')
+    .slice(0, 9);
+
+  if (!limpio) return '';
+
+  // Hasta 7 cifras, todavía no separamos el dígito verificador.
+  if (limpio.length <= 7 && !limpio.endsWith('K')) {
+    return limpio.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  const cuerpo = limpio.slice(0, -1);
+  const dv = limpio.slice(-1);
+  return `${cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
+}
+
 export default function RegistroPage() {
   const [value, setValue] = useState<RegistroRequest>(blank);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,7 +70,11 @@ export default function RegistroPage() {
               <input id={`reg-${field.key}`} type={field.type} autoComplete={field.autoComplete}
                 className="form-control bg-dark text-light border-secondary"
                 placeholder={field.placeholder} value={value[field.key]} aria-invalid={!!errors[field.key]}
-                onChange={e => setValue(v => ({ ...v, [field.key]: e.target.value }))} />
+                maxLength={field.key === 'rut' ? 12 : undefined}
+                onChange={e => {
+                  const nextValue = field.key === 'rut' ? formatearRut(e.target.value) : e.target.value;
+                  setValue(v => ({ ...v, [field.key]: nextValue }));
+                }} />
               {errors[field.key] && <small role="alert" className="text-warning">{errors[field.key]}</small>}
             </div>)}
             <button type="submit" className="btn btn-neon w-100 py-2 mb-3 rounded-pill" disabled={busy}>{busy ? 'REGISTRANDO…' : 'REGISTRARSE'}</button>

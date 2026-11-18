@@ -2,7 +2,7 @@
 
 # Swagger de MS-PostSale
 
-Abrir http://localhost:8085/swagger-ui.html después de iniciar MariaDB y Spring Boot.
+Abrir http://localhost:8085/swagger-ui.html después de iniciar MySQL y Spring Boot.
 
 ## 1. POST — CREATE: solicitar cancelación
 `POST /post-sale/cancellations`

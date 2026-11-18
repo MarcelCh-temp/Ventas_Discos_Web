@@ -9,10 +9,10 @@ export function query(params: Params = {}): string {
 const get = <T>(path: string, token?: string) => http<T>(path, { token });
 const send = <T>(path: string, method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', token?: string, body?: unknown) => http<T>(path, { method, token, body });
 export interface Page<T> { contenido: T[]; pagina: number; tamano: number; totalElementos: number; totalPaginas: number }
-export type Categoria = 'MUSICA' | 'SERIES_PELICULAS_ANIME' | 'VIDEOJUEGOS';
+export type Categoria = 'MUSICA' | 'SERIES_PELICULAS_ANIME' | 'VIDEOJUEGOS' | 'ACCESORIOS' | 'MERCHANDISING';
 export type Disponibilidad = 'AGOTADO' | 'STOCK_CRITICO' | 'DISPONIBLE' | 'NO_CONFIRMADA';
 export interface Producto { id: number; nombre: string; descripcion: string | null; categoria: Categoria; genero: string; formato: string; plataforma: string | null; imagenUrl: string | null; precioBase: number; precioOferta: number | null; promocion: string | null; disponibilidad: Disponibilidad; comprable: boolean }
-export interface ProductoAdmin extends Producto { estado: string; stockActual: number | null }
+export interface ProductoAdmin extends Omit<Producto, "precioOferta" | "promocion" | "comprable"> { estado: string; stockActual: number | null }
 export interface ProductoRequest { nombre: string; descripcion: string; precioBase: number; categoria: Categoria; genero: string; formato: string; plataforma: string; imagenUrl: string | null }
 export interface Favorito { productId: number; nombre: string; imagenUrl: string | null; precioBase: number; estadoComercial: string; disponibilidad: Disponibilidad; comprable: boolean; mensaje: string | null }
 export interface Oferta { promocionId: number; nombre: string; tipoDescuento: 'PORCENTAJE' | 'MONTO'; valor: number; montoMinimoCompra: number | null; fechaFin: string; productos: {id:number; nombre:string; precioBase:number; precioOferta:number; imagenUrl:string|null}[] }
@@ -25,7 +25,7 @@ export interface OpcionesPago {simulacionAcademica:boolean; aviso:string; metodo
 export interface DatosEntrega { metodoEntrega:string; nombreReceptor:string; telefono:string; direccion?:string; comuna?:string; referencia?:string }
 export interface ResumenCompra {items:ItemCart[]; subtotal:number; descuento:number; total:number; datosEntrega:DatosEntrega & {nombreMetodo?:string}; listo:boolean; problemas: Record<string,string>}
 export interface PedidoResumen {id:number; numeroPedido:string|null; userId:number; fechaCompra:string; total:number; estado:string; metodoEntrega:string; nombreReceptor:string; cantidadProductos:number}
-export interface PedidoDetalle extends PedidoResumen {items:{productId:number; nombreProducto:string; precioUnitario:number; cantidad:number; subtotal:number}[];subtotal:number;descuento:number; datosEntrega: DatosEntrega|null; despacho:{fechaDespacho:string; transportista:string;numeroSeguimiento:string|null}|null; historial:{fechaHora:string; estadoAnterior:string|null;estadoNuevo:string;motivo:string;descripcion:string;usuarioResponsableId:number|null}[]}
+export interface PedidoDetalle extends Omit<PedidoResumen, "metodoEntrega" | "nombreReceptor"> {items:{productId:number; nombreProducto:string; precioUnitario:number; cantidad:number; subtotal:number}[];subtotal:number;descuento:number; datosEntrega: DatosEntrega|null; despacho:{fechaDespacho:string; transportista:string;numeroSeguimiento:string|null}|null; historial:{fechaHora:string; estadoAnterior:string|null;estadoNuevo:string;motivo:string;descripcion:string;usuarioResponsableId:number|null}[]}
 export interface ConfirmacionCompra {mensaje:string; pago:{metodo:string;resultado:string;simulacionAcademica:boolean};pedido:PedidoDetalle}
 export interface Seguimiento {id:number;numeroPedido:string;estado:string;mensaje:string;cancelado:boolean;finalizado:boolean;pasos:{estado:string;completado:boolean;actual:boolean}[];despacho:PedidoDetalle['despacho'];historial:PedidoDetalle['historial']}
 export interface TicketResumen {id:number;numeroTicket:string|null;idUsuario:number;orderId:number|null;asunto:string;categoria:string;estado:'ABIERTA'|'EN_PROCESO'|'CERRADA';fechaCreacion:string;fechaCierre:string|null}

@@ -37,7 +37,7 @@ import java.util.Optional;
  * trasladan con los scripts OPCIONALES {@code seguimiento/sql/postventa_1..4} (verificar, respaldar, migrar datos y
  * ajustar claves foráneas), que no se ejecutan sin aprobación del equipo.
  * Las columnas nuevas quedan sin NOT NULL en la base a propósito: así agregarlas a una tabla con filas no inventa
- * valores (MariaDB rellenaría con '' o con el primer valor del ENUM). La regla "tipo y estado obligatorios" la
+ * valores (el motor de base de datos anterior rellenaría con '' o con el primer valor del ENUM). La regla "tipo y estado obligatorios" la
  * asegura esta clase: solo se crea con los métodos de fábrica.
  * <p>
  * DOC-09 (aprobada, RNF-09): {@code usuarioResolucionId} = Administrador (del JWT) que aprobó o rechazó.

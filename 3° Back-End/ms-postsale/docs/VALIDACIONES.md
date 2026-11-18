@@ -135,19 +135,19 @@ comprobarse mediante pruebas.
 
 Base de datos: bd_ms_postsale
 
-Motor local: MariaDB 10.4.32
+Motor local: motor anterior (version 10.4.32)
 
 Persistencia: Spring Data JPA / Hibernate
 
 Se verificó:
 
-- Conexión a MariaDB.
+- Conexión a motor de base de datos anterior.
 - Generación automática de tablas.
 - Registro de ocho claves foráneas.
 - Inicialización de JPA.
 
 Se utiliza un dialecto adaptado para la
-compatibilidad con MariaDB 10.4.
+compatibilidad con motor anterior 10.4.
 
 ---
 
@@ -157,7 +157,7 @@ compatibilidad con MariaDB 10.4.
 
 - Compilación Java.
 - Inicialización de Spring Boot.
-- Conexión y estructura relacional de MariaDB.
+- Conexión y estructura relacional de motor de base de datos anterior.
 - Exposición de endpoints mediante Swagger.
 
 ### Pendiente de comprobar
