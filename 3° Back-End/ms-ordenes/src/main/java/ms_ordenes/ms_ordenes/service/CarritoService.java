@@ -15,7 +15,9 @@ import ms_ordenes.ms_ordenes.model.Carrito;
 import ms_ordenes.ms_ordenes.model.ItemCarrito;
 import ms_ordenes.ms_ordenes.repository.CarritoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,9 +44,13 @@ public class CarritoService {
     private final CatalogClient catalogClient;
 
     // Procesa carrito service aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
-    public CarritoService(CarritoRepository carritoRepository, CatalogClient catalogClient) {
+    private final TransactionTemplate transaccion;
+
+    public CarritoService(CarritoRepository carritoRepository, CatalogClient catalogClient,
+                          PlatformTransactionManager transactionManager) {
         this.carritoRepository = carritoRepository;
         this.catalogClient = catalogClient;
+        this.transaccion = new TransactionTemplate(transactionManager);
     }
 
     /** Carrito con los precios y la disponibilidad de Catalog en este momento. */
@@ -78,19 +84,51 @@ public class CarritoService {
     // ===================== Comandos =====================
 
     /** HU-18: producto activo, con stock suficiente para la cantidad resultante. Si ya estaba, suma. */
-    @Transactional
-    // Procesa agregar aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public CarritoResponse agregar(Long userId, AgregarItemRequest req) {
+        final boolean[] intentoCrearCarrito = {false};
+
+        try {
+            return transaccion.execute(status ->
+                    agregarEnTransaccion(userId, req, intentoCrearCarrito));
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            if (!intentoCrearCarrito[0]) {
+                throw ex;
+            }
+
+            // El primer intento ya terminó y fue revertido.
+            // Solo reintentamos si otra solicitud creó el carrito.
+            boolean existe = Boolean.TRUE.equals(transaccion.execute(status ->
+                    carritoRepository.findByUserId(userId).isPresent()));
+
+            if (!existe) {
+                throw ex;
+            }
+
+            return transaccion.execute(status ->
+                    agregarEnTransaccion(userId, req, new boolean[]{false}));
+        }
+    }
+
+    private CarritoResponse agregarEnTransaccion(
+            Long userId, AgregarItemRequest req, boolean[] intentoCrearCarrito) {
+
         Carrito carrito = carritoRepository.findByUserIdForUpdate(userId)
-                .orElseGet(() -> carritoRepository.save(new Carrito(userId)));
+                .orElseGet(() -> {
+                    intentoCrearCarrito[0] = true;
+                    return carritoRepository.save(new Carrito(userId));
+                });
+
         int nueva = carrito.cantidadResultante(req.productId(), req.cantidadEntera());
         CarritoCotizado c = cotizarCon(carrito, req.productId(), nueva);
         validarComprable(c, req.productId(), nueva);
-        carrito.agregar(req.productId(), req.cantidadEntera(), c.linea(req.productId()).precioFinalUnitario());
+        carrito.agregar(req.productId(), req.cantidadEntera(),
+                c.linea(req.productId()).precioFinalUnitario());
         actualizarPrecios(c);
         carritoRepository.save(carrito);
         return armar(c);
     }
+
+    // ===================== Cambio de cantidades =====================
 
     /** HU-20 / RN-12: entero >= 1 y sin superar el stock. */
     @Transactional
