@@ -45,12 +45,12 @@ class NotificacionesITTest {
     void eventoRepetido_NoDuplicaElAviso_YElClienteLoVe() throws Exception {
         String evento = eventoSoporte("SOPORTE-12-CREADO", 10, "SOPORTE_CREADO");
 
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON).content(evento))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.processed").value(true));
         // reintento del emisor con el mismo eventoId: no se crea otra notificación
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON).content(evento))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.processed").value(false));
@@ -68,7 +68,7 @@ class NotificacionesITTest {
 
     @Test
     void marcarTodasComoLeidas_NoBorraLasNotificaciones() throws Exception {
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventoSoporte("SOPORTE-20-CERRADO", 20, "SOPORTE_CERRADO")))
                 .andExpect(status().isCreated());
@@ -89,7 +89,7 @@ class NotificacionesITTest {
     // HU-54: marcar como leída una notificación ajena responde 404 (no revela que existe) y no la cambia
     @Test
     void marcarLeida_SoloLaPropia() throws Exception {
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventoSoporte("SOPORTE-40-MSG-1", 40, "SOPORTE_RESPONDIDO")))
                 .andExpect(status().isCreated());
@@ -123,7 +123,7 @@ class NotificacionesITTest {
     @Test
     void filtrarPorTipoYPeriodo_SoloPropias() throws Exception {
         for (String[] e : new String[][]{{"SOPORTE-50-CREADO", "SOPORTE_CREADO"}, {"SOPORTE-50-CERRADO", "SOPORTE_CERRADO"}}) {
-            mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+            mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                             .contentType(MediaType.APPLICATION_JSON).content(eventoSoporte(e[0], 50, e[1])))
                     .andExpect(status().isCreated());
         }
@@ -147,7 +147,7 @@ class NotificacionesITTest {
 
     @Test
     void eventoConTipoInexistente_400() throws Exception {
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventoSoporte("SOPORTE-30-X", 30, "SOPORTE_INVENTADO")))
                 .andExpect(status().isBadRequest());
@@ -159,11 +159,11 @@ class NotificacionesITTest {
     @Test
     void depuracionDeNotificacionesPersonales_EsIdempotente() throws Exception {
         for (String id : new String[]{"SOPORTE-501-CREADO", "SOPORTE-502-CREADO"}) {
-            mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+            mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                             .contentType(MediaType.APPLICATION_JSON).content(eventoSoporte(id, 501, "SOPORTE_CREADO")))
                     .andExpect(status().isCreated());
         }
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON).content(eventoSoporte("SOPORTE-503-CREADO", 502, "SOPORTE_CREADO")))
                 .andExpect(status().isCreated());
 
@@ -181,7 +181,7 @@ class NotificacionesITTest {
         mockMvc.perform(get("/api/v1/notifications/me").header("Authorization", TestTokens.cliente(502)))
                 .andExpect(jsonPath("$.length()").value(1));
         // El registro de eventos procesados se conserva: un reintento del mismo evento no vuelve a crear el aviso
-        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+        mockMvc.perform(post("/api/v1/internal/notifications/events").header("Authorization", TokensServicioPrueba.bearer(Servicios.SUPPORT))
                         .contentType(MediaType.APPLICATION_JSON).content(eventoSoporte("SOPORTE-501-CREADO", 501, "SOPORTE_CREADO")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.processed").value(false));

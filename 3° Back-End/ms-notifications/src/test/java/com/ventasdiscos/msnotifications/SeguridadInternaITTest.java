@@ -83,4 +83,24 @@ class SeguridadInternaITTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.correlationId").isNotEmpty());
     }
+    @Test
+    void servicioNoPuedeDeclararOrigenDeOtroServicio() throws Exception {
+        String evento = """
+                {
+                  "eventoId": "TEST-ORIGEN-SUPLANTADO-001",
+                  "origen": "SUPPORT",
+                  "usuarioId": 987654,
+                  "titulo": "Prueba de origen",
+                  "mensaje": "Evento de prueba",
+                  "tipo": "SOPORTE_CREADO",
+                  "referenciaId": 12
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/internal/notifications/events")
+                        .header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(evento))
+                .andExpect(status().isForbidden());
+    }
 }
