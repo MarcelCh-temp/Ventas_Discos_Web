@@ -79,4 +79,35 @@ class AccountsClientTest {
                 .thenReturn(new EstadoOperacion(10L, "ACTIVA", true));
         assertDoesNotThrow(() -> client.exigirCuentaActiva(10L));
     }
+
+    @Test
+    void usuarioDiferenteNoSeAutoriza() {
+        when(restTemplate.getForObject(URL, EstadoOperacion.class, 10L))
+                .thenReturn(new EstadoOperacion(99L, "ACTIVA", true));
+
+        assertThrows(
+                ServicioExternoNoDisponibleException.class,
+                () -> client.exigirCuentaActiva(10L)
+        );
+    }
+
+    @Test
+    void cuentaEliminadaConPuedeOperarTrueSeRechaza() {
+        responde("ELIMINADA", true);
+
+        assertThrows(
+                AccesoDenegadoException.class,
+                () -> client.exigirCuentaActiva(10L)
+        );
+    }
+
+    @Test
+    void estadoDesconocidoConPuedeOperarTrueSeRechaza() {
+        responde("DESCONOCIDO", true);
+
+        assertThrows(
+                AccesoDenegadoException.class,
+                () -> client.exigirCuentaActiva(10L)
+        );
+    }
 }
