@@ -34,7 +34,7 @@ public final class ReglasAcceso {
             "/api/v1/products", "/api/v1/offers", "/api/v1/favorites", "/api/v1/inventory",
             "/api/v1/admin/products", "/api/v1/admin/inventory", "/api/v1/admin/promotions",
             // MS-Orders (ms-ordenes, 8084)
-            "/api/v1/cart", "/api/v1/checkout", "/api/v1/orders", "/api/v1/admin/orders",
+            "/api/v1/cart", "/api/v1/checkout", "/api/v1/orders", "/api/v1/admin/orders", "/api/v1/rewards",
             // MS-PostSale (8085)
             "/api/v1/post-sale", "/api/v1/admin/post-sale",
             // MS-Notifications (8086)
