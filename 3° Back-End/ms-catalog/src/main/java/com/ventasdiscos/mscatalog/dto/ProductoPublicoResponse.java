@@ -23,6 +23,7 @@ public record ProductoPublicoResponse(
         BigDecimal precioOferta,
         String promocion,
         DisponibilidadCatalogo disponibilidad,
+        Integer stockActual,
         boolean comprable
 ) {
 }
