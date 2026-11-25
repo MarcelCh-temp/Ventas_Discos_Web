@@ -16,6 +16,7 @@ import ms_ordenes.ms_ordenes.exception.ServicioNoDisponibleException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -58,6 +59,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class OrdenesITTest {
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     private static final AtomicLong USUARIOS = new AtomicLong(5000);
     private static final String RETIRADO = "Este producto ya no se encuentra disponible.";
@@ -175,7 +179,8 @@ class OrdenesITTest {
     /** Compra aprobada de 2 unidades del producto 1 ($20.000). Devuelve el id del pedido. */
     private long pedidoConfirmado(long uid, String metodo) throws Exception {
         agregar(uid, 1, 2).andExpect(status().isOk());
-        String r = confirmar(uid, "20000", null, metodo).andExpect(status().isCreated())
+        String totalEsperado = "DESPACHO_DOMICILIO".equals(metodo) ? "23990" : "20000";
+        String r = confirmar(uid, totalEsperado, null, metodo).andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return ((Number) JsonPath.read(r, "$.pedido.id")).longValue();
     }
@@ -328,10 +333,10 @@ class OrdenesITTest {
     void compraAprobada_201_conTotalDelBackendYDescuentoIdempotente() throws Exception {
         long uid = nuevoCliente();
         agregar(uid, 1, 2);
-        String r = confirmar(uid, "20000", "APROBADO", "DESPACHO_DOMICILIO").andExpect(status().isCreated())
+        String r = confirmar(uid, "23990", "APROBADO", "DESPACHO_DOMICILIO").andExpect(status().isCreated())
                 .andExpect(jsonPath("$.pago.simulacionAcademica").value(true))
                 .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"))
-                .andExpect(jsonPath("$.pedido.total").value(20000))
+                .andExpect(jsonPath("$.pedido.total").value(23990))
                 .andExpect(jsonPath("$.pedido.items[0].precioUnitario").value(10000))
                 .andExpect(jsonPath("$.pedido.datosEntrega.comuna").value("Santiago"))
                 .andReturn().getResponse().getContentAsString();
@@ -745,5 +750,50 @@ class OrdenesITTest {
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/v1/internal/orders/" + id).header("Authorization", TestTokens.cliente(uid)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    /** Regresion: cancelar un pedido PENDIENTE no debe bloquear el premio reservado. */
+    @Test
+    void cancelacionPendienteLiberaPremioReservado() throws Exception {
+        long uid = nuevoCliente();
+
+        jdbc.update(
+                "INSERT INTO ruleta_usuario (user_id, ultimo_giro, premio, estado, pedido_id) " +
+                "VALUES (?, CURRENT_TIMESTAMP, 'DESCUENTO_5', 'PENDIENTE', NULL)",
+                uid
+        );
+
+        agregar(uid, 1, 1).andExpect(status().isOk());
+
+        when(catalog.aplicarOperacion(anyString(), anyString(), anyString(), anyList()))
+                .thenReturn(new RespuestaOperacion(ResultadoOperacion.NO_CONFIRMADA, "Sin respuesta"))
+                .thenReturn(new RespuestaOperacion(ResultadoOperacion.APLICADA, null));
+
+        String respuesta = confirmar(uid, "9500", null, "RETIRO_TIENDA")
+                .andExpect(status().isAccepted())
+                .andReturn().getResponse().getContentAsString();
+
+        long id = ((Number) JsonPath.read(respuesta, "$.pedido.id")).longValue();
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "RESERVADO",
+                jdbc.queryForObject(
+                        "SELECT estado FROM ruleta_usuario WHERE user_id=?",
+                        String.class, uid
+                )
+        );
+
+        cambiarEstado(id, "CANCELADO", "Cliente desistio")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADO"));
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                "PENDIENTE",
+                jdbc.queryForObject(
+                        "SELECT estado FROM ruleta_usuario WHERE user_id=?",
+                        String.class, uid
+                ),
+                "El premio debe quedar disponible al cancelar un pedido pendiente"
+        );
     }
 }

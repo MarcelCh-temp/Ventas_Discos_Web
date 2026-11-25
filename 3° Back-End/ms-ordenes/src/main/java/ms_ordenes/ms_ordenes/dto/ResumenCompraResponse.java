@@ -10,5 +10,6 @@ import java.util.Map;
  */
 public record ResumenCompraResponse(List<ItemCarritoResponse> items, BigDecimal subtotal, BigDecimal descuento,
                                     BigDecimal total, DatosEntregaResponse datosEntrega, boolean listo,
-                                    Map<String, String> problemas) {
+                                    Map<String, String> problemas, BigDecimal descuentoRuleta,
+                                    BigDecimal costoEnvio, String premioRuleta) {
 }
