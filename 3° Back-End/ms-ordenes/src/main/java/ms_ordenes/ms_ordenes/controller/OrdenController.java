@@ -51,6 +51,7 @@ public class OrdenController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        user.requireCliente();
         return ResponseEntity.ok(ordenService.listarMios(user.userId(), q, estado, desde, hasta, page, size));
     }
 
@@ -58,6 +59,7 @@ public class OrdenController {
     @GetMapping("/{id}")
     // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<PedidoDetalleResponse> detalle(@Parameter(hidden = true) AuthUser user, @PathVariable Long id) {
+        user.requireCliente();
         return ResponseEntity.ok(ordenService.detalleMio(user.userId(), id));
     }
 
@@ -66,6 +68,7 @@ public class OrdenController {
     // GET: consulta información sin modificar registros. Método seguimiento (seguimiento).
     public ResponseEntity<SeguimientoResponse> seguimiento(@Parameter(hidden = true) AuthUser user,
                                                            @PathVariable String referencia) {
+        user.requireCliente();
         return ResponseEntity.ok(ordenService.seguimiento(user.userId(), referencia));
     }
 }

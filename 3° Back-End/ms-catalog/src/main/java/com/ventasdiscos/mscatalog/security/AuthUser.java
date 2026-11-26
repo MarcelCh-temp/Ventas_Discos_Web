@@ -21,4 +21,10 @@ public record AuthUser(Long userId, String rol) {
             throw new AccesoDenegadoException("No tienes permisos para realizar esta acción");
         }
     }
+    /** Las operaciones de compra y recursos del cliente no pertenecen al administrador. */
+    public void requireCliente() {
+        if (!"CLIENTE".equals(rol)) {
+            throw new AccesoDenegadoException("Esta operación está reservada a clientes");
+        }
+    }
 }

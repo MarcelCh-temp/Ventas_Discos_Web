@@ -67,6 +67,28 @@ public class Orden {
     // Atributo descuentoHistorico: propiedad que se guarda o utiliza en esta entidad.
     private BigDecimal descuentoHistorico;
 
+    @Column(name = "descuento_ruleta", precision = 12, scale = 2)
+    private BigDecimal descuentoRuleta = BigDecimal.ZERO;
+
+    @Column(name = "costo_envio", precision = 12, scale = 2)
+    private BigDecimal costoEnvio = BigDecimal.ZERO;
+
+    @Column(name = "premio_ruleta", length = 25)
+    private String premioRuleta;
+
+    /** Método histórico de pago simulado; null para pedidos anteriores a esta versión. */
+    @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.VARCHAR)
+    @Column(name = "metodo_pago", length = 25)
+    private MetodoPago metodoPago;
+
+    public void registrarMetodoPago(MetodoPago metodoPago) {
+        if (id != null) throw new IllegalStateException("El método de pago histórico no se puede modificar");
+        this.metodoPago = Objects.requireNonNull(metodoPago);
+    }
+
+    public MetodoPago getMetodoPago() { return metodoPago; }
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NotNull
@@ -135,6 +157,20 @@ public class Orden {
         o.historial.add(new HistorialPedido(o, null, EstadoOrden.PENDIENTE, motivo, "Pedido creado", idUsuario));
         return o;
     }
+
+    /** Aplica beneficio del servidor a la orden antes de persistir. Los items conservan su precio original. */
+    public void aplicarBeneficio(BigDecimal descuento, BigDecimal envio, String premio) {
+        if (this.id != null) throw new IllegalStateException("No se pueden recalcular premios de un pedido guardado");
+        this.descuentoRuleta = descuento;
+        this.costoEnvio = envio;
+        this.premioRuleta = premio;
+        this.descuentoHistorico = this.descuentoHistorico.add(descuento);
+        this.total = this.total.subtract(descuento).add(envio);
+    }
+
+    public BigDecimal getDescuentoRuleta() { return descuentoRuleta == null ? BigDecimal.ZERO : descuentoRuleta; }
+    public BigDecimal getCostoEnvio() { return costoEnvio == null ? BigDecimal.ZERO : costoEnvio; }
+    public String getPremioRuleta() { return premioRuleta; }
 
     /** Número visible (ej. PED-000015). Se asigna una vez, después de guardar (igual que SOP- en Soporte). */
     // Ejecuta asignar numero pedido como parte de las responsabilidades de esta clase.

@@ -1,0 +1,30 @@
+# Credenciales
+.env
+.env.*
+!.env.example
+
+# Respaldos
+*.bak*
+respaldos-*/
+
+# Registros
+*.log
+
+# Frontend
+node_modules/
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Backend
+target/
+*.class
+
+# Parches temporales
+Parche_Diseno_Nackson_*.zip
+Nackson_*.zip
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

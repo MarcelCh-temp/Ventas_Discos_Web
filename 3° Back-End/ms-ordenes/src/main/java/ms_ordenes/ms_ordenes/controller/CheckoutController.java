@@ -61,6 +61,7 @@ public class CheckoutController {
     // POST: recibe una solicitud y ejecuta una operación. Método validar (validar).
     public ResponseEntity<ResumenCompraResponse> validar(@Parameter(hidden = true) AuthUser user,
                                                          @Valid @RequestBody ValidarCheckoutRequest req) {
+        user.requireCliente();
         return ResponseEntity.ok(checkoutService.validar(user.userId(), req));
     }
 
@@ -70,6 +71,7 @@ public class CheckoutController {
     // POST: recibe una solicitud y ejecuta una operación. Método confirmar (confirmar).
     public ResponseEntity<ConfirmacionCompraResponse> confirmar(@Parameter(hidden = true) AuthUser user,
                                                                 @Valid @RequestBody ConfirmarCompraRequest req) {
+        user.requireCliente();
         ConfirmacionCompraResponse r = checkoutService.confirmar(user.userId(), req);
         HttpStatus status = r.pedido().estado() == EstadoOrden.CONFIRMADO ? HttpStatus.CREATED : HttpStatus.ACCEPTED;
         return ResponseEntity.status(status).body(r);

@@ -1,0 +1,11 @@
+/* Filtros de categorías; no afecta modo oscuro ni catálogo de búsqueda global. */
+.nackson-category-filters { color: #f4f6fa; }
+.nackson-category-filters label { color: inherit; font-size: .875rem; font-weight: 500; }
+.nackson-category-filters input, .nackson-category-filters select { background: #151a25; color: #f4f6fa; border: 1px solid #586073; }
+.nackson-category-filters input::placeholder { color: #aab2bf; }
+.nackson-category-filters input:focus, .nackson-category-filters select:focus { background: #1a2230; color: white; border-color: #f05269; box-shadow: 0 0 0 .15rem #dc354544; }
+html[data-nackson-theme="light"] .nackson-category-filters { color: #192433 !important; }
+html[data-nackson-theme="light"] .nackson-category-filters input,
+html[data-nackson-theme="light"] .nackson-category-filters select { background: white !important; color: #192433 !important; border-color: #9aa9bc !important; }
+html[data-nackson-theme="light"] .nackson-category-filters .btn-outline-light { color: #243146 !important; border-color: #78879a !important; }
+html[data-nackson-theme="light"] .nackson-category-filters .btn-outline-light:hover { background: #243146 !important; color: white !important; }

@@ -51,6 +51,26 @@ public class EventoNotificacionController {
     public ResponseEntity<Map<String, Object>> recibirEvento(
             @Valid @RequestBody EventoNotificacionRequest evento) {
 
+        String emisor = (String) org.springframework.web.context.request.RequestContextHolder
+                .currentRequestAttributes()
+                .getAttribute(
+                        com.ventasdiscos.msnotifications.security.ServicioInternoInterceptor.ATRIBUTO_EMISOR,
+                        org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST
+                );
+
+        String origenEsperado = switch (emisor == null ? "" : emisor) {
+            case "ms-support" -> "SUPPORT";
+            case "ms-orders" -> "ORDERS";
+            case "ms-postsale" -> "POSTSALE";
+            default -> null;
+        };
+
+        if (origenEsperado == null || !origenEsperado.equals(evento.getOrigen())) {
+            throw new com.ventasdiscos.msnotifications.exception.AccesoDenegadoException(
+                    "El origen del evento no corresponde al servicio autenticado"
+            );
+        }
+
         boolean procesado =
                 eventoNotificacionService.procesarEvento(evento);
 

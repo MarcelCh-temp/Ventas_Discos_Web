@@ -71,19 +71,32 @@ public class JwtService {
     public AuthUser validar(String token) {
         try {
             SignedJWT jwt = SignedJWT.parse(token);
-            if (!jwt.verify(new MACVerifier(secret))) {
+            if (!JWSAlgorithm.HS256.equals(jwt.getHeader().getAlgorithm())
+                    || !jwt.verify(new MACVerifier(secret))) {
                 throw new NoAutenticadoException("Token inválido");
             }
             JWTClaimsSet claims = jwt.getJWTClaimsSet();
+            if (claims.getAudience() != null && !claims.getAudience().isEmpty()) {
+                throw new NoAutenticadoException("Token inválido");
+            }
+            if (!"ms-accounts".equals(claims.getIssuer())) {
+                throw new NoAutenticadoException("Token inválido");
+            }
             Date expira = claims.getExpirationTime();
-            if (expira == null || expira.before(new Date())) {
+            if (expira == null || !expira.after(new Date())) {
                 throw new NoAutenticadoException("Tu sesión expiró, inicia sesión nuevamente");
             }
             String rol = claims.getStringClaim("rol");
-            if (rol == null || claims.getSubject() == null) {
+            if (!("CLIENTE".equals(rol) || "ADMINISTRADOR".equals(rol)) || claims.getSubject() == null) {
                 throw new NoAutenticadoException("Token inválido");
             }
-            return new AuthUser(Long.valueOf(claims.getSubject()), Role.valueOf(rol));
+            Long userId = Long.valueOf(claims.getSubject());
+
+            if (userId <= 0) {
+                throw new NoAutenticadoException("Token inválido");
+            }
+
+            return new AuthUser(userId, Role.valueOf(rol));
         } catch (ParseException | JOSEException | IllegalArgumentException e) {
             throw new NoAutenticadoException("Token inválido");
         }

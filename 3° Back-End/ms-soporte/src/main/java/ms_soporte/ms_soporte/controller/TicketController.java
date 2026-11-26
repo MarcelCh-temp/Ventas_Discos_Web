@@ -34,12 +34,14 @@ public class TicketController {
     @PostMapping
     public ResponseEntity<TicketDetalleResponse> crearTicket(@Parameter(hidden = true) AuthUser user,
                                                              @Valid @RequestBody CrearTicketRequest datos) {
+        user.requireCliente();
         return new ResponseEntity<>(ticketService.crearTicket(datos, user.userId()), HttpStatus.CREATED);
     }
 
     // HU-60
     @GetMapping("/me")
     public ResponseEntity<List<TicketResumenResponse>> listarPropios(@Parameter(hidden = true) AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(ticketService.listarPropios(user.userId()));
     }
 
@@ -47,6 +49,7 @@ public class TicketController {
     @GetMapping("/{id}")
     public ResponseEntity<TicketDetalleResponse> obtenerPropio(@Parameter(hidden = true) AuthUser user,
                                                                @PathVariable Long id) {
+        user.requireCliente();
         return ResponseEntity.ok(ticketService.obtenerPropio(id, user.userId()));
     }
 
@@ -55,6 +58,7 @@ public class TicketController {
     public ResponseEntity<TicketDetalleResponse> responder(@Parameter(hidden = true) AuthUser user,
                                                            @PathVariable Long id,
                                                            @Valid @RequestBody MensajeRequest mensaje) {
+        user.requireCliente();
         return new ResponseEntity<>(ticketService.responderComoCliente(id, user.userId(), mensaje.contenido()),
                 HttpStatus.CREATED);
     }

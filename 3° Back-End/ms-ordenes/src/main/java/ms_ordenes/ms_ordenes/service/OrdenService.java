@@ -105,6 +105,9 @@ public class OrdenService {
         this.transaccion = new TransactionTemplate(transactionManager);
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private RuletaService ruletaService;
+
     // ===================== Lote 5: contrato interno para Accounts (HU-78) =====================
 
     /** RN-36: pedidos activos = PENDIENTE, CONFIRMADO, PREPARANDO o DESPACHADO. Solo lectura: no modifica pedidos. */
@@ -124,6 +127,12 @@ public class OrdenService {
     @Transactional
     public Long crearDesdeCarrito(Long userId, CarritoService.CarritoCotizado cotizado, DatosEntrega datos,
                                   MetodoPago metodoPago) {
+        return crearDesdeCarrito(userId, cotizado, datos, metodoPago, null);
+    }
+
+    @Transactional
+    public Long crearDesdeCarrito(Long userId, CarritoService.CarritoCotizado cotizado, DatosEntrega datos,
+                                  MetodoPago metodoPago, BigDecimal totalEsperado) {
         Carrito carrito = carritoRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new OperacionNoPermitidaException("Tu carrito está vacío"));
         Map<Long, Integer> cotizadas = new HashMap<>();
@@ -149,8 +158,21 @@ public class OrdenService {
         accountsClient.exigirCuentaActiva(userId);
         Orden orden = Orden.crear(userId, items, descuento, datos,
                 "Pago simulado aprobado (" + metodoPago + ", simulación académica)");
+        orden.registrarMetodoPago(metodoPago);
+        // Cotización de la ruleta y reserva bajo el mismo bloqueo transaccional.
+        // La orden se guarda una vez: si falla el total/premio se revierte también el vaciado de carrito.
+        BigDecimal productos = orden.getTotal();
+        if (ruletaService != null) {
+            RuletaService.Cotizacion premio = ruletaService.cotizarParaCompra(userId, productos,
+                    datos.getMetodoEntrega().name());
+            orden.aplicarBeneficio(premio.descuentoRuleta(), premio.costoEnvio(), premio.premio());
+        }
         orden = ordenRepository.save(orden);
         orden.asignarNumeroPedido();
+        if (ruletaService != null) {
+            ruletaService.reservar(userId, orden.getId(), productos,
+                    datos.getMetodoEntrega().name(), totalEsperado);
+        }
         carrito.vaciar();
         return orden.getId();
     }
@@ -176,6 +198,7 @@ public class OrdenService {
                 o.cambiarEstado(EstadoOrden.CANCELADO, "Sin stock al confirmar la compra",
                         "Catalog rechazó el descuento por falta de stock: " + r.mensaje() + ". No se descontó stock", null);
                 restaurarCarrito(o);
+                if (ruletaService != null) ruletaService.liberar(ordenId);
             });
             throw new OperacionNoPermitidaException("No se pudo completar la compra: " + r.mensaje()
                     + ". No se descontó stock y tu carrito se restauró", Map.of("carrito", String.valueOf(r.mensaje())));
@@ -183,6 +206,7 @@ public class OrdenService {
         return transaccion.execute(s -> {
             Orden o = bloquear(ordenId);
             if (r.resultado() == ResultadoOperacion.APLICADA) {
+                if (ruletaService != null) ruletaService.consumir(ordenId);
                 if (o.getEstado() == EstadoOrden.PENDIENTE) {
                     o.cambiarEstado(EstadoOrden.CONFIRMADO, "Stock descontado",
                             "Pago simulado aprobado y stock descontado en Catalog", null);
@@ -281,6 +305,7 @@ public class OrdenService {
             String descripcion = null;
             if (o.getEstado() == EstadoOrden.PENDIENTE && nuevo == EstadoOrden.CONFIRMADO && !o.getItems().isEmpty()) {
                 exigirAplicada(venta(o.getId(), o.getNumeroPedido(), items(o)), "el descuento de stock");
+                if (ruletaService != null) ruletaService.consumir(id);
                 descripcion = "Stock descontado en Catalog";
             }
             o.cambiarEstado(nuevo, req.motivo(), descripcion, adminId);
@@ -385,6 +410,7 @@ public class OrdenService {
             } else {
                 o.cambiarEstado(EstadoOrden.CANCELADO, motivo, origen + ". " + sinReponer, responsableId);
             }
+            if (ruletaService != null) ruletaService.liberar(id);
             avisarCambioDeEstado(o, motivo);
             return new PasoCancelacion(items(o), o.getNumeroPedido(), false, sinReponer == null);
         });

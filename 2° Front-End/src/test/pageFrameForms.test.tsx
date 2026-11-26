@@ -3,14 +3,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PageFrame } from '../components/PageFrame';
+import { AuthProvider } from '../state/AuthContext';
+import { CartDrawerProvider } from '../components/CarritoLateral';
+import { NacksonThemeProvider } from '../components/TemaNackson';
 
 function view(children: ReactNode) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter><AuthProvider><NacksonThemeProvider><CartDrawerProvider>
       <PageFrame title="Prueba formularios" css="">
         {children}
       </PageFrame>
-    </MemoryRouter>,
+    </CartDrawerProvider></NacksonThemeProvider></AuthProvider></MemoryRouter>,
   );
 }
 

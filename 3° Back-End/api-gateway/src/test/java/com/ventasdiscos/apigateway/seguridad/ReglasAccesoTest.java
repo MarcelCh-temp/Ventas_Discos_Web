@@ -44,6 +44,9 @@ class ReglasAccesoTest {
             "GET, /api/v1/favorites",
             "GET, /api/v1/cart",
             "GET, /api/v1/orders/me",
+            "GET, /api/v1/orders/15",
+            "GET, /api/v1/rewards/roulette",
+            "POST, /api/v1/rewards/roulette/spin",
             "GET, /api/v1/orders/me/AK-1/tracking",
             "POST, /api/v1/post-sale/cancellations",
             "POST, /api/v1/post-sale/refund-requests",
@@ -74,6 +77,14 @@ class ReglasAccesoTest {
     void rutasAdministrativas(String metodo, String path) {
         assertEquals(Acceso.ADMINISTRADOR, ReglasAcceso.clasificar(metodo, path));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings={"/api/v1/cart", "/api/v1/orders/me/1", "/api/v1/checkout/confirm", "/api/v1/rewards/roulette", "/api/v1/favorites", "/api/v1/post-sale/requests/me", "/api/v1/support/requests"})
+    void operacionesExclusivasCliente(String path) { assertTrue(ReglasAcceso.exclusivaCliente(path)); }
+
+    @ParameterizedTest
+    @ValueSource(strings={"/api/v1/accounts/me", "/api/v1/notifications/me", "/api/v1/admin/orders"})
+    void operacionesNoExclusivasCliente(String path) { assertFalse(ReglasAcceso.exclusivaCliente(path)); }
 
     @ParameterizedTest(name = "{0} nunca se expone")
     @ValueSource(strings = {

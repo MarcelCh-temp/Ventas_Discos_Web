@@ -1,0 +1,108 @@
+/* Tema global no destructivo: sin selectores para dark, el diseño original permanece intacto. */
+.nackson-theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  flex: 0 0 auto; padding: .36rem .7rem; margin-left: .5rem;
+  color: #fff; background: #243044; border: 1px solid #728199;
+  border-radius: 999px; font-size: .78rem; font-weight: 700;
+  white-space: nowrap; cursor: pointer; z-index: 1;
+}
+.nackson-theme-toggle:hover { background: #34465f; }
+.nackson-theme-toggle:focus-visible { outline: 3px solid #60a5fa; outline-offset: 3px; }
+.nackson-theme-toggle span:first-child { font-size: 1.12rem; line-height: 1; }
+.nackson-theme-fallback { position: fixed; right: 1rem; top: 4.5rem; z-index: 2000; }
+@media (max-width: 767px) { .nackson-theme-toggle { padding: .4rem; margin-left: .2rem; } .nackson-theme-label { display: none; } }
+
+html[data-nackson-theme="light"] {
+  color-scheme: light;
+  --bs-body-color: #192433;
+  --bs-body-bg: #f4f7fc;
+  --bs-secondary-color: #46556b;
+  --bs-border-color: #cbd5e1;
+}
+html[data-nackson-theme="light"] body,
+html[data-nackson-theme="light"] #root,
+html[data-nackson-theme="light"] .nackson-legacy-page {
+  background: #f4f7fc !important;
+  color: #192433 !important;
+}
+html[data-nackson-theme="light"] .navbar-futurista {
+  background: rgba(255,255,255,.97) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 12px rgba(18,38,63,.09);
+}
+html[data-nackson-theme="light"] .navbar-futurista .nav-link,
+html[data-nackson-theme="light"] .navbar-futurista .text-light,
+html[data-nackson-theme="light"] .navbar-futurista .navbar-brand .text-light {
+  color: #192433 !important;
+}
+html[data-nackson-theme="light"] .navbar-futurista .nav-link:hover { color: #ad163a !important; }
+html[data-nackson-theme="light"] .navbar-futurista .navbar-toggler { background: #35455c; }
+html[data-nackson-theme="light"] .nackson-theme-toggle { background: #fff; color: #1e293b; border-color: #94a3b8; }
+html[data-nackson-theme="light"] .nackson-theme-toggle:hover { background: #e9eff7; }
+
+/* Tarjetas y paneles que heredan fondos oscuros de las páginas HTML migradas. */
+html[data-nackson-theme="light"] .nackson-legacy-page .card,
+html[data-nackson-theme="light"] .nackson-legacy-page .panel-filtros,
+html[data-nackson-theme="light"] .nackson-legacy-page .bg-dark,
+html[data-nackson-theme="light"] .nackson-legacy-page .bg-black,
+html[data-nackson-theme="light"] .nackson-legacy-page .bg-body-tertiary,
+html[data-nackson-theme="light"] .nackson-legacy-page .list-group-item,
+html[data-nackson-theme="light"] .nackson-legacy-page .accordion-item,
+html[data-nackson-theme="light"] .nackson-legacy-page .modal-content,
+html[data-nackson-theme="light"] .nackson-legacy-page .offcanvas,
+html[data-nackson-theme="light"] .nackson-legacy-page .dropdown-menu,
+html[data-nackson-theme="light"] .nackson-legacy-page .table-dark {
+  background: #fff !important;
+  background-color: #fff !important;
+  border-color: #d5dfec !important;
+  color: #192433 !important;
+}
+html[data-nackson-theme="light"] .nackson-legacy-page .text-light,
+html[data-nackson-theme="light"] .nackson-legacy-page .text-white,
+html[data-nackson-theme="light"] .nackson-legacy-page .card-title,
+html[data-nackson-theme="light"] .nackson-legacy-page .card-text,
+html[data-nackson-theme="light"] .nackson-legacy-page .dropdown-item,
+html[data-nackson-theme="light"] .nackson-legacy-page .table-dark,
+html[data-nackson-theme="light"] .nackson-legacy-page .form-label {
+  color: #192433 !important;
+}
+html[data-nackson-theme="light"] .nackson-legacy-page .text-muted,
+html[data-nackson-theme="light"] .nackson-legacy-page .text-secondary { color: #526177 !important; }
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-primary,
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-danger,
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-success,
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-neon-danger { color: #fff !important; }
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-outline-light {
+  border-color: #78879a !important; color: #243146 !important;
+}
+html[data-nackson-theme="light"] .nackson-legacy-page .btn-outline-light:hover {
+  background: #243146 !important; color: #fff !important;
+}
+html[data-nackson-theme="light"] .nackson-legacy-page input:not([type="checkbox"]):not([type="radio"]),
+html[data-nackson-theme="light"] .nackson-legacy-page select,
+html[data-nackson-theme="light"] .nackson-legacy-page textarea,
+html[data-nackson-theme="light"] .navbar-futurista input {
+  background: #fff !important; color: #192433 !important; border-color: #9aa9bc !important;
+}
+html[data-nackson-theme="light"] .nackson-legacy-page input::placeholder,
+html[data-nackson-theme="light"] .navbar-futurista input::placeholder { color: #66758a !important; }
+html[data-nackson-theme="light"] .nackson-legacy-page .table { --bs-table-color: #192433; --bs-table-bg: #fff; --bs-table-border-color: #d5dfec; }
+html[data-nackson-theme="light"] .nackson-legacy-page .dropdown-item:hover { background: #edf2fa !important; }
+/* Mantener legibles los elementos que tienen fondos de acento oscuros. */
+html[data-nackson-theme="light"] .nackson-legacy-page .badge.bg-danger,
+html[data-nackson-theme="light"] .nackson-legacy-page .badge.bg-primary,
+html[data-nackson-theme="light"] .nackson-legacy-page .badge.bg-success,
+html[data-nackson-theme="light"] .nackson-legacy-page .cintillo-animado-container,
+html[data-nackson-theme="light"] .nackson-legacy-page .shortcuts-perfil { color: #fff !important; }
+
+/* Nuevos componentes, sin cambiar su lógica. */
+html[data-nackson-theme="light"] .nackson-dialog-panel { background: #fff !important; border-color: #cbd5e1 !important; color: #192433 !important; }
+html[data-nackson-theme="light"] .nackson-dialog-title { color: #192433 !important; }
+html[data-nackson-theme="light"] .nackson-dialog-message { color: #475569 !important; }
+html[data-nackson-theme="light"] .nackson-dialog-cancel { background: #e9eef5 !important; color: #192433 !important; }
+
+/* Cambios suaves, sin modificar efectos especiales de portadas y banners. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-nackson-theme="light"] body,
+  html[data-nackson-theme="light"] .navbar-futurista { transition: background-color .2s ease, color .2s ease; }
+}

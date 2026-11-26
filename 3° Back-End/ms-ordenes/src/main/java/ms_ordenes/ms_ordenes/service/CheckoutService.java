@@ -58,6 +58,9 @@ public class CheckoutService {
         this.carritoRepository = carritoRepository;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private RuletaService ruletaService;
+
     /** RF-COM-05: métodos de entrega disponibles y sus campos obligatorios. */
     // Procesa metodos entrega aplicando las reglas del negocio; consultar validaciones y excepciones dentro del método.
     public List<MetodoEntregaResponse> metodosEntrega() {
@@ -81,13 +84,18 @@ public class CheckoutService {
         Carrito carrito = carritoRepository.findByUserId(userId).orElse(null);
         if (carrito == null || carrito.estaVacio()) {
             return new ResumenCompraResponse(List.of(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                    DatosEntregaResponse.from(datos), false, Map.of("carrito", "Tu carrito está vacío"));
+                    DatosEntregaResponse.from(datos), false, Map.of("carrito", "Tu carrito está vacío"),
+                    BigDecimal.ZERO, BigDecimal.ZERO, "NINGUNO");
         }
         CarritoService.CarritoCotizado c = carritoService.cotizar(carrito);
         CarritoService.actualizarPrecios(c);
         CarritoResponse r = CarritoService.armar(c);
-        return new ResumenCompraResponse(r.items(), r.subtotal(), r.descuento(), r.total(),
-                DatosEntregaResponse.from(datos), r.listoParaComprar(), problemas(r));
+        RuletaService.Cotizacion premio = ruletaService == null
+                ? new RuletaService.Cotizacion(r.total(), BigDecimal.ZERO, BigDecimal.ZERO, "NINGUNO")
+                : ruletaService.cotizar(userId, r.total(), datos.getMetodoEntrega().name());
+        return new ResumenCompraResponse(r.items(), r.subtotal(), r.descuento(), premio.total(),
+                DatosEntregaResponse.from(datos), r.listoParaComprar(), problemas(r),
+                premio.descuentoRuleta(), premio.costoEnvio(), premio.premio());
     }
 
     /**
@@ -103,16 +111,19 @@ public class CheckoutService {
             throw new OperacionNoPermitidaException("Hay productos que no se pueden comprar; corrige tu carrito",
                     problemas(r));
         }
-        if (req.totalEsperado().compareTo(r.total()) != 0) {
-            throw new OperacionNoPermitidaException("El total de tu compra cambió: ahora es $" + r.total().toPlainString()
+        RuletaService.Cotizacion premio = ruletaService == null
+                ? new RuletaService.Cotizacion(r.total(), BigDecimal.ZERO, BigDecimal.ZERO, "NINGUNO")
+                : ruletaService.cotizar(userId, r.total(), datos.getMetodoEntrega().name());
+        if (req.totalEsperado().compareTo(premio.total()) != 0) {
+            throw new OperacionNoPermitidaException("El total de tu compra cambió: ahora es $" + premio.total().toPlainString()
                     + ". Revisa el resumen antes de pagar",
-                    Map.of("totalEsperado", "El total actualizado es " + r.total().toPlainString()));
+                    Map.of("totalEsperado", "El total actualizado es " + premio.total().toPlainString()));
         }
         if (req.resultadoEfectivo() == ResultadoPagoSimulado.RECHAZADO) {
             throw new PagoRechazadoException("El pago simulado fue rechazado (simulación académica). No se generó el "
                     + "pedido ni se descontó stock; tu carrito sigue disponible para reintentar");
         }
-        Long id = ordenService.crearDesdeCarrito(userId, c, datos, req.metodoPago());
+        Long id = ordenService.crearDesdeCarrito(userId, c, datos, req.metodoPago(), req.totalEsperado());
         PedidoDetalleResponse pedido = ordenService.descontarStockDeCompra(id);
         String mensaje = pedido.estado() == EstadoOrden.CONFIRMADO
                 ? "Compra confirmada. Tu número de pedido es " + pedido.numeroPedido()

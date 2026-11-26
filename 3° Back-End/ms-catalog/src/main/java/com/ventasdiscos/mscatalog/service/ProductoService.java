@@ -353,7 +353,8 @@ public class ProductoService {
                 p.getGenero(), p.getFormato(), p.getPlataforma(), p.getImagenUrl(), p.getPrecioBase(),
                 promo.map(pr -> calculadora.precioFinal(p, pr)).orElse(null),
                 promo.map(Promocion::getNombre).orElse(null),
-                disp, p.estaActivo() && disp.permiteCompra());
+                disp, inv.containsKey(p.getId()) ? inv.get(p.getId()).stockActual() : null,
+                p.estaActivo() && disp.permiteCompra());
     }
 
     // Regla de negocio en Service; aquí se coordinan verificaciones, repositorios y otras operaciones. Método vacia (vacia).

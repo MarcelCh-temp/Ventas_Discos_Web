@@ -1,5 +1,7 @@
-/** Vista migrada desde musica.html. HTML visual original conservado.
- * No se ejecuta JavaScript heredado con sesiones/clientes ficticios. */
+
+/** Vista migrada desde musica.html.
+ * No se ejecuta JavaScript heredado con sesiones/clientes ficticios.
+ */
 import { PageFrame } from '../components/PageFrame';
 import { RealCatalog } from '../components/RealCatalog';
 import { Footer } from '../components/Footer';
@@ -8,18 +10,88 @@ import css from '../styles/musica.css?inline';
 
 export default function MusicaPage() {
   return (
-    <PageFrame title="Música - Ñackson Store" css={css} bodyClass="d-flex flex-column min-vh-100">
-      {"\n"}
-<Navbar variant="category" activeCategory="musica" />
-{"\n"}
-<header className="bg-dark text-white text-center py-5 border-bottom border-secondary mb-4 bg-opacity-50">{"\n"}<div className="container">{"\n"}<h1 className="text-danger fw-bold display-5 mb-2"><i className="bi bi-music-note-beamed me-2"></i>{" Música en Formato Físico"}</h1>{"\n"}<p className="text-white-50 lead fs-6">{"CDs y Vinilos coleccionables de tus artistas y bandas sonoras."}</p>{"\n"}</div>{"\n"}</header>
-{"\n"}
-<main className="container my-4 flex-grow-1">{"\n"}<div className="row g-4">{"\n"}<div className="col-lg-8">{"\n"}<div className="row g-4">{"\n"}<RealCatalog categoria="MUSICA" titulo="Productos de Música" />{"\n"}</div>{"\n"}</div>{"\n"}<div className="col-lg-4">{"\n"}<div className="panel-filtros p-4 text-light">{"\n"}<h4 className="h5 text-danger mb-3 pb-2 border-bottom border-secondary"><i className="bi bi-funnel-fill me-2"></i>{" Filtrar y Ordenar"}</h4>{"\n"}<p className="small text-white-50">Utiliza los filtros del catálogo para refinar los resultados.</p>{"\n"}</div>{"\n"}</div>{"\n"}</div>{"\n"}</main>
-{"\n"}
-<Footer variant="category" />
-{"\n"}
-{"\n"}
-{"\n"}
+    <PageFrame
+      title="Música - Ñackson Store"
+      css={css}
+      bodyClass="d-flex flex-column min-vh-100"
+    >
+      <Navbar variant="category" activeCategory="musica" />
+
+      {/* ENCABEZADO CON VIDEO DE FONDO */}
+      <header
+        className="position-relative overflow-hidden border-bottom border-secondary mb-4"
+        style={{ minHeight: '280px', backgroundColor: '#11151d' }}
+      >
+        {/* Video difuminado, sin sonido y en bucle */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/hero-musica.jpg"
+          aria-hidden="true"
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+            filter: 'blur(6px) brightness(0.65)',
+            transform: 'scale(1.08)',
+            pointerEvents: 'none',
+          }}
+        >
+          <source src="/hero-musica.mp4" type="video/mp4" />
+        </video>
+
+        {/* Capa oscura para mejorar el contraste */}
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.35)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* TEXTO ENCIMA DEL VIDEO */}
+        <div
+          className="container position-relative text-center text-white d-flex flex-column justify-content-center"
+          style={{
+            minHeight: '280px',
+            zIndex: 1,
+          }}
+        >
+          {/* TÍTULO CON FUENTE MANUSCRITA */}
+          <h1 className="hero-musica-titulo text-danger mb-3">
+            MÚSICA EN FORMATO FÍSICO
+          </h1>
+
+          {/* DESCRIPCIÓN NORMAL, SIN ARCOÍRIS */}
+          <p className="text-white lead fs-6 mb-0">
+            CDs y Vinilos coleccionables de tus artistas y bandas sonoras.
+          </p>
+        </div>
+      </header>
+
+      {/* CATÁLOGO Y FILTROS */}
+      <main className="container-fluid px-3 px-lg-4 my-4 flex-grow-1">
+        <div className="row g-3">
+          {/* FILTROS - IZQUIERDA */}
+          <aside className="col-12 col-lg-3">
+            <div id="nackson-category-filter-panel" />
+          </aside>
+
+          {/* PRODUCTOS - DERECHA */}
+          <section className="col-12 col-lg-9">
+            <RealCatalog
+              sidebarFilters
+              categoria="MUSICA"
+              titulo="Productos de Música"
+            />
+          </section>
+        </div>
+      </main>
+
+      <Footer variant="category" />
     </PageFrame>
   );
 }

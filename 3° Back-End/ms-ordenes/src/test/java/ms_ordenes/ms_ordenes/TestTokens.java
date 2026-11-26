@@ -22,6 +22,7 @@ public final class TestTokens {
     public static String bearer(long userId, String rol) {
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                    .issuer("ms-accounts")
                     .subject(String.valueOf(userId))
                     .claim("rol", rol)
                     .expirationTime(new Date(System.currentTimeMillis() + 600_000))

@@ -37,6 +37,12 @@
     </dependencyManagement>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Cloud Gateway Server Web MVC (servlet, igual que los MS). Sin WebFlux, Eureka ni Kafka. -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

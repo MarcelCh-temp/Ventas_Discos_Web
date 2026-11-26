@@ -1,3 +1,4 @@
+
 package com.ventasdiscos.mscatalog;
 
 import com.ventasdiscos.mscatalog.security.Servicios;
@@ -65,7 +66,6 @@ class CatalogoITTest {
         return ((Number) JsonPath.read(resp, "$.id")).longValue();
     }
 
-    // Operación auxiliar que forma parte de la responsabilidad de esta clase. Método crearProducto (crear producto).
     private long crearProducto(String nombre) throws Exception {
         return crearProducto(nombre, "MUSICA", null);
     }
@@ -174,6 +174,7 @@ class CatalogoITTest {
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.contenido[0].comprable").value(true));
         mockMvc.perform(get("/api/v1/products?q=filtro&disponibilidad=AGOTADO"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.contenido[0].id").value(sinStock))
                 .andExpect(jsonPath("$.contenido[0].comprable").value(false));
@@ -205,20 +206,21 @@ class CatalogoITTest {
                 .andReturn().getResponse().getContentAsString();
         long promoId = ((Number) JsonPath.read(resp, "$.id")).longValue();
 
-        admin(get("/api/v1/admin/promotions/" + promoId)).andExpect(status().isOk());
+        admin(get("/api/v1/admin/promotions/" + promoId))
+                .andExpect(status().isOk());
         json(put("/api/v1/admin/promotions/" + promoId), body.replace("\"valor\":10", "\"valor\":20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valor").value(20));
 
-        // HU-52: la oferta se ve en el catálogo y en /offers
         mockMvc.perform(get("/api/v1/products/" + id))
                 .andExpect(jsonPath("$.precioOferta").value(15992));
         mockMvc.perform(get("/api/v1/offers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].nombre").value("Semana del disco"));
 
-        // Orders: el precio del carrito ya trae la promoción
-        mockMvc.perform(post("/api/v1/internal/catalog/pricing").header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS)).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/v1/internal/catalog/pricing")
+                        .header("Authorization", TokensServicioPrueba.bearer(Servicios.ORDERS))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"items\":[{\"productId\":" + id + ",\"cantidad\":2}]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lineas[0].promocionId").value(promoId))
@@ -243,7 +245,8 @@ class CatalogoITTest {
                 .andExpect(jsonPath("$.estado").value("PROGRAMADA"));
 
         for (String estado : List.of("PROGRAMADA", "ACTIVA", "FINALIZADA", "DESACTIVADA")) {
-            admin(get("/api/v1/admin/promotions?estado=" + estado)).andExpect(status().isOk());
+            admin(get("/api/v1/admin/promotions?estado=" + estado))
+                    .andExpect(status().isOk());
         }
         admin(get("/api/v1/admin/promotions?estado=PROGRAMADA&q=música&desde=" + hoy + "&hasta=" + hoy.plusDays(30)
                 + "&productId=" + id))
@@ -258,19 +261,24 @@ class CatalogoITTest {
     @Test
     void favoritosSinDuplicadosYSoloPropios() throws Exception {
         long id = crearProducto("Disco favorito");
-        mockMvc.perform(post("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(7L)))
+        mockMvc.perform(post("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(7L)))
                 .andExpect(status().isCreated());
-        mockMvc.perform(post("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(7L)))
+        mockMvc.perform(post("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(7L)))
                 .andExpect(status().isConflict());
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(7L)))
+        mockMvc.perform(get("/api/v1/favorites")
+                        .header("Authorization", TestTokens.cliente(7L)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
-        // Otro cliente no ve ni puede borrar el favorito del cliente 7
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(8L)))
+        mockMvc.perform(get("/api/v1/favorites")
+                        .header("Authorization", TestTokens.cliente(8L)))
                 .andExpect(jsonPath("$.length()").value(0));
-        mockMvc.perform(delete("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(8L)))
+        mockMvc.perform(delete("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(8L)))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(delete("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(7L)))
+        mockMvc.perform(delete("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(7L)))
                 .andExpect(status().isNoContent());
     }
 
@@ -290,39 +298,98 @@ class CatalogoITTest {
     @Test
     void favoritoRechazadoSiLaCuentaNoPuedeOperarOAccountsNoResponde() throws Exception {
         long id = crearProducto("Disco bloqueado");
-        doThrow(new AccesoDenegadoException("Tu cuenta no puede realizar nuevas operaciones")).when(cuentas).exigirCuentaActiva(71L);
-        mockMvc.perform(post("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(71L)))
+        doThrow(new AccesoDenegadoException("Tu cuenta no puede realizar nuevas operaciones"))
+                .when(cuentas).exigirCuentaActiva(71L);
+        mockMvc.perform(post("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(71L)))
                 .andExpect(status().isForbidden());
-        doThrow(new ServicioExternoNoDisponibleException("No fue posible confirmar el estado de tu cuenta")).when(cuentas)
-                .exigirCuentaActiva(72L);
-        mockMvc.perform(post("/api/v1/favorites/" + id).header("Authorization", TestTokens.cliente(72L)))
+
+        doThrow(new ServicioExternoNoDisponibleException("No fue posible confirmar el estado de tu cuenta"))
+                .when(cuentas).exigirCuentaActiva(72L);
+        mockMvc.perform(post("/api/v1/favorites/" + id)
+                        .header("Authorization", TestTokens.cliente(72L)))
                 .andExpect(status().isServiceUnavailable());
-        // Cierre (RN-44): mientras la cuenta no esté ACTIVA (o Accounts no responda) tampoco se consulta
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(71L))).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(72L)))
+
+        mockMvc.perform(get("/api/v1/favorites")
+                .header("Authorization", TestTokens.cliente(71L)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/favorites")
+                .header("Authorization", TestTokens.cliente(72L)))
                 .andExpect(status().isServiceUnavailable());
+
         for (long u : new long[]{71L, 72L}) {
             doNothing().when(cuentas).exigirCuentaActiva(u);
-            mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(u)))
+            mockMvc.perform(get("/api/v1/favorites")
+                    .header("Authorization", TestTokens.cliente(u)))
                     .andExpect(jsonPath("$.length()").value(0));
         }
     }
 
-    /** HU-78 / RN-43 (ERS 13.8): depuración interna idempotente; solo borra los favoritos de ese usuario. */
+    /** HU-78 / RN-43: depuración interna idempotente de favoritos. */
     @Test
     void depuracionInternaDeFavoritosEsIdempotente() throws Exception {
         long a = crearProducto("Disco depurado A");
         long b = crearProducto("Disco depurado B");
-        mockMvc.perform(post("/api/v1/favorites/" + a).header("Authorization", TestTokens.cliente(73L))).andExpect(status().isCreated());
-        mockMvc.perform(post("/api/v1/favorites/" + b).header("Authorization", TestTokens.cliente(73L))).andExpect(status().isCreated());
-        mockMvc.perform(post("/api/v1/favorites/" + a).header("Authorization", TestTokens.cliente(74L))).andExpect(status().isCreated());
-        mockMvc.perform(post("/api/v1/internal/catalog/users/73/favorites/purge").header("Authorization", TokensServicioPrueba.bearer(Servicios.ACCOUNTS)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(73)).andExpect(jsonPath("$.eliminados").value(2));
-        mockMvc.perform(post("/api/v1/internal/catalog/users/73/favorites/purge").header("Authorization", TokensServicioPrueba.bearer(Servicios.ACCOUNTS)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.eliminados").value(0));
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(73L))).andExpect(jsonPath("$.length()").value(0));
-        mockMvc.perform(get("/api/v1/favorites").header("Authorization", TestTokens.cliente(74L))).andExpect(jsonPath("$.length()").value(1));
-        // Los productos no se tocan
-        mockMvc.perform(get("/api/v1/products/" + a)).andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/favorites/" + a)
+                .header("Authorization", TestTokens.cliente(73L)))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/v1/favorites/" + b)
+                .header("Authorization", TestTokens.cliente(73L)))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/v1/favorites/" + a)
+                .header("Authorization", TestTokens.cliente(74L)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/v1/internal/catalog/users/73/favorites/purge")
+                .header("Authorization", TokensServicioPrueba.bearer(Servicios.ACCOUNTS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(73))
+                .andExpect(jsonPath("$.eliminados").value(2));
+
+        mockMvc.perform(post("/api/v1/internal/catalog/users/73/favorites/purge")
+                .header("Authorization", TokensServicioPrueba.bearer(Servicios.ACCOUNTS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eliminados").value(0));
+
+        mockMvc.perform(get("/api/v1/favorites")
+                .header("Authorization", TestTokens.cliente(73L)))
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(get("/api/v1/favorites")
+                .header("Authorization", TestTokens.cliente(74L)))
+                .andExpect(jsonPath("$.length()").value(1));
+
+        mockMvc.perform(get("/api/v1/products/" + a))
+                .andExpect(status().isOk());
+    }
+
+    // ===================== Seguridad JWT de servicio =====================
+
+    /**
+     * Un servicio conocido, con JWT válido, pero sin permiso para
+     * consultar precios internos, debe recibir HTTP 403.
+     */
+    @Test
+    void servicioNoAutorizadoEnPricing_403() throws Exception {
+        mockMvc.perform(
+                post("/api/v1/internal/catalog/pricing")
+                        .header(
+                                "Authorization",
+                                TokensServicioPrueba.bearer(Servicios.SUPPORT)
+                        )
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "items": [
+                                    {
+                                      "productId": 71,
+                                      "cantidad": 1
+                                    }
+                                  ]
+                                }
+                                """)
+        )
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.status").value(403));
     }
 }

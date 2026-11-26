@@ -1,3 +1,4 @@
+
 package com.ventasdiscos.mscatalog.client;
 
 import com.ventasdiscos.mscatalog.exception.AccesoDenegadoException;
@@ -13,107 +14,201 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**
- * Lote 5 · Integración necesaria de HU-78 (RN-37, RN-44, prueba T-06), autorizada por el equipo. Misma clase que en
- * ms-ordenes. Antes de agregar un producto a favoritos se pregunta a MS-Accounts si la cuenta del token puede operar.
- * Un token todavía válido NO basta: si la cuenta está EN_ELIMINACION, ELIMINADA o con un estado no reconocido, la
- * operación se rechaza (403).
- * Contrato: GET {accounts}/api/v1/internal/accounts/{userId}/operation-status → { userId, estado, puedeOperar }.
- * Cierre (RN-44, RF-CTA-08 CA-06): además lo usa CuentaActivaInterceptor en TODA petición de un CLIENTE.
- * Si Accounts no responde o la respuesta no permite confirmarlo → 503 y no se crea nada (nunca se asume ACTIVA).
- * 1 envío + 1 reintento ante conexión o 5xx (consulta: repetir es seguro).
- * Lote 6 · DOC-05: el RestTemplate agrega un JWT de servicio nuevo en cada llamada (LlamadaInternaInterceptor).
+ * Lote 5 · Integración necesaria de HU-78 (RN-37, RN-44, prueba T-06), autorizada por el equipo.
+ * Antes de agregar un producto a favoritos se pregunta a MS-Accounts si la cuenta del token puede operar.
+ *
+ * Un token todavía válido NO basta: si la cuenta está EN_ELIMINACION, ELIMINADA o con un estado
+ * no reconocido, la operación se rechaza (403).
+ *
+ * Contrato:
+ * GET {accounts}/api/v1/internal/accounts/{userId}/operation-status
+ * → { userId, estado, puedeOperar }.
+ *
+ * Cierre (RN-44, RF-CTA-08 CA-06): también lo usa CuentaActivaInterceptor en toda petición de un CLIENTE.
+ * Si Accounts no responde o la respuesta no permite confirmarlo → 503 y no se crea nada.
+ *
+ * 1 envío + 1 reintento ante conexión o 5xx.
+ * Lote 6 · DOC-05: el RestTemplate agrega un JWT de servicio nuevo en cada llamada.
  * Sin X-Internal-Key.
  */
 @Component
 public class AccountsClient {
 
     private static final Logger log = LoggerFactory.getLogger(AccountsClient.class);
-    // Constante MAX_INTENTOS: valor compartido que no cambia durante la ejecución.
-    static final int MAX_INTENTOS = 2;
-    // Constante PAUSA_ENTRE_INTENTOS_MS: valor compartido que no cambia durante la ejecución.
-    private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
-    static final String NO_OPERA = "Tu cuenta no puede realizar nuevas operaciones (está en proceso de eliminación,"
-            + " fue eliminada o no está habilitada)";
-    static final String NO_DISPONIBLE = "No fue posible confirmar el estado de tu cuenta. No se realizó la operación;"
-            + " intenta nuevamente en unos minutos";
 
-    /** Respuesta de Accounts. estado puede ser null si el valor guardado no es reconocido. */
-    // Cliente de integración: realiza estado operacion con otro microservicio y trata su respuesta.
+    static final int MAX_INTENTOS = 2;
+
+    private static final long PAUSA_ENTRE_INTENTOS_MS = 300;
+
+    static final String NO_OPERA =
+            "Tu cuenta no puede realizar nuevas operaciones (está en proceso de eliminación,"
+                    + " fue eliminada o no está habilitada)";
+
+    static final String NO_DISPONIBLE =
+            "No fue posible confirmar el estado de tu cuenta. No se realizó la operación;"
+                    + " intenta nuevamente en unos minutos";
+
+    /**
+     * Respuesta de Accounts.
+     * estado puede ser null si el valor guardado no es reconocido.
+     */
     public record EstadoOperacion(Long userId, String estado, Boolean puedeOperar) {
     }
 
-    /** Cierre (RN-44): cuenta ya confirmada ACTIVA en ESTA petición; evita repetir la consulta a Accounts. */
+    /**
+     * Cuenta ya confirmada ACTIVA en esta petición.
+     * Evita repetir la consulta a Accounts.
+     */
     static final String VERIFICADA = AccountsClient.class.getName() + ".verificada.";
 
-    // Atributo restTemplate: dato o dependencia utilizada por esta clase.
     private final RestTemplate restTemplate;
-    // Atributo baseUrl: dato o dependencia utilizada por esta clase.
     private final String baseUrl;
 
-    // Cliente de integración: realiza accounts client con otro microservicio y trata su respuesta.
-    public AccountsClient(RestTemplate restTemplate, @Value("${services.accounts.url}") String baseUrl) {
+    public AccountsClient(
+            RestTemplate restTemplate,
+            @Value("${services.accounts.url}") String baseUrl) {
+
         this.restTemplate = restTemplate;
         this.baseUrl = baseUrl;
     }
 
-    /** 403 si la cuenta no puede operar o no existe; 503 si no se pudo confirmar. */
-    // Cliente de integración: realiza exigir cuenta activa con otro microservicio y trata su respuesta.
+    /**
+     * 403 si la cuenta no puede operar o no existe.
+     * 503 si no se pudo confirmar su estado.
+     */
     public void exigirCuentaActiva(Long userId) {
+
         if (yaVerificada(userId)) {
             return;
         }
+
         for (int intento = 1; intento <= MAX_INTENTOS; intento++) {
+
             try {
+
                 EstadoOperacion r = restTemplate.getForObject(
-                        baseUrl + "/api/v1/internal/accounts/{userId}/operation-status", EstadoOperacion.class, userId);
-                if (r == null || r.puedeOperar() == null) {
-                    log.warn("Accounts respondió sin el estado de la cuenta {}", userId);
+                        baseUrl + "/api/v1/internal/accounts/{userId}/operation-status",
+                        EstadoOperacion.class,
+                        userId
+                );
+
+                // 1. Accounts debe responder con información.
+                if (r == null) {
+                    log.warn(
+                            "Accounts respondió sin información para la cuenta {}",
+                            userId
+                    );
                     throw new ServicioExternoNoDisponibleException(NO_DISPONIBLE);
                 }
-                if (!r.puedeOperar()) {
-                    log.info("Operación rechazada: la cuenta {} está {}", userId, r.estado());
+
+                // 2. Verificar que la respuesta corresponda al usuario solicitado.
+                if (r.userId() == null || !r.userId().equals(userId)) {
+                    log.warn(
+                            "Accounts respondió con un userId distinto al solicitado: {}",
+                            userId
+                    );
+                    throw new ServicioExternoNoDisponibleException(NO_DISPONIBLE);
+                }
+
+                // 3. No se puede asumir autorización si falta el booleano.
+                if (r.puedeOperar() == null) {
+                    log.warn(
+                            "Accounts respondió sin confirmar si la cuenta puede operar: {}",
+                            userId
+                    );
+                    throw new ServicioExternoNoDisponibleException(NO_DISPONIBLE);
+                }
+
+                // 4. El estado debe ser ACTIVA y además debe permitir operar.
+                if (!"ACTIVA".equals(r.estado()) || !r.puedeOperar()) {
+                    log.info(
+                            "Operación rechazada: la cuenta {} está {}",
+                            userId,
+                            r.estado()
+                    );
                     throw new AccesoDenegadoException(NO_OPERA);
                 }
+
+                // 5. Solo se marca como verificada después de superar todas las validaciones.
                 marcarVerificada(userId);
+
                 return;
+
             } catch (HttpClientErrorException e) {
+
+                // Una cuenta inexistente se considera un acceso denegado.
                 if (e.getStatusCode().value() == 404) {
                     throw new AccesoDenegadoException(NO_OPERA);
                 }
-                log.warn("Accounts rechazó la consulta de estado de la cuenta {} ({})", userId, e.getStatusCode().value());
+
+                log.warn(
+                        "Accounts rechazó la consulta de estado de la cuenta {} ({})",
+                        userId,
+                        e.getStatusCode().value()
+                );
+
                 throw new ServicioExternoNoDisponibleException(NO_DISPONIBLE);
+
             } catch (RestClientException e) {
+
+                // Si existe un fallo de comunicación, se realiza un reintento.
                 if (intento < MAX_INTENTOS) {
                     esperar();
                 } else {
-                    log.warn("Accounts no respondió tras {} intentos: {}", MAX_INTENTOS, e.getMessage());
+                    log.warn(
+                            "Accounts no respondió tras {} intentos: {}",
+                            MAX_INTENTOS,
+                            e.getMessage()
+                    );
                 }
             }
         }
+
         throw new ServicioExternoNoDisponibleException(NO_DISPONIBLE);
     }
 
-    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método esperar (esperar).
+    /**
+     * Pausa entre intentos de comunicación.
+     */
     private static void esperar() {
+
         try {
             Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 
-    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método yaVerificada (ya verificada).
+    /**
+     * Comprueba si la cuenta ya fue verificada en la petición HTTP actual.
+     */
     private static boolean yaVerificada(Long userId) {
+
         RequestAttributes peticion = RequestContextHolder.getRequestAttributes();
+
         return peticion != null
-                && Boolean.TRUE.equals(peticion.getAttribute(VERIFICADA + userId, RequestAttributes.SCOPE_REQUEST));
+                && Boolean.TRUE.equals(
+                        peticion.getAttribute(
+                                VERIFICADA + userId,
+                                RequestAttributes.SCOPE_REQUEST
+                        )
+                );
     }
 
-    // Comunicación con otro microservicio; verificar autenticación y respuesta del destino. Método marcarVerificada (marcar verificada).
+    /**
+     * Guarda la verificación únicamente durante la petición HTTP actual.
+     */
     private static void marcarVerificada(Long userId) {
+
         RequestAttributes peticion = RequestContextHolder.getRequestAttributes();
+
         if (peticion != null) {
-            peticion.setAttribute(VERIFICADA + userId, Boolean.TRUE, RequestAttributes.SCOPE_REQUEST);
+            peticion.setAttribute(
+                    VERIFICADA + userId,
+                    Boolean.TRUE,
+                    RequestAttributes.SCOPE_REQUEST
+            );
         }
     }
 }

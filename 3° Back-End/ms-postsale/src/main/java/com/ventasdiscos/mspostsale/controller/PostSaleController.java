@@ -49,6 +49,7 @@ public class PostSaleController {
     @PostMapping("/cancellations")
     public ResponseEntity<SolicitudDetalleResponse> cancelar(@Parameter(hidden = true) AuthUser user,
                                                              @Valid @RequestBody Cancelar request) {
+        user.requireCliente();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.solicitarCancelacion(user.userId(), request));
     }
 
@@ -57,6 +58,7 @@ public class PostSaleController {
     // POST: recibe una solicitud y ejecuta una operación. Método devolver (devolver).
     public ResponseEntity<SolicitudDetalleResponse> devolver(@Parameter(hidden = true) AuthUser user,
                                                              @Valid @RequestBody Devolver request) {
+        user.requireCliente();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.solicitarDevolucion(user.userId(), request));
     }
 
@@ -68,6 +70,7 @@ public class PostSaleController {
                                                                        @RequestParam(required = false) EstadoSolicitud estado,
                                                                        @RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "20") int size) {
+        user.requireCliente();
         return ResponseEntity.ok(service.misSolicitudes(user.userId(), tipo, estado, page, size));
     }
 
@@ -76,6 +79,7 @@ public class PostSaleController {
     // GET: consulta información sin modificar registros. Método detalle (detalle).
     public ResponseEntity<SolicitudDetalleResponse> detalle(@Parameter(hidden = true) AuthUser user,
                                                             @PathVariable Long id) {
+        user.requireCliente();
         return ResponseEntity.ok(service.detalleMio(user.userId(), id));
     }
 
@@ -84,6 +88,7 @@ public class PostSaleController {
     @PostMapping("/refund-requests")
     public ResponseEntity<SolicitudDetalleResponse> reembolso(@Parameter(hidden = true) AuthUser user,
                                                               @Valid @RequestBody Reembolsar request) {
+        user.requireCliente();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.registrarReembolso(user.userId(), request));
     }
 }

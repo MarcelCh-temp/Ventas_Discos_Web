@@ -25,7 +25,7 @@ class JwtServiceTest {
     private final JwtService jwt = new JwtService(SECRET);
 
     private static String token(String secret, String subject, String rol, Date expira) throws Exception {
-        JWTClaimsSet.Builder b = new JWTClaimsSet.Builder().subject(subject).expirationTime(expira);
+        JWTClaimsSet.Builder b = new JWTClaimsSet.Builder().subject(subject).issuer("ms-accounts").expirationTime(expira);
         if (rol != null) {
             b.claim("rol", rol);
         }
@@ -85,5 +85,80 @@ class JwtServiceTest {
         assertFalse(cliente.esAdministrador());
         assertDoesNotThrow(admin::requireAdmin);
         assertThrows(AccesoDenegadoException.class, cliente::requireAdmin);
+    }
+
+    @Test
+    void tokenConEmisorIncorrectoSeRechaza() throws Exception {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject("7")
+                .claim("rol", "CLIENTE")
+                .issuer("servicio-desconocido")
+                .expirationTime(enUnaHora())
+                .build();
+
+        SignedJWT firmado = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS256), claims);
+
+        firmado.sign(new MACSigner(
+                SECRET.getBytes(StandardCharsets.UTF_8)));
+
+        assertThrows(NoAutenticadoException.class,
+                () -> jwt.validar(firmado.serialize()));
+    }
+
+    @Test
+    void tokenConAlgoritmoDistintoDeHS256SeRechaza() throws Exception {
+        String claveLarga =
+                "clave-de-prueba-hs512-con-suficiente-longitud-para-firmar-un-token-seguro-123456";
+
+        JwtService servicio = new JwtService(claveLarga);
+
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject("7")
+                .claim("rol", "CLIENTE")
+                .issuer("ms-accounts")
+                .expirationTime(enUnaHora())
+                .build();
+
+        SignedJWT firmado = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS512), claims);
+
+        firmado.sign(new MACSigner(
+                claveLarga.getBytes(StandardCharsets.UTF_8)));
+
+        assertThrows(NoAutenticadoException.class,
+                () -> servicio.validar(firmado.serialize()));
+    }
+
+    @Test
+    void tokenConAudienciaDeServicioSeRechaza() throws Exception {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject("7")
+                .claim("rol", "CLIENTE")
+                .issuer("ms-accounts")
+                .audience("ms-orders")
+                .expirationTime(enUnaHora())
+                .build();
+
+        SignedJWT firmado = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS256), claims);
+
+        firmado.sign(new MACSigner(
+                SECRET.getBytes(StandardCharsets.UTF_8)));
+
+        assertThrows(NoAutenticadoException.class,
+                () -> jwt.validar(firmado.serialize()));
+    }
+
+    @Test
+    void tokenConIdNoPositivoSeRechaza() throws Exception {
+        String idCero = token(SECRET, "0", "CLIENTE", enUnaHora());
+        String idNegativo = token(SECRET, "-5", "CLIENTE", enUnaHora());
+
+        assertThrows(NoAutenticadoException.class,
+                () -> jwt.validar(idCero));
+
+        assertThrows(NoAutenticadoException.class,
+                () -> jwt.validar(idNegativo));
     }
 }

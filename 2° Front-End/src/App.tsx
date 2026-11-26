@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { Shortcuts } from './components/Shortcuts';
 import AccesoriosPage from './pages/AccesoriosPage';
 import RealAdminPage from './pages/RealAdminPage';
 import AnimePage from './pages/AnimePage';
@@ -18,8 +17,10 @@ import RealResultadosPage from './pages/RealResultadosPage';
 import SeriesPage from './pages/SeriesPage';
 import VideojuegosPage from './pages/VideojuegosPage';
 import NotFoundPage from './pages/NotFoundPage';
+import { RadioYRegalo } from './components/RadioYRegalo';
 import { ScrollToTop } from './components/ScrollToTop';
 import { CartProvider } from './state/CartContext';
+import { CartDrawerProvider } from './components/CarritoLateral';
 import { AuthProvider } from './state/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import ProductoPage from './pages/ProductoPage';
@@ -37,8 +38,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
       <CartProvider>
+      <CartDrawerProvider>
       <ScrollToTop />
-      <Shortcuts />
+      <RadioYRegalo />
       <Routes>
         <Route path="/" element={<IndexPage />} />
       <Route path="/accesorios.html" element={<AccesoriosPage />} />
@@ -46,14 +48,14 @@ export default function App() {
       <Route path="/anime.html" element={<AnimePage />} />
       <Route path="/bluray.html" element={<BlurayPage />} />
       <Route path="/blurray.html" element={<BlurrayPage />} />
-      <Route path="/carrito.html" element={<RealCarritoPage />} />
-      <Route path="/checkout.html" element={<RealCheckoutPage />} />
+      <Route path="/carrito.html" element={<ProtectedRoute guest><RealCarritoPage /></ProtectedRoute>} />
+      <Route path="/checkout.html" element={<ProtectedRoute guest><RealCheckoutPage /></ProtectedRoute>} />
       <Route path="/index.html" element={<IndexPage />} />
       <Route path="/login.html" element={<LoginPage />} />
       <Route path="/merchandising.html" element={<MerchandisingPage />} />
       <Route path="/musica.html" element={<MusicaPage />} />
       <Route path="/peliculas.html" element={<PeliculasPage />} />
-      <Route path="/perfil.html" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
+      <Route path="/perfil.html" element={<ProtectedRoute shared><PerfilPage /></ProtectedRoute>} />
       <Route path="/registro.html" element={<RegistroPage />} />
       <Route path="/resultados.html" element={<RealResultadosPage />} />
       <Route path="/series.html" element={<SeriesPage />} />
@@ -67,11 +69,12 @@ export default function App() {
         <Route path="/soporte/:id" element={<ProtectedRoute><SoportePage /></ProtectedRoute>} />
         <Route path="/postventa" element={<ProtectedRoute><PostVentaPage /></ProtectedRoute>} />
         <Route path="/postventa/:id" element={<ProtectedRoute><PostVentaPage /></ProtectedRoute>} />
-        <Route path="/notificaciones" element={<ProtectedRoute><NotificacionesPage /></ProtectedRoute>} />
+        <Route path="/notificaciones" element={<ProtectedRoute shared><NotificacionesPage /></ProtectedRoute>} />
         <Route path="/recuperar-cuenta" element={<RecuperarCuentaPage />} />
         <Route path="/eliminar-cuenta" element={<ProtectedRoute><EliminarCuentaPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </CartDrawerProvider>
       </CartProvider>
       </AuthProvider>
     </BrowserRouter>

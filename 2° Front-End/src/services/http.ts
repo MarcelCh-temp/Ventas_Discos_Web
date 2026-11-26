@@ -26,7 +26,7 @@ export async function http<T>(path: string, options: {
       cache: 'no-store',
     });
   } catch {
-    throw new HttpFailure(0, 'No se pudo conectar con el API Gateway (localhost:8080). Comprueba que esté encendido.');
+    throw new HttpFailure(0, `No se pudo conectar con el API Gateway (${apiBase}). Comprueba que esté encendido.`);
   }
   const raw = await response.text();
   let payload: unknown;
