@@ -210,6 +210,14 @@ class OrdenesITTest {
         json(cliente, post("/api/v1/admin/orders/1/dispatch"), "{\"transportista\":\"X\"}").andExpect(status().isForbidden());
     }
 
+    @Test
+    void administradorNoPuedeComprarComoCliente() throws Exception {
+        String admin = TestTokens.admin();
+        como(admin, get("/api/v1/cart")).andExpect(status().isForbidden());
+        como(admin, get("/api/v1/orders/me")).andExpect(status().isForbidden());
+        como(admin, get("/api/v1/rewards/roulette")).andExpect(status().isForbidden());
+    }
+
     /** T-09: un pedido ajeno se responde como inexistente; el dueño y el Administrador sí lo ven. */
     @Test
     void pedidoAjeno_404_yAccesoAutorizado() throws Exception {
@@ -336,6 +344,7 @@ class OrdenesITTest {
         String r = confirmar(uid, "23990", "APROBADO", "DESPACHO_DOMICILIO").andExpect(status().isCreated())
                 .andExpect(jsonPath("$.pago.simulacionAcademica").value(true))
                 .andExpect(jsonPath("$.pedido.estado").value("CONFIRMADO"))
+                .andExpect(jsonPath("$.pedido.metodoPago").value("WEBPAY"))
                 .andExpect(jsonPath("$.pedido.total").value(23990))
                 .andExpect(jsonPath("$.pedido.items[0].precioUnitario").value(10000))
                 .andExpect(jsonPath("$.pedido.datosEntrega.comuna").value("Santiago"))

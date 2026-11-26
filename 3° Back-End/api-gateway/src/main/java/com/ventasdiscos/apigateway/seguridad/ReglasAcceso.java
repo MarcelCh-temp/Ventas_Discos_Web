@@ -16,7 +16,7 @@ import java.util.Locale;
  *   <li>/api/v1/admin/** y GET /api/v1/accounts/stats (admin aunque no tenga el prefijo) → ADMINISTRADOR.
  *       Se revisa ANTES que las públicas, para que ninguna regla pública pueda abrir una ruta administrativa.</li>
  *   <li>Lista cerrada de endpoints públicos (método + ruta exactos) → PUBLICA, sin token.</li>
- *   <li>Todo lo demás → CLIENTE: exige un JWT de usuario válido (cliente o administrador).</li>
+ *   <li>Todo lo demás → CLIENTE: exige JWT; las operaciones comerciales son exclusivas del cliente.</li>
  * </ol>
  * Si en el futuro se agrega una ruta nueva y nadie la declara pública, queda protegida por defecto.
  * El Gateway es la PRIMERA capa: cada MS sigue validando el token, el rol, la propiedad del recurso y el estado de la
@@ -99,6 +99,13 @@ public final class ReglasAcceso {
             }
         }
         return Acceso.CLIENTE;
+    }
+
+    /** Rutas comerciales privadas que un administrador no puede utilizar como cliente. */
+    public static boolean exclusivaCliente(String path) {
+        return List.of("/api/v1/cart", "/api/v1/checkout", "/api/v1/orders", "/api/v1/rewards",
+                "/api/v1/favorites", "/api/v1/post-sale", "/api/v1/support").stream()
+                .anyMatch(base -> path.equals(base) || path.startsWith(base + "/"));
     }
 
     // Ejecuta enrutada como parte de las responsabilidades de esta clase.

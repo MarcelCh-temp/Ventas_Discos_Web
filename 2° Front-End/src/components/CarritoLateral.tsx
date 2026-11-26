@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../state/AuthContext';
 import { storeApi, clp, errorMessage, type Cart } from '../services/storeApi';
 import '../styles/carrito-lateral.css';
+import { guestItems } from '../state/guestCart';
+import { GuestCart } from './GuestCart';
 
 type DrawerState = { open: () => void; close: () => void; units: number | null };
 const DrawerContext = createContext<DrawerState | null>(null);
@@ -27,7 +29,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async (visible: boolean) => {
     const seq = ++requestSeq.current;
-    if (!session) { setCart(null); setUnits(null); setError(''); return; }
+    if (!session || session.rol !== 'CLIENTE') { setCart(null); setUnits(session ? null : guestItems().reduce((sum,item)=>sum+item.cantidad,0)); setError(''); return; }
     if (visible) { setLoading(true); setError(''); }
     try {
       const next = await storeApi.cart.read(session.token);
@@ -46,6 +48,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('nackson-cart-changed', handler);
   }, [load, busy]);
   useEffect(() => { ++requestSeq.current; setCart(null); setUnits(null); setIsOpen(false); }, [session?.userId, session?.token]);
+  useEffect(() => { void load(false); }, [load]);
   useEffect(() => { setIsOpen(false); }, [pathname]);
 
   useEffect(() => {
@@ -105,7 +108,8 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
           <button ref={closeButton} type="button" className="nackson-cart-close" aria-label="Cerrar carrito" onClick={close}>×</button>
         </header>
         <div className="nackson-cart-content">
-          {!session ? <div className="nackson-cart-empty"><p>Inicia sesión para consultar tu carrito real.</p><Link to="/login.html" onClick={close}>Iniciar sesión</Link></div> : <>
+          <GuestCart/>
+          {!session ? null : <>
             {loading && !cart && <p role="status">Cargando carrito…</p>}
             {error && <div role="alert" className="nackson-cart-error">{error}</div>}
             {cart?.items.length === 0 && <div className="nackson-cart-empty"><i className="bi bi-basket3" aria-hidden="true" /><p>Tu carrito está vacío.</p><Link to="/resultados.html" onClick={close}>Explorar productos</Link></div>}
@@ -142,6 +146,8 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
 
 export function CartDrawerTrigger() {
   const drawer = useContext(DrawerContext);
+  const { session } = useAuth();
+  if (session?.rol === 'ADMINISTRADOR') return null;
   if (!drawer) throw new Error('CartDrawerTrigger requiere CartDrawerProvider.');
   return <button type="button" className="nackson-cart-trigger nav-link text-light" aria-label="Abrir carrito lateral" onClick={drawer.open}>
     <i className="bi bi-cart-fill" aria-hidden="true" /> <span>Carrito</span>

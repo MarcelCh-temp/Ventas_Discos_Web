@@ -1,4 +1,6 @@
-import { useEffect, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
+import { Children, isValidElement, useEffect, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
+import { NacksonShell } from './NacksonShell';
+import { Navbar } from './Navbar';
 import { useNavigate } from 'react-router-dom';
 
 type Props = {
@@ -64,8 +66,8 @@ export function PageFrame({ title, css, bodyClass = '', bodyStyle, children }: P
   }
 
   return (
-    <div onSubmitCapture={handleSubmit} onClickCapture={handleClick} className="nackson-legacy-page">
-      {children}
+    <NacksonShell><div onSubmitCapture={handleSubmit} onClickCapture={handleClick} className="nackson-legacy-page">
+      {Children.toArray(children).filter(child => !isValidElement(child) || child.type !== Navbar)}
       {notice && (
         <div role="status" aria-live="polite" className="alert alert-warning position-fixed bottom-0 start-50 translate-middle-x shadow" style={{ zIndex: 3000, width: 'min(90vw, 630px)' }}>
           <div className="d-flex align-items-center justify-content-between gap-3">
@@ -74,6 +76,6 @@ export function PageFrame({ title, css, bodyClass = '', bodyStyle, children }: P
           </div>
         </div>
       )}
-    </div>
+    </div></NacksonShell>
   );
 }

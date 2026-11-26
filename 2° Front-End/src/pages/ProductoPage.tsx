@@ -4,6 +4,7 @@ import { StockStatus } from '../components/StockStatus';
 import { StoreLayout } from '../components/StoreLayout';
 import { StoreNotice } from '../components/StoreNotice';
 import { useAuth } from '../state/AuthContext';
+import { addGuest } from '../state/guestCart';
 import { storeApi, clp, errorMessage, type Producto, type Params } from '../services/storeApi';
 import '../styles/producto-detalle.css';
 
@@ -117,8 +118,13 @@ export default function ProductoPage() {
   };
 
   const exec = async (type: 'cart' | 'favorite') => {
+    if (session?.rol === 'ADMINISTRADOR') { setError('Esta acción está reservada a clientes.'); return; }
     if (!session) {
-      setError('Inicia sesión para añadir productos al carrito o favoritos.');
+      if(type==='favorite'){setError('Inicia sesión para guardar favoritos.');return;}
+      if(!item||busy)return;
+      setBusy(true);setError('');setNotice('');
+      try { await addGuest(item.id,cantidad);setNotice('Producto añadido al carrito temporal.'); }
+      catch(e){setError(errorMessage(e));}finally{setBusy(false);}
       return;
     }
     if (!item || busy) return;

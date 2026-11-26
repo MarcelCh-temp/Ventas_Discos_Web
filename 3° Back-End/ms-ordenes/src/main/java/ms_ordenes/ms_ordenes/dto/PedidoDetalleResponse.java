@@ -2,13 +2,14 @@ package ms_ordenes.ms_ordenes.dto;
 
 import ms_ordenes.ms_ordenes.model.EstadoOrden;
 import ms_ordenes.ms_ordenes.model.Orden;
+import ms_ordenes.ms_ordenes.model.MetodoPago;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * RF-PED-03 / RF-MIP-02: detalle completo. subtotal = total + descuento (precios antes de promociones).
+ * RF-PED-03 / RF-MIP-02: detalle completo. subtotal = total + descuento - envío (precios antes de promociones).
  * Nunca se expone la entidad JPA.
  * Revisión Lote 3: reposicionStockPendiente = pedido CANCELADO cuyo stock Catalog todavía no confirmó haber repuesto
  * (se resuelve repitiendo la cancelación; no repone dos veces). Campo agregado al final.
@@ -17,7 +18,7 @@ public record PedidoDetalleResponse(Long id, String numeroPedido, Long userId, L
                                     EstadoOrden estado, List<ItemPedidoResponse> items, BigDecimal subtotal,
                                     BigDecimal descuento, BigDecimal total, DatosEntregaResponse datosEntrega,
                                     DespachoResponse despacho, List<HistorialPedidoResponse> historial,
-                                    boolean reposicionStockPendiente, BigDecimal descuentoRuleta, BigDecimal costoEnvio, String premioRuleta) {
+                                    boolean reposicionStockPendiente, BigDecimal descuentoRuleta, BigDecimal costoEnvio, String premioRuleta, MetodoPago metodoPago) {
 
     // Ejecuta from como parte de las responsabilidades de esta clase.
     public static PedidoDetalleResponse from(Orden o, boolean vistaAdministrador) {
@@ -26,6 +27,6 @@ public record PedidoDetalleResponse(Long id, String numeroPedido, Long userId, L
                 o.getTotal().add(o.getDescuentoHistorico()).subtract(o.getCostoEnvio()), o.getDescuentoHistorico(), o.getTotal(),
                 DatosEntregaResponse.from(o.getDatosEntrega()), DespachoResponse.from(o.getDespacho()),
                 o.getHistorial().stream().map(h -> HistorialPedidoResponse.from(h, vistaAdministrador)).toList(),
-                o.reposicionPendiente(), o.getDescuentoRuleta(), o.getCostoEnvio(), o.getPremioRuleta());
+                o.reposicionPendiente(), o.getDescuentoRuleta(), o.getCostoEnvio(), o.getPremioRuleta(), o.getMetodoPago());
     }
 }

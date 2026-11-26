@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StoreLayout } from '../components/StoreLayout';
 import { StoreNotice } from '../components/StoreNotice';
+import { GuestCart } from '../components/GuestCart';
 import { useAuth } from '../state/AuthContext';
 import { useAppDialog } from '../components/ConfirmDialog';
 import { storeApi,clp,errorMessage,type Cart } from '../services/storeApi';
@@ -26,7 +27,8 @@ export default function RealCarritoPage(){const {confirm:askConfirmation}=useApp
  };
  const act=async(fn:()=>Promise<Cart>)=>{setBusy(true);setError('');try{setCart(await fn());window.dispatchEvent(new Event('nackson-cart-changed'));}catch(e){setError(errorMessage(e));}finally{setBusy(false);}};
  return <StoreLayout title="Tu carrito de compras">
- {!session?<div className="alert alert-info">El carrito de Orders pertenece a tu cuenta. <Link to="/login.html">Inicia sesión</Link> para consultarlo.</div>:<>
+ <GuestCart/>
+ {!session?null:<>
  <p className="text-info small">Carrito real administrado por MS-Orders. Precios, promociones y stock vienen del servidor.</p><StoreNotice error={error}/>
  {!cart&&!error&&<p role="status">Cargando carrito de Orders…</p>}
  {cart&&<div className="row g-4"><div className="col-lg-8">

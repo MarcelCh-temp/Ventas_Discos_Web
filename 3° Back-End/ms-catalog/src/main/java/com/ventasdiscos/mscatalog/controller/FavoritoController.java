@@ -32,6 +32,7 @@ public class FavoritoController {
     @GetMapping
     // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<List<FavoritoResponse>> listar(@Parameter(hidden = true) AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(service.listar(user.userId()));
     }
 
@@ -39,6 +40,7 @@ public class FavoritoController {
     @PostMapping("/{productId}")
     public ResponseEntity<FavoritoResponse> agregar(@Parameter(hidden = true) AuthUser user,
                                                     @PathVariable Long productId) {
+        user.requireCliente();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.agregar(user.userId(), productId));
     }
 
@@ -46,6 +48,7 @@ public class FavoritoController {
     @DeleteMapping("/{productId}")
     // DELETE: solicita la eliminación o desactivación de un recurso. Método eliminar (eliminar).
     public ResponseEntity<Void> eliminar(@Parameter(hidden = true) AuthUser user, @PathVariable Long productId) {
+        user.requireCliente();
         service.eliminar(user.userId(), productId);
         return ResponseEntity.noContent().build();
     }

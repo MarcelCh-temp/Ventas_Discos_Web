@@ -88,6 +88,10 @@ public class SeguridadGatewayFilter extends OncePerRequestFilter {
                     ApiErrorJson.escribir(request, response, HttpStatus.FORBIDDEN, SIN_PERMISO);
                     return;
                 }
+                if (acceso == Acceso.CLIENTE && ReglasAcceso.exclusivaCliente(path) && usuario.esAdministrador()) {
+                    ApiErrorJson.escribir(request, response, HttpStatus.FORBIDDEN, SIN_PERMISO);
+                    return;
+                }
                 chain.doFilter(request, response);
             }
         }

@@ -28,8 +28,8 @@ export default function LoginPage() {
     try {
       const user = await signIn(input);
       const from = previous?.from;
-      const target = typeof from === 'string' && from.startsWith('/') && !from.startsWith('//')
-        ? from : user.rol === 'ADMINISTRADOR' ? '/admin.html' : '/';
+      const target = user.rol === 'ADMINISTRADOR' ? '/admin.html' :
+        typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/admin.html') ? from : '/';
       navigate(target, { replace: true });
     } catch (err) {
       if (err instanceof HttpFailure) { setErrors(err.fields); setMessage(err.message); }

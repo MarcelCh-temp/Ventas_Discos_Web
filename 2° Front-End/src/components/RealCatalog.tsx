@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 
 import { useAuth } from '../state/AuthContext';
+import { addGuest } from '../state/guestCart';
 
 import { storeApi, clp, errorMessage, type Categoria, type Producto } from '../services/storeApi';
 
@@ -31,6 +32,7 @@ type Props = {
   mensajeCategoria?: string;
 
   sidebarFilters?: boolean;
+  compact?: boolean;
 
 };
 
@@ -106,7 +108,7 @@ export function RealCatalog({
 
   mensajeCategoria,
 
-  sidebarFilters = false
+  sidebarFilters = false, compact = false
 
 }: Props) {
 
@@ -426,12 +428,14 @@ export function RealCatalog({
 
   const add = async (id: number) => {
 
+    if (auth.session?.rol === 'ADMINISTRADOR') { setNotice('La compra está reservada a cuentas de clientes.'); return; }
     if (!auth.session) {
-
-      setNotice('Inicia sesión para añadir productos al carrito de Orders.');
-
+      if (busyRef.current) return;
+      busyRef.current=true;setBusy(id);setNotice('');
+      try { await addGuest(id,1);setNotice('Producto añadido al carrito temporal.'); }
+      catch (e) { setNotice(errorMessage(e)); }
+      finally { busyRef.current=false;setBusy(null); }
       return;
-
     }
 
     if (busyRef.current) return;
@@ -500,7 +504,7 @@ export function RealCatalog({
 
       aria-label={titulo || 'Catálogo de productos'}
 
-      className="w-100"
+      className={compact ? "w-100 nx-compact-catalog" : "w-100"}
 
     >
 
@@ -528,7 +532,7 @@ export function RealCatalog({
 
       {/* FILTROS DEL CATÁLOGO (busqueda global) */}
 
-      {!sidebarFilters && <form
+      {!sidebarFilters && !compact && <form
 
         data-nackson-react-form
 
@@ -786,7 +790,7 @@ export function RealCatalog({
 
             key={product.id}
 
-            className="col-12 col-sm-6 col-lg-4 col-xl-3"
+            className={compact ? "nx-compact-cell" : "col-12 col-sm-6 col-lg-4 col-xl-3"}
 
           >
 
@@ -931,7 +935,7 @@ export function RealCatalog({
 
                 <p
 
-                  className="small text-white-50 flex-grow-1 mb-2"
+                  className="small text-white-50 flex-grow-1 mb-2 nx-product-description"
 
                   style={{
 

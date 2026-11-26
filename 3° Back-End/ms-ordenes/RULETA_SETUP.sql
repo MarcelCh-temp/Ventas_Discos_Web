@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS ruleta_usuario (
  pedido_id BIGINT NULL,
  KEY idx_ruleta_pedido (pedido_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
--- Las columnas de la orden se agregan mediante spring.jpa.hibernate.ddl-auto=update.
+-- En el esquema existente usar Bases-De-Datos/MIGRACION_DETALLE_PEDIDO.sql antes de iniciar con validate.

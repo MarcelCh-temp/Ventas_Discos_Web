@@ -47,7 +47,7 @@ export function Shortcuts() {
         <Link className="text-info text-decoration-none" to="/ofertas">Ofertas</Link>
         <Link className="text-info text-decoration-none" to="/resultados.html">Catálogo</Link>
 
-        {session && (
+        {session?.rol === 'CLIENTE' && (
           <>
             <Link className="text-info text-decoration-none" to="/pedidos">Mis pedidos</Link>
             <Link className="text-info text-decoration-none" to="/soporte">Soporte</Link>
@@ -57,11 +57,10 @@ export function Shortcuts() {
             </Link>
             <Link className="text-info text-decoration-none" to="/favoritos">Favoritos</Link>
 
-            {session.rol === 'ADMINISTRADOR' && (
-              <Link className="text-warning text-decoration-none" to="/admin.html">Administración</Link>
-            )}
+
           </>
         )}
+        {session?.rol === 'ADMINISTRADOR' && <Link className="text-warning text-decoration-none" to="/admin.html">Administración</Link>}
       </div>
     </nav>
   );

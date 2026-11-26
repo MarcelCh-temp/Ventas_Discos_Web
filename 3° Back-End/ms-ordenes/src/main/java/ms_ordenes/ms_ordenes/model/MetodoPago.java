@@ -2,7 +2,7 @@ package ms_ordenes.ms_ordenes.model;
 
 /**
  * Lote 3 (RF-COM-08, decisión del equipo): métodos de pago de la SIMULACIÓN ACADÉMICA.
- * No hay pasarela real ni se piden o guardan datos de tarjeta. El UML 02 no guarda el método en el pedido.
+ * No hay pasarela real ni se piden o guardan datos de tarjeta. El método se conserva como dato histórico del pedido; los pedidos antiguos pueden no tenerlo.
  */
 public enum MetodoPago {
     // Opción WEBPAY: representa el estado o tipo «webpay» permitido en este dominio.

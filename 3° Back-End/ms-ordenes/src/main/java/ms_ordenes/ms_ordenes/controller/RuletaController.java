@@ -15,10 +15,12 @@ public class RuletaController {
     public RuletaController(RuletaService ruleta) { this.ruleta = ruleta; }
     @GetMapping
     public ResponseEntity<RuletaService.Estado> estado(AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(ruleta.estado(user.userId()));
     }
     @PostMapping("/spin")
     public ResponseEntity<RuletaService.Estado> girar(AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(ruleta.girar(user.userId()));
     }
 }

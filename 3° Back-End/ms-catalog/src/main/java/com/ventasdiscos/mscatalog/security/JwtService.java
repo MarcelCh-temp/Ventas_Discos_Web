@@ -53,7 +53,7 @@ public class JwtService {
                 throw new NoAutenticadoException("Tu sesión expiró, inicia sesión nuevamente");
             }
             String rol = claims.getStringClaim("rol");
-            if (rol == null || claims.getSubject() == null) {
+            if (!("CLIENTE".equals(rol) || "ADMINISTRADOR".equals(rol)) || claims.getSubject() == null) {
                 throw new NoAutenticadoException("Token inválido");
             }
             Long userId = Long.valueOf(claims.getSubject());

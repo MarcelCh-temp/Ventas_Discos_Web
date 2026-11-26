@@ -158,6 +158,7 @@ public class OrdenService {
         accountsClient.exigirCuentaActiva(userId);
         Orden orden = Orden.crear(userId, items, descuento, datos,
                 "Pago simulado aprobado (" + metodoPago + ", simulación académica)");
+        orden.registrarMetodoPago(metodoPago);
         // Cotización de la ruleta y reserva bajo el mismo bloqueo transaccional.
         // La orden se guarda una vez: si falla el total/premio se revierte también el vaciado de carrito.
         BigDecimal productos = orden.getTotal();

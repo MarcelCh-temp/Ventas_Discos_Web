@@ -15,14 +15,14 @@ type AdminCheck = {
  * El Gateway y los microservicios siguen siendo los responsables
  * de validar el JWT y el rol en CADA solicitud administrativa.
  */
-export function ProtectedRoute({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
+export function ProtectedRoute({ children, admin = false, shared = false, guest = false }: { children: ReactNode; admin?: boolean; shared?: boolean; guest?: boolean }) {
   const { session, forgetSession } = useAuth();
   const location = useLocation();
   const token = session?.token ?? '';
   const [adminCheck, setAdminCheck] = useState<AdminCheck>({ token: '', status: 'checking' });
 
   useEffect(() => {
-    if (!admin || !session || session.rol !== 'ADMINISTRADOR') return;
+    if (!session || (admin && session.rol !== 'ADMINISTRADOR') || (!admin && !shared && session.rol !== 'CLIENTE')) return;
     let active = true;
     const verifyingToken = session.token;
 
@@ -32,7 +32,7 @@ export function ProtectedRoute({ children, admin = false }: { children: ReactNod
         if (!active) return;
         setAdminCheck({
           token: verifyingToken,
-          status: profile.id === session.userId && profile.rol === 'ADMINISTRADOR'
+          status: profile.id === session.userId && profile.rol === session.rol
             ? 'allowed'
             : 'denied',
         });
@@ -50,24 +50,27 @@ export function ProtectedRoute({ children, admin = false }: { children: ReactNod
       });
 
     return () => { active = false; };
-  }, [admin, session?.token, session?.userId, session?.rol]);
+  }, [admin, shared, session?.token, session?.userId, session?.rol]);
 
+  if (!session && guest) return <>{children}</>;
   if (!session) {
-    return <Navigate to="/login.html" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login.html" replace state={{ from: location.pathname + location.search }} />;
   }
-  if (!admin) return <>{children}</>;
-  if (session.rol !== 'ADMINISTRADOR') return <Navigate to="/" replace />;
+  if (!admin) {
+    if (!shared && session.rol !== 'CLIENTE') return <Navigate to="/admin.html" replace />;
+  }
+  if (admin && session.rol !== 'ADMINISTRADOR') return <Navigate to="/" replace />;
 
   // Compara el token para no reutilizar una autorización de otra sesión.
   if (adminCheck.token !== token || adminCheck.status === 'checking') {
-    return <main className="container py-5" role="status">Verificando acceso a Administración…</main>;
+    return <main className="container py-5" role="status">Verificando acceso…</main>;
   }
   if (adminCheck.status === 'denied') {
     return <AccessDenied onExit={forgetSession} />;
   }
   if (adminCheck.status === 'unavailable') {
     return <main className="container py-5" role="alert">
-      No se pudo verificar tu permiso de administrador. Comprueba que MS-Accounts y API Gateway estén encendidos y recarga la página.
+      No se pudo verificar tu sesión y permisos. Comprueba que MS-Accounts y API Gateway estén encendidos y recarga la página.
     </main>;
   }
   return <>{children}</>;

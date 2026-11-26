@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { accountsApi, type LoginRequest, type LoginResponse, type Rol } from '../services/accountsApi';
 
 export interface AuthSession { token: string; userId: number; nombres: string; rol: Rol; expiresAt: number }
@@ -46,6 +46,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { if (current) await accountsApi.logout(current.token); }
     finally { forgetSession(); }
   }, [forgetSession]);
+  useEffect(() => {
+    if (!session) return;
+    const delay = session.expiresAt - Date.now();
+    if (delay <= 0) { forgetSession(); return; }
+    const timer = window.setTimeout(forgetSession, Math.min(delay, 2147483647));
+    return () => window.clearTimeout(timer);
+  }, [session, forgetSession]);
   const active = session && session.expiresAt > Date.now() ? session : null;
   const value = useMemo(() => ({ session: active, signIn, signOut, forgetSession }), [active, signIn, signOut, forgetSession]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

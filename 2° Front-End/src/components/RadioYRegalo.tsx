@@ -19,6 +19,7 @@ export function RadioYRegalo() {
   const audio = useRef<HTMLAudioElement>(null);
   const [radioAbierta, setRadioAbierta] = useState(false);
   const [estacion, setEstacion] = useState(0);
+  const [volumen, setVolumen] = useState(65);
   const [reproduciendo, setReproduciendo] = useState(false);
   const [radioError, setRadioError] = useState('');
   const [regaloAbierto, setRegaloAbierto] = useState(false);
@@ -36,6 +37,8 @@ export function RadioYRegalo() {
   useEffect(() => {
     return () => { audio.current?.pause(); };
   }, []);
+
+  useEffect(() => { if (audio.current) audio.current.volume = volumen / 100; }, [volumen]);
 
   const reproducir = async () => {
     const reproductor = audio.current;
@@ -78,7 +81,7 @@ export function RadioYRegalo() {
     setCargando(true);
     setErrorOferta('');
     setEstado(null);
-    if (!session) { setCargando(false); return; }
+    if (!session || session.rol !== 'CLIENTE') { setCargando(false); return; }
     try {
       const data = await storeApi.roulette.status(session.token);
       setEstado(data);
@@ -88,7 +91,7 @@ export function RadioYRegalo() {
   };
 
   const sortear = async () => {
-    if (!session || cargando || !estado?.puedeGirar) return;
+    if (!session || session.rol !== 'CLIENTE' || cargando || !estado?.puedeGirar) return;
     setCargando(true);
     setErrorOferta('');
     try {
@@ -111,12 +114,13 @@ export function RadioYRegalo() {
   }[p] || 'Sin premio');
 
   return <>
-    <div className="nr-regalo-widget">
+    {session?.rol !== 'ADMINISTRADOR' && <div className="nr-regalo-widget">
       <button type="button" className="nr-fab nr-fab-gift" aria-label="Ver regalo y sorteo de ofertas" title="Descubre una oferta" onClick={() => void abrirRegalo()}>
         <i className="bi bi-gift-fill" aria-hidden="true" />
       </button>
-    </div>
+    </div>}
     <div className="nr-radio-widget">
+      <audio ref={audio} preload="none" src={ESTACIONES[0].url} onError={() => { setReproduciendo(false); setRadioError('No se pudo conectar con esta emisora.'); }} onEnded={() => setReproduciendo(false)} />
       {radioAbierta && <section className="nr-radio-panel" aria-label="Ñackson Radio Live">
         <div className="nr-panel-header"><strong>♫ ÑACKSON RADIO LIVE</strong><button type="button" aria-label="Cerrar radio" onClick={() => setRadioAbierta(false)}>×</button></div>
         <p className="nr-state">{reproduciendo ? '● Reproduciendo' : 'Radio en pausa'}</p>
@@ -124,7 +128,7 @@ export function RadioYRegalo() {
         <select id="nr-select-radio" value={estacion} onChange={e => cambiarEstacion(Number(e.target.value))}>
           {ESTACIONES.map((e, i) => <option key={e.nombre} value={i}>{e.nombre}</option>)}
         </select>
-        <audio ref={audio} preload="none" src={ESTACIONES[0].url} onError={() => { setReproduciendo(false); setRadioError('No se pudo conectar con esta emisora.'); }} onEnded={() => setReproduciendo(false)} />
+        {!ESTACIONES[estacion].embed && <label>Volumen {volumen}% <input aria-label="Volumen de la radio" type="range" min="0" max="100" value={volumen} onChange={e => setVolumen(Number(e.target.value))}/></label>}
         {ESTACIONES[estacion].embed ? <>
           <iframe
             key={ESTACIONES[estacion].embed}
@@ -140,9 +144,10 @@ export function RadioYRegalo() {
         }
         {radioError && <p role="alert" className="nr-error">{radioError}</p>}
       </section>}
+      <div className="nx-radio-bar"><div className="nx-radio-title"><i className="bi bi-soundwave"/><span><strong>Ñackson Radio Live</strong><small>{ESTACIONES[estacion].nombre}</small></span></div><div className="nx-radio-controls"><button aria-label="Emisora anterior" onClick={()=>cambiarEstacion((estacion+ESTACIONES.length-1)%ESTACIONES.length)}><i className="bi bi-skip-start-fill"/></button><button className="nx-radio-play" aria-label={reproduciendo?'Pausar':'Reproducir'} onClick={()=>ESTACIONES[estacion].embed?setRadioAbierta(true):reproduciendo?parar():void reproducir()}><i className={`bi bi-${reproduciendo?'pause':'play'}-fill`}/></button><button aria-label="Siguiente emisora" onClick={()=>cambiarEstacion((estacion+1)%ESTACIONES.length)}><i className="bi bi-skip-end-fill"/></button></div><span className="nx-radio-live">{radioError?'Señal no disponible':reproduciendo?'● EN VIVO':'En pausa'}</span><label className="nx-radio-volume"><i className="bi bi-volume-up"/><input aria-label="Volumen" type="range" min="0" max="100" value={volumen} disabled={!!ESTACIONES[estacion].embed} onChange={e=>setVolumen(Number(e.target.value))}/></label></div>
       <button type="button" className="nr-fab nr-fab-radio" aria-label={radioAbierta ? 'Ocultar radio' : 'Abrir radio'} title="Ñackson Radio" onClick={() => setRadioAbierta(!radioAbierta)}><i className="bi bi-music-note-beamed" aria-hidden="true" /></button>
     </div>
-    {regaloAbierto && <div className="nr-modal-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setRegaloAbierto(false); }}>
+    {regaloAbierto && session?.rol !== 'ADMINISTRADOR' && <div className="nr-modal-backdrop" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setRegaloAbierto(false); }}>
       <section className="nr-gift-modal" role="dialog" aria-modal="true" aria-label="Ruleta Ñackson Store">
         <button className="nr-modal-close" type="button" onClick={() => setRegaloAbierto(false)} aria-label="Cerrar">×</button>
         <h2>🎁 Ruleta Ñackson Store</h2>

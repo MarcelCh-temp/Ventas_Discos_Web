@@ -39,6 +39,7 @@ public class CarritoController {
     @GetMapping
     // GET: consulta información; el controlador delega la operación y devuelve la respuesta correspondiente.
     public ResponseEntity<CarritoResponse> obtener(@Parameter(hidden = true) AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(carritoService.obtener(user.userId()));
     }
 
@@ -47,6 +48,7 @@ public class CarritoController {
     // POST: recibe una solicitud y ejecuta una operación. Método agregar (agregar).
     public ResponseEntity<CarritoResponse> agregar(@Parameter(hidden = true) AuthUser user,
                                                    @Valid @RequestBody AgregarItemRequest req) {
+        user.requireCliente();
         return ResponseEntity.ok(carritoService.agregar(user.userId(), req));
     }
 
@@ -56,6 +58,7 @@ public class CarritoController {
     public ResponseEntity<CarritoResponse> cambiarCantidad(@Parameter(hidden = true) AuthUser user,
                                                            @PathVariable Long productId,
                                                            @Valid @RequestBody CambiarCantidadRequest req) {
+        user.requireCliente();
         return ResponseEntity.ok(carritoService.cambiarCantidad(user.userId(), productId, req.cantidadEntera()));
     }
 
@@ -63,6 +66,7 @@ public class CarritoController {
     @DeleteMapping("/items/{productId}")
     // DELETE: solicita la eliminación o desactivación de un recurso. Método quitar (quitar).
     public ResponseEntity<CarritoResponse> quitar(@Parameter(hidden = true) AuthUser user, @PathVariable Long productId) {
+        user.requireCliente();
         return ResponseEntity.ok(carritoService.quitar(user.userId(), productId));
     }
 
@@ -70,6 +74,7 @@ public class CarritoController {
     @DeleteMapping
     // DELETE: solicita la eliminación o desactivación de un recurso. Método vaciar (vaciar).
     public ResponseEntity<CarritoResponse> vaciar(@Parameter(hidden = true) AuthUser user) {
+        user.requireCliente();
         return ResponseEntity.ok(carritoService.vaciar(user.userId()));
     }
 }

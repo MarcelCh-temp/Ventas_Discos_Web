@@ -76,6 +76,19 @@ public class Orden {
     @Column(name = "premio_ruleta", length = 25)
     private String premioRuleta;
 
+    /** Método histórico de pago simulado; null para pedidos anteriores a esta versión. */
+    @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.VARCHAR)
+    @Column(name = "metodo_pago", length = 25)
+    private MetodoPago metodoPago;
+
+    public void registrarMetodoPago(MetodoPago metodoPago) {
+        if (id != null) throw new IllegalStateException("El método de pago histórico no se puede modificar");
+        this.metodoPago = Objects.requireNonNull(metodoPago);
+    }
+
+    public MetodoPago getMetodoPago() { return metodoPago; }
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NotNull

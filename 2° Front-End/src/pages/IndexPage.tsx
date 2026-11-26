@@ -1,44 +1,17 @@
-/** Vista migrada desde index.html. HTML visual original conservado.
- * No se ejecuta JavaScript heredado con sesiones/clientes ficticios. */
-import { Link } from 'react-router-dom';
-import { PageFrame } from '../components/PageFrame';
-import { RealCatalog } from '../components/RealCatalog';
-import { Footer } from '../components/Footer';
-import { Navbar } from '../components/Navbar';
-import { RadioYRegalo } from '../components/RadioYRegalo';
-import css from '../styles/index.css?inline';
-
-export default function IndexPage() {
-  return (
-    <PageFrame title="Ñackson Store - Tienda de Entretenimiento Físico y Merchandising" css={css} bodyClass="d-flex flex-column min-vh-100">
-      {"\n"}
-
-{"\n"}
-<div className="cintillo-animado-container">{"\n"}<div className="cintillo-track">{"\n"}<div className="cintillo-item"><i className="bi bi-controller me-2"></i>{" ¡TODO EN FORMATO FÍSICO Y COLECCIONABLES!"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-truck me-2"></i>{" MÉTODOS DE ENTREGA SEGÚN ORDERS"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-credit-card-2-front-fill me-2"></i>{" PAGO ACADÉMICO SIMULADO EN CHECKOUT"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-gift-fill me-2"></i>{" CONOCE LAS OFERTAS REALES DE CATALOG"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-broadcast me-2"></i>{" ESCUCHA ÑACKSON RADIO LIVE EN VIVO"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-controller me-2"></i>{" ¡TODO EN FORMATO FÍSICO Y COLECCIONABLES!"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-truck me-2"></i>{" MÉTODOS DE ENTREGA SEGÚN ORDERS"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-credit-card-2-front-fill me-2"></i>{" PAGO ACADÉMICO SIMULADO EN CHECKOUT"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-gift-fill me-2"></i>{" CONOCE LAS OFERTAS REALES DE CATALOG"}</div>{"\n"}<div className="cintillo-item"><i className="bi bi-broadcast me-2"></i>{" ESCUCHA ÑACKSON RADIO LIVE EN VIVO"}</div>{"\n"}</div>{"\n"}</div>
-{"\n"}
-
-{"\n"}
-<Navbar variant="home" />
-{"\n"}
-
-{"\n"}
-<header className="hero-futurista text-white text-center py-4 border-bottom border-secondary">{"\n"}<video autoPlay={true} muted={true} loop={true} playsInline={true} className="hero-video-bg">{"\n"}<source src="/video/fondo.mp4" type="video/mp4" />{"\n            Tu navegador no soporta videos HTML5.\n        "}</video>{"\n"}<div className="hero-overlay"></div>{"\n"}<div className="container position-relative z-2">{"\n"}<h1 id="tituloAkiba" className="hero-titulo-especial text-white mb-2">{"ÑACKSON STORE"}</h1>{"\n"}<p className="small mb-3 font-monospace hero-subtítulo" style={{"maxWidth": "550px", "margin": "0 auto"}}>{"Revive la nostalgia. Siente el poder de lo físico. Colecciona discos, películas, series, anime, videojuegos y artículos exclusivos con la mejor calidad."}</p>{"\n"}</div>{"\n"}</header>
-{"\n"}
-
-{"\n"}
-<main className="container my-5 flex-grow-1" id="catalogo">{"\n"}<div className="row mb-4 align-items-center">{"\n"}<div className="col-md-5">{"\n"}<h2 className="mb-0 text-light fs-3">{"NUEVOS PRODUCTOS"}</h2>{"\n"}</div>{"\n"}</div>{"\n"}<div className="row g-4 mb-5">{"\n"}{"\n"}<div className="col-12"><RealCatalog titulo="Productos publicados en Catalog" limit={6} /></div>{"\n"}</div>{"\n"}{"\n"}<div className="row mb-4 align-items-center pt-3 border-top border-secondary">{"\n"}<div className="col-md-6">{"\n"}<h2 className="mb-0 text-light fs-3">{"EXPLORA POR CATEGORÍA"}</h2>{"\n"}</div>{"\n"}</div>{"\n"}<div className="row g-3">{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/musica.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_musica.jpg" alt="Música" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"MÚSICA"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/anime.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_anime.jpg" alt="Anime" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"ANIME"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/videojuegos.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_videojuegos.jpg" alt="Videojuegos" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"VIDEOJUEGOS"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/peliculas.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_peliculas.jpg" alt="Películas" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"PELÍCULAS"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/series.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_series.jpg" alt="Series" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"SERIES"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/bluray.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_bluray.jpg" alt="Blu-ray / DVD" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"BLU-RAY / DVD"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/accesorios.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_accesorios.jpg" alt="Accesorios" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"ACCESORIOS"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}<div className="col-6 col-md-3">{"\n"}<Link to="/merchandising.html" className="categoria-card p-0 overflow-hidden position-relative rounded-3 d-block border border-secondary shadow-sm">{"\n"}<img src="/img/cat_merch.jpg" alt="Merchandising" className="w-100 object-fit-cover" style={{"height": "110px", "opacity": "0.75"}} />{"\n"}<div className="position-absolute top-50 start-50 translate-middle w-100 text-center px-2">{"\n"}<h3 className="h6 mb-0 text-white fw-bold text-shadow">{"MERCHANDISING"}</h3>{"\n"}</div>{"\n"}</Link>{"\n"}</div>{"\n"}</div>{"\n"}</main>
-{"\n"}
-
-{"\n"}
-<RadioYRegalo />
-
-<Footer variant="home" />
-{"\n"}
-
-{"\n"}
-{"\n"}
-{"\n"}
-{"\n"}
-    </PageFrame>
-  );
+import {useEffect,useState} from 'react';
+import {Link} from 'react-router-dom';
+import {useAuth} from '../state/AuthContext';
+import {NacksonShell,categories} from '../components/NacksonShell';
+import {RealCatalog} from '../components/RealCatalog';
+import type {Categoria} from '../services/storeApi';
+const filters: {name:string;icon:string;cat?:Categoria;genre?:string}[]=[{name:'Todo',icon:'star-fill'},{name:'Películas',icon:'film',cat:'SERIES_PELICULAS_ANIME',genre:'Película'},{name:'Series',icon:'tv',cat:'SERIES_PELICULAS_ANIME',genre:'Serie'},{name:'Música',icon:'music-note-beamed',cat:'MUSICA'},{name:'Videojuegos',icon:'controller',cat:'VIDEOJUEGOS'},{name:'Merch',icon:'bag',cat:'MERCHANDISING'}];
+const slides=[{title:'COLECCIONA',accent:'TU ENTRETENIMIENTO',text:'Música, películas, series, anime, videojuegos y merch en un solo lugar.',img:'/img/nx-hero-retro.jpg',to:'#nx-destacados',cta:'Explorar ahora'},{title:'REVIVE',accent:'LA NOSTALGIA',text:'Encuentra tus películas y series favoritas en formato físico.',img:'/img/cine.jpg',to:'/peliculas.html',cta:'Ver películas'},{title:'SUBE',accent:'EL VOLUMEN',text:'Descubre música y coleccionables para tu colección.',img:'/img/rock.jpg',to:'/musica.html',cta:'Explorar música'}];
+export default function IndexPage(){
+ const {session}=useAuth(); const [slide,setSlide]=useState(0);const [filter,setFilter]=useState(0);
+ useEffect(()=>{document.title='Ñackson Store';},[]);
+ const hero=slides[slide]; const selected=filters[filter];
+ return <NacksonShell home> <main className="nx-home-main"><section className="nx-hero nx-glass" aria-label="Promociones"><div className="nx-hero-art" style={{backgroundImage:`url(${hero.img})`}}/><div className="nx-hero-copy"><small>✦ ÑACKSON STORE</small><h1>{hero.title}<br/><em>{hero.accent}</em></h1><p>{hero.text}</p>{hero.to.startsWith('#')?<a className="nx-cta" href={hero.to}>{hero.cta} →</a>:<Link className="nx-cta" to={hero.to}>{hero.cta} →</Link>}</div><button className="nx-hero-prev" aria-label="Promoción anterior" onClick={()=>setSlide((slide+slides.length-1)%slides.length)}>‹</button><button className="nx-hero-next" aria-label="Siguiente promoción" onClick={()=>setSlide((slide+1)%slides.length)}>›</button><div className="nx-hero-dots">{slides.map((_,i)=><button key={i} aria-label={`Promoción ${i+1}`} aria-pressed={slide===i} onClick={()=>setSlide(i)}/>)}</div></section>
+ <section className="nx-entertain nx-glass"><div className="nx-entertain-side"><h2><i className="bi bi-film"/> Entretenimiento</h2><div className="nx-filter-tiles">{filters.map((f,i)=><button key={f.name} aria-pressed={filter===i} onClick={()=>setFilter(i)}><i className={`bi bi-${f.icon}`}/>{f.name}</button>)}</div></div><div className="nx-category-strip">{categories.slice(1,9).map(([name,to,,img])=><Link to={to} key={to}><img src={`/img/cat_${img}.jpg`} alt=""/><span>{name}</span><small>Explorar →</small></Link>)}</div></section>
+ <section className="nx-featured" id="nx-destacados"><header><h2>✦ Novedades y destacados</h2><Link to="/resultados.html">Ver todo →</Link></header><RealCatalog key={filter} categoria={selected.cat} genero={selected.genre} compact limit={6}/></section><footer className="nx-home-footer">Ñackson Store · Entretenimiento físico <Link to="/ofertas">Ofertas</Link>{session?.rol==='CLIENTE'&&<Link to="/soporte">Ayuda</Link>}</footer></main>
+</NacksonShell>;
 }

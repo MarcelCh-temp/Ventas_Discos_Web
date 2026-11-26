@@ -78,6 +78,14 @@ class ReglasAccesoTest {
         assertEquals(Acceso.ADMINISTRADOR, ReglasAcceso.clasificar(metodo, path));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings={"/api/v1/cart", "/api/v1/orders/me/1", "/api/v1/checkout/confirm", "/api/v1/rewards/roulette", "/api/v1/favorites", "/api/v1/post-sale/requests/me", "/api/v1/support/requests"})
+    void operacionesExclusivasCliente(String path) { assertTrue(ReglasAcceso.exclusivaCliente(path)); }
+
+    @ParameterizedTest
+    @ValueSource(strings={"/api/v1/accounts/me", "/api/v1/notifications/me", "/api/v1/admin/orders"})
+    void operacionesNoExclusivasCliente(String path) { assertFalse(ReglasAcceso.exclusivaCliente(path)); }
+
     @ParameterizedTest(name = "{0} nunca se expone")
     @ValueSource(strings = {
             "/api/v1/internal/accounts/5/operation-status",
