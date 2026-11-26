@@ -3,6 +3,8 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CartProvider } from '../state/CartContext';
+import { AuthProvider } from '../state/AuthContext';
+import { CartDrawerProvider } from '../components/CarritoLateral';
 import CarritoPage from '../pages/CarritoPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import { demoProducts } from '../data/demoCatalog';
@@ -15,12 +17,16 @@ const itemB = demoProducts[1];
 function renderPages(start = '/carrito.html') {
   return render(
     <MemoryRouter initialEntries={[start]}>
-      <CartProvider>
-        <Routes>
+      <AuthProvider>
+        <CartProvider>
+          <CartDrawerProvider>
+          <Routes>
           <Route path="/carrito.html" element={<CarritoPage />} />
           <Route path="/checkout.html" element={<CheckoutPage />} />
-        </Routes>
-      </CartProvider>
+          </Routes>
+          </CartDrawerProvider>
+        </CartProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
 }

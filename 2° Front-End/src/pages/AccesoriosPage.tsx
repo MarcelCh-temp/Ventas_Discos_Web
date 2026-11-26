@@ -1,5 +1,7 @@
-/** Vista migrada desde accesorios.html. HTML visual original conservado.
- * No se ejecuta JavaScript heredado con sesiones/clientes ficticios. */
+
+/** Vista migrada desde accesorios.html.
+ * No se ejecuta JavaScript heredado con sesiones/clientes ficticios.
+ */
 import { PageFrame } from '../components/PageFrame';
 import { RealCatalog } from '../components/RealCatalog';
 import { Footer } from '../components/Footer';
@@ -8,28 +10,99 @@ import css from '../styles/accesorios.css?inline';
 
 export default function AccesoriosPage() {
   return (
-    <PageFrame title="Accesorios - Ñackson Store" css={css} bodyClass="d-flex flex-column min-vh-100">
-      {"\n"}
+    <PageFrame
+      title="Accesorios - Ñackson Store"
+      css={css}
+      bodyClass="d-flex flex-column min-vh-100"
+    >
+      <Navbar variant="accessories" />
 
-{"\n"}
-<Navbar variant="accessories" />
-{"\n"}
+      {/* ENCABEZADO CON VIDEO DE FONDO */}
+      <header
+        className="position-relative overflow-hidden border-bottom border-secondary mb-4"
+        style={{
+          minHeight: '280px',
+          backgroundColor: '#11151d',
+        }}
+      >
+        {/* VIDEO DIFUMINADO, SIN SONIDO Y EN BUCLE */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+            filter: 'blur(6px) brightness(0.65)',
+            transform: 'scale(1.08)',
+            pointerEvents: 'none',
+          }}
+        >
+          <source src="/hero-accesorios.mp4" type="video/mp4" />
+        </video>
 
-{"\n"}
-<header className="bg-dark text-white text-center py-5 border-bottom border-secondary mb-4 bg-opacity-50">{"\n"}<div className="container">{"\n"}<h1 className="text-danger fw-bold display-5 mb-2"><i className="bi bi-watch me-2"></i>{" Accesorios y Componentes"}</h1>{"\n"}<p className="text-white-50 lead fs-6">{"Llaveros, gorros, pines y accesorios coleccionables."}</p>{"\n"}</div>{"\n"}</header>
-{"\n"}
+        {/* CAPA OSCURA PARA MEJORAR EL CONTRASTE */}
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.35)',
+            pointerEvents: 'none',
+          }}
+        />
 
-{"\n"}
-<main className="container my-4 flex-grow-1">{"\n"}<div className="row g-4">{"\n"}{"\n"}<div className="col-lg-8">{"\n"}<div className="d-flex justify-content-between align-items-center mb-3">{"\n"}<h3 className="text-light fs-5 mb-0">{"Resultados"}</h3>{"\n"}{"\n"}</div>{"\n"}<div className="row g-4">{"\n"}<RealCatalog categoria="ACCESORIOS" titulo="Catálogo real" mensajeCategoria="Productos filtrados desde MS-Catalog según esta sección." />{"\n"}</div>{"\n"}</div>{"\n"}{"\n"}<div className="col-lg-4">{"\n"}<div className="panel-filtros p-4 text-light">{"\n"}<h4 className="h5 text-danger mb-3 pb-2 border-bottom border-secondary"><i className="bi bi-funnel-fill me-2"></i>{" Filtrar y Ordenar"}</h4>{"\n"}{"\n"}{"\n"}{"\n"}<p className="small text-white-50">Utiliza los filtros del catálogo para refinar los resultados.</p>{"\n"}</div>{"\n"}</div>{"\n"}</div>{"\n"}</main>
-{"\n"}
+        {/* TEXTO ENCIMA DEL VIDEO */}
+        <div
+          className="container position-relative text-center text-white d-flex flex-column justify-content-center"
+          style={{
+            minHeight: '280px',
+            zIndex: 1,
+          }}
+        >
+          {/* TÍTULO MANUSCRITO, SIN ÍCONO */}
+          <h1 className="hero-accesorios-titulo text-danger mb-3">
+            ACCESORIOS Y COMPONENTES
+          </h1>
 
-{"\n"}
-<Footer variant="accessories" />
-{"\n"}
+          {/* DESCRIPCIÓN NORMAL */}
+          <p className="text-white lead fs-6 mb-0">
+            Llaveros, gorros, pines y accesorios coleccionables.
+          </p>
+        </div>
+      </header>
 
-{"\n"}
-{"\n"}
-{"\n"}
+      {/* CATÁLOGO Y FILTROS */}
+      <main className="container-fluid px-3 px-lg-4 my-4 flex-grow-1">
+        <div className="row g-3">
+
+          {/* FILTROS - IZQUIERDA */}
+          <aside className="col-12 col-lg-3">
+            <div id="nackson-category-filter-panel" />
+          </aside>
+
+          {/* PRODUCTOS - DERECHA */}
+          <section className="col-12 col-lg-9">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h3 className="text-light fs-5 mb-0">
+                Resultados
+              </h3>
+            </div>
+
+            <RealCatalog
+              sidebarFilters
+              categoria="ACCESORIOS"
+              titulo="Catálogo real"
+              mensajeCategoria="Productos filtrados desde MS-Catalog según esta sección."
+            />
+          </section>
+
+        </div>
+      </main>
+
+      <Footer variant="accessories" />
     </PageFrame>
   );
 }

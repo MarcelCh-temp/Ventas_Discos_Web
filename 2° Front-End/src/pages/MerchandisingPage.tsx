@@ -1,5 +1,7 @@
-/** Vista migrada desde merchandising.html. HTML visual original conservado.
- * No se ejecuta JavaScript heredado con sesiones/clientes ficticios. */
+
+/** Vista migrada desde merchandising.html.
+ * No se ejecuta JavaScript heredado con sesiones/clientes ficticios.
+ */
 import { PageFrame } from '../components/PageFrame';
 import { RealCatalog } from '../components/RealCatalog';
 import { Footer } from '../components/Footer';
@@ -8,18 +10,93 @@ import css from '../styles/merchandising.css?inline';
 
 export default function MerchandisingPage() {
   return (
-    <PageFrame title="Merchandising - Ñackson Store" css={css} bodyClass="d-flex flex-column min-vh-100">
-      {"\n"}
-<Navbar variant="category" activeCategory="merchandising" />
-{"\n"}
-<header className="bg-dark text-white text-center py-5 border-bottom border-secondary mb-4 bg-opacity-50">{"\n"}<div className="container">{"\n"}<h1 className="text-danger fw-bold display-5 mb-2"><i className="bi bi-bag-heart-fill me-2"></i>{" Merchandising Exclusivo"}</h1>{"\n"}<p className="text-white-50 lead fs-6">{"Figuras, poleras, tazones y coleccionables oficiales."}</p>{"\n"}</div>{"\n"}</header>
-{"\n"}
-<main className="container my-4 flex-grow-1">{"\n"}<div className="row g-4">{"\n"}<div className="col-lg-8">{"\n"}<div className="row g-4">{"\n"}<RealCatalog categoria="MERCHANDISING" titulo="Catálogo real" mensajeCategoria="Productos filtrados desde MS-Catalog según esta sección." />{"\n"}</div>{"\n"}</div>{"\n"}<div className="col-lg-4">{"\n"}<div className="panel-filtros p-4 text-light">{"\n"}<h4 className="h5 text-danger mb-3 pb-2 border-bottom border-secondary"><i className="bi bi-funnel-fill me-2"></i>{" Filtrar y Ordenar"}</h4>{"\n"}<p className="small text-white-50">Utiliza los filtros del catálogo para refinar los resultados.</p>{"\n"}</div>{"\n"}</div>{"\n"}</div>{"\n"}</main>
-{"\n"}
-<Footer variant="category" />
-{"\n"}
-{"\n"}
-{"\n"}
+    <PageFrame
+      title="Merchandising - Ñackson Store"
+      css={css}
+      bodyClass="d-flex flex-column min-vh-100"
+    >
+      <Navbar variant="category" activeCategory="merchandising" />
+
+      {/* ENCABEZADO CON VIDEO DE FONDO */}
+      <header
+        className="position-relative overflow-hidden border-bottom border-secondary mb-4"
+        style={{
+          minHeight: '280px',
+          backgroundColor: '#11151d',
+        }}
+      >
+        {/* VIDEO DIFUMINADO, SIN SONIDO Y EN BUCLE */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+            filter: 'blur(6px) brightness(0.65)',
+            transform: 'scale(1.08)',
+            pointerEvents: 'none',
+          }}
+        >
+          <source src="/hero-merchandising.mp4" type="video/mp4" />
+        </video>
+
+        {/* CAPA OSCURA PARA MEJORAR EL CONTRASTE */}
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.35)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* TEXTO ENCIMA DEL VIDEO */}
+        <div
+          className="container position-relative text-center text-white d-flex flex-column justify-content-center"
+          style={{
+            minHeight: '280px',
+            zIndex: 1,
+          }}
+        >
+          {/* TÍTULO MANUSCRITO, SIN ÍCONO */}
+          <h1 className="hero-merchandising-titulo text-danger mb-3">
+            MERCHANDISING EXCLUSIVO
+          </h1>
+
+          {/* DESCRIPCIÓN NORMAL */}
+          <p className="text-white lead fs-6 mb-0">
+            Figuras, poleras, tazones y coleccionables oficiales.
+          </p>
+        </div>
+      </header>
+
+      {/* CATÁLOGO Y FILTROS */}
+      <main className="container-fluid px-3 px-lg-4 my-4 flex-grow-1">
+        <div className="row g-3">
+
+          {/* FILTROS - IZQUIERDA */}
+          <aside className="col-12 col-lg-3">
+            <div id="nackson-category-filter-panel" />
+          </aside>
+
+          {/* PRODUCTOS - DERECHA */}
+          <section className="col-12 col-lg-9">
+            <RealCatalog
+              sidebarFilters
+              categoria="MERCHANDISING"
+              titulo="Catálogo real"
+              mensajeCategoria="Productos filtrados desde MS-Catalog según esta sección."
+            />
+          </section>
+
+        </div>
+      </main>
+
+      <Footer variant="category" />
     </PageFrame>
   );
 }

@@ -5,6 +5,7 @@ import { PageFrame } from '../components/PageFrame';
 import { RealCatalog } from '../components/RealCatalog';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
+import { RadioYRegalo } from '../components/RadioYRegalo';
 import css from '../styles/index.css?inline';
 
 export default function IndexPage() {
@@ -29,18 +30,8 @@ export default function IndexPage() {
 {"\n"}
 
 {"\n"}
-<div id="ruletaWidget">{"\n"}<button className="btn btn-danger rounded-circle shadow-lg d-flex align-items-center justify-content-center" style={{"width": "60px", "height": "60px"}} data-legacy-onclick="toggleRuletaModal()" title="Ruleta de Premios Ñackson">{"\n"}<i className="bi bi-gift-fill fs-3 text-white"></i>{"\n"}</button>{"\n"}</div>
-{"\n"}
+<RadioYRegalo />
 
-{"\n"}
-<div id="radioWidget">{"\n"}<div id="radioPanel" className="radio-panel p-3">{"\n"}<div className="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-2">{"\n"}<span className="fw-bold text-primary small"><i className="bi bi-broadcast me-1"></i>{" ÑACKSON RADIO LIVE"}</span>{"\n"}<button type="button" className="btn-close btn-close-white btn-sm" data-legacy-onclick="toggleRadioPanel()"></button>{"\n"}</div>{"\n"}<div className="text-center mb-3">{"\n"}<span id="radioStatus" className="badge bg-secondary mb-1">{"Radio en pausa"}</span>{"\n"}<p id="radioStationName" className="text-light small mb-0 fw-bold">{"Selecciona una emisora"}</p>{"\n"}</div>{"\n"}<div className="mb-3">{"\n"}<select id="selectEstacion" className="form-select form-select-sm bg-dark text-light border-secondary" data-legacy-onchange="cambiarEstacion()">{"\n"}<option value="https://stream.zeno.fm/f3wvbbqmdg8uv">{"Lo-Fi & Chill Beats (Stream HD)"}</option>{"\n"}<option value="https://icecast.omroep.nl/radio2-bb-mp3">{"Rock Clásico Internacional"}</option>{"\n"}<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CONCIERTO.mp3">{"Radio Concierto Chile (En Vivo)"}</option>{"\n"}</select>{"\n"}</div>{"\n"}<audio id="audioPlayer" preload="none"></audio>{"\n"}<div className="d-flex justify-content-center align-items-center gap-2">{"\n"}<button id="btnPlayPause" className="btn btn-primary btn-sm w-100 fw-bold shadow-sm" data-legacy-onclick="controlarReproduccion()">{"\n"}<i className="bi bi-play-fill fs-5"></i>{" Reproducir\n                "}</button>{"\n"}</div>{"\n"}</div>{"\n"}<button id="btnRadioToggle" className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style={{"width": "60px", "height": "60px"}} data-legacy-onclick="toggleRadioPanel()" title="Abrir Radio Ñackson">{"\n"}<i id="iconoNota" className="bi bi-music-note-beamed fs-3 text-white"></i>{"\n"}<div id="iconoEq" className="equalizer-icon" style={{"display": "none"}}>{"\n"}<div className="eq-bar"></div>{"\n"}<div className="eq-bar"></div>{"\n"}<div className="eq-bar"></div>{"\n"}<div className="eq-bar"></div>{"\n"}</div>{"\n"}</button>{"\n"}</div>
-{"\n"}
-
-{"\n"}
-<div id="ruletaModal" className="ruleta-overlay-modal">{"\n"}<div className="ruleta-modal-content text-center">{"\n"}<button type="button" className="btn-close btn-close-white position-absolute top-0 end-0 m-4" data-legacy-onclick="toggleRuletaModal()"></button>{"\n"}<h3 className="text-danger fw-bold mb-2" style={{"fontFamily": "'Changa', sans-serif"}}><i className="bi bi-gift-fill me-1"></i>{" ¡JUEGA Y GANA!"}</h3>{"\n"}<p id="subtituloRuleta" className="text-light mb-3" style={{"fontSize": "0.95rem"}}>{"Ingresa tu correo y gira la ruleta para ganar premios exclusivos sobre $20.000"}</p>{"\n"}<div className="ruleta-canvas-container">{"\n"}<div className="ruleta-puntero"></div>{"\n"}<canvas id="ruletaCanvas" width="500" height="500"></canvas>{"\n"}</div>{"\n"}<div id="resultadoPremio" className="fw-bold text-warning mb-3" style={{"minHeight": "25px"}}></div>{"\n"}<div id="contenedorFormRuleta" className="mb-2 px-md-4">{"\n"}<input type="email" id="correoRuleta" className="form-control bg-dark text-light border-secondary mb-3 text-center py-2" placeholder="email@example.com" />{"\n"}<button type="button" id="btnGirar" className="btn btn-danger w-100 fw-bold shadow-sm py-2 fs-6" data-legacy-onclick="girarRuleta()">{"\n                    GIRAR RULETA\n                "}</button>{"\n"}</div>{"\n"}</div>{"\n"}</div>
-{"\n"}
-
-{"\n"}
 <Footer variant="home" />
 {"\n"}
 

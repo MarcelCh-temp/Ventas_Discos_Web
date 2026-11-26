@@ -11,7 +11,7 @@ const send = <T>(path: string, method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', toke
 export interface Page<T> { contenido: T[]; pagina: number; tamano: number; totalElementos: number; totalPaginas: number }
 export type Categoria = 'MUSICA' | 'SERIES_PELICULAS_ANIME' | 'VIDEOJUEGOS' | 'ACCESORIOS' | 'MERCHANDISING';
 export type Disponibilidad = 'AGOTADO' | 'STOCK_CRITICO' | 'DISPONIBLE' | 'NO_CONFIRMADA';
-export interface Producto { id: number; nombre: string; descripcion: string | null; categoria: Categoria; genero: string; formato: string; plataforma: string | null; imagenUrl: string | null; precioBase: number; precioOferta: number | null; promocion: string | null; disponibilidad: Disponibilidad; comprable: boolean }
+export interface Producto { id: number; nombre: string; descripcion: string | null; categoria: Categoria; genero: string; formato: string; plataforma: string | null; imagenUrl: string | null; precioBase: number; precioOferta: number | null; promocion: string | null; disponibilidad: Disponibilidad; stockActual: number | null; comprable: boolean }
 export interface ProductoAdmin extends Omit<Producto, "precioOferta" | "promocion" | "comprable"> { estado: string; stockActual: number | null }
 export interface ProductoRequest { nombre: string; descripcion: string; precioBase: number; categoria: Categoria; genero: string; formato: string; plataforma: string; imagenUrl: string | null }
 export interface Favorito { productId: number; nombre: string; imagenUrl: string | null; precioBase: number; estadoComercial: string; disponibilidad: Disponibilidad; comprable: boolean; mensaje: string | null }
@@ -19,13 +19,14 @@ export interface Oferta { promocionId: number; nombre: string; tipoDescuento: 'P
 export interface Inventario {productId:number; nombre:string; categoria:Categoria; stockActual:number; umbralCritico:number; disponibilidad:Disponibilidad}
 export interface Movimiento {id:number; productId:number; tipo:'ENTRADA'|'SALIDA'|'AJUSTE'; cantidad:number; stockAnterior:number; stockResultante:number; fechaHora:string; motivo:string|null; usuarioId:number|null; operacionId:string|null}
 export interface ItemCart { productId:number; nombre:string; cantidad:number; precioUnitario:number; descuentoUnitario:number; precioFinalUnitario:number; subtotal:number; disponibilidad:Disponibilidad; haySuficiente:boolean; comprable:boolean; motivo:string|null }
+export interface PremioRuleta { premio: 'NINGUNO'|'DESCUENTO_5'|'DESCUENTO_10'|'ENVIO_GRATIS'; estado: string; proximoGiro: string | null; puedeGirar: boolean; pedidoId: number | null }
 export interface Cart {items:ItemCart[]; cantidadProductos:number; unidades:number; subtotal:number; descuento:number; total:number; vacio:boolean; listoParaComprar:boolean; preciosActualizados:boolean; avisos:string[]}
 export interface MetodoEntrega { codigo:string; nombre:string; camposObligatorios:string[]; camposOpcionales:string[] }
 export interface OpcionesPago {simulacionAcademica:boolean; aviso:string; metodos:{codigo:string;nombre:string}[]; resultadosSimulados:string[]; resultadoPorDefecto:string}
 export interface DatosEntrega { metodoEntrega:string; nombreReceptor:string; telefono:string; direccion?:string; comuna?:string; referencia?:string }
-export interface ResumenCompra {items:ItemCart[]; subtotal:number; descuento:number; total:number; datosEntrega:DatosEntrega & {nombreMetodo?:string}; listo:boolean; problemas: Record<string,string>}
+export interface ResumenCompra {items:ItemCart[]; subtotal:number; descuento:number; total:number; datosEntrega:DatosEntrega & {nombreMetodo?:string}; listo:boolean; problemas: Record<string,string>; descuentoRuleta:number; costoEnvio:number; premioRuleta:string}
 export interface PedidoResumen {id:number; numeroPedido:string|null; userId:number; fechaCompra:string; total:number; estado:string; metodoEntrega:string; nombreReceptor:string; cantidadProductos:number}
-export interface PedidoDetalle extends Omit<PedidoResumen, "metodoEntrega" | "nombreReceptor"> {items:{productId:number; nombreProducto:string; precioUnitario:number; cantidad:number; subtotal:number}[];subtotal:number;descuento:number; datosEntrega: DatosEntrega|null; despacho:{fechaDespacho:string; transportista:string;numeroSeguimiento:string|null}|null; historial:{fechaHora:string; estadoAnterior:string|null;estadoNuevo:string;motivo:string;descripcion:string;usuarioResponsableId:number|null}[]}
+export interface PedidoDetalle extends Omit<PedidoResumen, "metodoEntrega" | "nombreReceptor"> {items:{productId:number; nombreProducto:string; precioUnitario:number; cantidad:number; subtotal:number}[];subtotal:number;descuento:number;descuentoRuleta:number;costoEnvio:number;premioRuleta:string|null; datosEntrega: DatosEntrega|null; despacho:{fechaDespacho:string; transportista:string;numeroSeguimiento:string|null}|null; historial:{fechaHora:string; estadoAnterior:string|null;estadoNuevo:string;motivo:string;descripcion:string;usuarioResponsableId:number|null}[]}
 export interface ConfirmacionCompra {mensaje:string; pago:{metodo:string;resultado:string;simulacionAcademica:boolean};pedido:PedidoDetalle}
 export interface Seguimiento {id:number;numeroPedido:string;estado:string;mensaje:string;cancelado:boolean;finalizado:boolean;pasos:{estado:string;completado:boolean;actual:boolean}[];despacho:PedidoDetalle['despacho'];historial:PedidoDetalle['historial']}
 export interface TicketResumen {id:number;numeroTicket:string|null;idUsuario:number;orderId:number|null;asunto:string;categoria:string;estado:'ABIERTA'|'EN_PROCESO'|'CERRADA';fechaCreacion:string;fechaCierre:string|null}
@@ -35,6 +36,10 @@ export interface SolicitudResumen {id:number;tipo:'CANCELACION'|'DEVOLUCION'|'RE
 export interface SolicitudDetalle extends SolicitudResumen {motivoSolicitud?:string;motivoResolucion?:string;items?:{id:number;productoId:number;cantidadSolicitada:number;cantidadRecibida:number}[];recepciones?:unknown[];usuarioResolucionId?:number|null}
 export interface Promocion {id:number;nombre:string;tipoDescuento:'PORCENTAJE'|'MONTO';valor:number;fechaInicio:string;fechaFin:string;montoMinimoCompra:number|null;productIds:number[];categoria:Categoria|null;estado:string}
 export const storeApi = {
+  roulette: {
+    status:(token:string)=>get<PremioRuleta>('/api/v1/rewards/roulette',token),
+    spin:(token:string)=>send<PremioRuleta>('/api/v1/rewards/roulette/spin','POST',token),
+  },
   catalog: {
     list:(params:Params={})=>get<Page<Producto>>('/api/v1/products'+query(params)),
     detail:(id:number)=>get<Producto>(`/api/v1/products/${id}`),
